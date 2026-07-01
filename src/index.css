@@ -1,0 +1,69 @@
+/* Tailwind v4 — single import pulls in preflight + utilities. */
+@import 'tailwindcss';
+
+/*
+ * Redcentric 2027 brand palette. Declaring these as @theme tokens makes
+ * utilities like `bg-rc-blue`, `text-rc-navy`, `border-rc-blue-light`
+ * available across the app. See BRAND.md for roles and usage rules.
+ */
+@theme {
+  --color-rc-navy: #142d46;
+  --color-rc-blue: #0066b3;
+  --color-rc-blue-light: #d9e8f4;
+  --color-rc-green-dark: #00272b;
+  --color-rc-teal: #005862;
+  --color-rc-green-light: #d8f0f1;
+  --color-rc-lime: #8dc63f;
+  /* Softer page wash — calmer than solid blue-light, keeps white cards crisp. */
+  --color-rc-canvas: #eef4fa;
+
+  /* Brand typeface is Avenir (licensed); Mulish is the loaded free fallback. */
+  --font-sans: 'Avenir Next', 'Avenir LT Std', Avenir, Mulish, 'Segoe UI',
+    system-ui, -apple-system, sans-serif;
+}
+
+html,
+body,
+#root {
+  min-height: 100vh;
+}
+
+body {
+  margin: 0;
+  color: var(--color-rc-navy);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Brand headings use Avenir Black — render them heavy. */
+h1,
+h2,
+h3 {
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+/* Signature blue → teal gradient rule, echoing the logo's top/bottom bars. */
+.rc-gradient {
+  background-image: linear-gradient(
+    to right,
+    var(--color-rc-blue),
+    var(--color-rc-teal)
+  );
+}
+
+/* Shared text-input styling used across the portal's forms. */
+.rc-input {
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-rc-blue-light);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  color: var(--color-rc-navy);
+  background: #fff;
+}
+.rc-input:focus {
+  outline: none;
+  border-color: var(--color-rc-blue);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-rc-blue) 25%, transparent);
+}

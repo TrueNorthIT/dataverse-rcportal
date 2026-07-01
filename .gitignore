@@ -1,0 +1,34 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Local env — real secrets live here, never commit. Ship .env.example instead.
+.env
+.env.*
+!.env.example
+
+# Brand source assets — large binaries not for VCS. The extracted logos we
+# actually use live in public/brand/. Keep the source kit out of git.
+*.zip
+Branding*.docx
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
