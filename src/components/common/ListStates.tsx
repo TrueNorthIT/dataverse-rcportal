@@ -19,11 +19,17 @@ export function ListStates({
   if (loading) {
     return (
       <div className="space-y-3" aria-busy="true" aria-label="Loading">
-        {[0, 1, 2].map((i) => (
+        {[0, 1, 2, 3].map((i) => (
           <div
             key={i}
-            className="h-20 animate-pulse rounded-2xl border border-rc-blue-light bg-white"
-          />
+            className="flex items-center justify-between gap-4 rounded-2xl border border-rc-blue-light bg-white p-4"
+          >
+            <div className="flex-1 space-y-2">
+              <div className="rc-skeleton h-4 w-2/5 rounded" />
+              <div className="rc-skeleton h-3 w-3/5 rounded" />
+            </div>
+            <div className="rc-skeleton h-6 w-16 rounded-full" />
+          </div>
         ))}
       </div>
     )
@@ -45,7 +51,7 @@ export function ListStates({
     )
   }
 
-  return <>{children}</>
+  return <div className="rc-fade-up">{children}</div>
 }
 
 /** "Load more" control for cursor pagination via `page.next`. */
