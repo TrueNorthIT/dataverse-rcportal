@@ -11,13 +11,14 @@ export interface Project {
   /** Display name of the project. */
   msdyn_subject?: string
   msdyn_scheduledstart?: string
-  msdyn_scheduledfinish?: string
+  /** Scheduled finish — the real field is `msdyn_finish` (not scheduledfinish). */
+  msdyn_finish?: string
   statecode?: number
   statecode_label?: string
   statuscode?: number
   statuscode_label?: string
-  /** Lookup → account (the company the project is for). */
-  _msdyn_accountid_value?: string
+  /** Lookup → account (the customer the project is for). */
+  _msdyn_customer_value?: string
   createdon?: string
   modifiedon?: string
 }

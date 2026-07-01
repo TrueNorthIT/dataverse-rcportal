@@ -40,7 +40,7 @@ export function ProjectsPage() {
                     {p.msdyn_subject || 'Untitled project'}
                   </div>
                   <div className="mt-1 text-sm text-rc-teal">
-                    {formatDate(p.msdyn_scheduledstart)} – {formatDate(p.msdyn_scheduledfinish)}
+                    {formatDate(p.msdyn_scheduledstart)} – {formatDate(p.msdyn_finish)}
                   </div>
                 </div>
                 <StatusChip label={p.statuscode_label} />

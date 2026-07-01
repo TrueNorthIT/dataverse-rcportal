@@ -99,6 +99,14 @@ function api(token) {
       if (!res.ok) throw new Error(`POST ${entitySet} → ${res.status} ${await res.text()}`)
       return res.json()
     },
+    async update(entitySet, id, body) {
+      const res = await fetch(`${API}/${entitySet}(${id})`, {
+        method: 'PATCH',
+        headers: base,
+        body: JSON.stringify(body),
+      })
+      if (!res.ok) throw new Error(`PATCH ${entitySet}(${id}) → ${res.status} ${await res.text()}`)
+    },
     async del(entitySet, id) {
       const res = await fetch(`${API}/${entitySet}(${id})`, { method: 'DELETE', headers: base })
       if (!res.ok && res.status !== 404) throw new Error(`DELETE ${entitySet}(${id}) → ${res.status}`)
@@ -231,11 +239,18 @@ async function accountByName(client, name) {
   return r.value?.[0] || null
 }
 
-/** Contacts belonging to an account (excluding the login identity by default). */
+/** Contacts belonging to an account (includes the login identity). */
 async function accountContacts(client, accountId) {
   const f = encodeURIComponent(`_parentcustomerid_value eq ${accountId}`)
   const r = await client.get(`contacts?$select=contactid,fullname,emailaddress1&$filter=${f}&$top=100`)
   return r.value || []
+}
+
+/** The steve+<code> login contact id for an account, or null. */
+async function loginContactId(client, code) {
+  const f = encodeURIComponent(`emailaddress1 eq '${loginEmail(code)}'`)
+  const r = await client.get(`contacts?$select=contactid&$filter=${f}`)
+  return r.value?.[0]?.contactid || null
 }
 
 /** One "Steve Drake" login contact per account, keyed by the plus-alias email. */
@@ -249,23 +264,30 @@ async function seedLogins(client) {
     const email = loginEmail(acc.code)
     const f = encodeURIComponent(`emailaddress1 eq '${email}'`)
     const existing = await client.get(`contacts?$select=contactid&$filter=${f}`)
-    if (existing.value?.length) {
+    let loginId = existing.value?.[0]?.contactid
+    if (loginId) {
       console.log(`• ${email} — already exists`)
-      continue
+    } else {
+      const created = await client.create('contacts', {
+        firstname: 'Steve',
+        lastname: 'Drake',
+        emailaddress1: email,
+        jobtitle: 'IT Manager',
+        telephone1: acc.tel,
+        address1_city: acc.city,
+        address1_stateorprovince: acc.county,
+        address1_country: 'United Kingdom',
+        description: `${MARKER} Demo login identity (operator's own alias).`,
+        'parentcustomerid_account@odata.bind': `/accounts(${account.accountid})`,
+      })
+      loginId = created.contactid
+      console.log(`✓ ${acc.name} — login contact ${email}`)
     }
-    await client.create('contacts', {
-      firstname: 'Steve',
-      lastname: 'Drake',
-      emailaddress1: email,
-      jobtitle: 'IT Manager',
-      telephone1: acc.tel,
-      address1_city: acc.city,
-      address1_stateorprovince: acc.county,
-      address1_country: 'United Kingdom',
-      description: `${MARKER} Demo login identity (operator's own alias).`,
-      'parentcustomerid_account@odata.bind': `/accounts(${account.accountid})`,
+    // Make the login the account's PRIMARY contact so the me-tier isn't empty
+    // for account (My company) and project (project → account → primary contact).
+    await client.update('accounts', account.accountid, {
+      'primarycontactid@odata.bind': `/contacts(${loginId})`,
     })
-    console.log(`✓ ${acc.name} — login contact ${email}`)
   }
 }
 
@@ -330,15 +352,24 @@ async function seedOpportunities(client) {
       console.log(`• ${acc.name} — ${existing.value.length} opportunities already, skipping`)
       continue
     }
-    const contacts = (await accountContacts(client, account.accountid)).filter(
+    const loginId = await loginContactId(client, acc.code)
+    const others = (await accountContacts(client, account.accountid)).filter(
       (c) => !(c.emailaddress1 || '').startsWith('steve+'),
     )
     const n = randInt(2, 5)
+    // The login owns the first half so the me-tier (opportunity → parentcontactid)
+    // isn't empty; the rest go to random colleagues so team shows more than me.
+    const loginOwned = Math.ceil(n / 2)
     const shuffled = [...SERVICES].sort(() => Math.random() - 0.5)
     let made = 0
     for (let i = 0; i < n; i++) {
       const service = shuffled[i % shuffled.length]
-      const contact = contacts.length ? pick(contacts) : null
+      const ownerId =
+        i < loginOwned && loginId
+          ? loginId
+          : others.length
+            ? pick(others).contactid
+            : loginId
       const body = {
         name: `${service} — ${acc.name}`,
         estimatedvalue: randInt(5, 120) * 1000,
@@ -347,11 +378,11 @@ async function seedOpportunities(client) {
         'customerid_account@odata.bind': `/accounts(${account.accountid})`,
         'transactioncurrencyid@odata.bind': `/transactioncurrencies(${GBP_CURRENCY_ID})`,
       }
-      if (contact) body['parentcontactid@odata.bind'] = `/contacts(${contact.contactid})`
+      if (ownerId) body['parentcontactid@odata.bind'] = `/contacts(${ownerId})`
       await client.create('opportunities', body)
       made++
     }
-    console.log(`✓ ${acc.name} — ${made} opportunities`)
+    console.log(`✓ ${acc.name} — ${made} opportunities (${loginOwned} owned by the login)`)
   }
 }
 
@@ -367,11 +398,20 @@ async function seedQuotes(client, priceListId) {
       continue
     }
     const of = encodeURIComponent(`_customerid_value eq ${account.accountid} and contains(description,'${MARKER}')`)
-    const opps = (await client.get(`opportunities?$select=opportunityid,name&$filter=${of}&$top=50`)).value || []
+    const opps = (await client.get(`opportunities?$select=opportunityid,name,_parentcontactid_value&$filter=${of}&$top=50`)).value || []
+    // Prefer a login-owned opportunity for the first quote so the quote me-tier
+    // (quote → opportunity → parentcontactid) isn't empty for the login.
+    const loginId = await loginContactId(client, acc.code)
+    const loginOpps = opps.filter((o) => o._parentcontactid_value === loginId)
     const n = randInt(1, 3)
     let made = 0
     for (let i = 0; i < n; i++) {
-      const opp = opps[i % Math.max(opps.length, 1)]
+      const opp =
+        i === 0 && loginOpps.length
+          ? loginOpps[0]
+          : opps.length
+            ? opps[i % opps.length]
+            : null
       const subject = opp ? opp.name.split(' — ')[0] : pick(SERVICES)
       const body = {
         name: `Quote: ${subject}`,
@@ -388,6 +428,50 @@ async function seedQuotes(client, priceListId) {
   }
 }
 
+/**
+ * 1–3 delivery projects per account (Dataverse `msdyn_project`, Project Ops).
+ *
+ * Projects only link to the customer *account* (`msdyn_customer`) — there's no
+ * project→contact field — so the portal's me-tier resolves via the account's
+ * primary contact (set by seedLogins). Team shows all the account's projects.
+ */
+async function seedProjects(client) {
+  for (const acc of ACCOUNTS) {
+    const account = await accountByName(client, acc.name)
+    if (!account) continue
+    const f = encodeURIComponent(
+      `_msdyn_customer_value eq ${account.accountid} and contains(msdyn_description,'${MARKER}')`,
+    )
+    const existing = await client.get(`msdyn_projects?$select=msdyn_projectid&$filter=${f}`)
+    if (existing.value?.length) {
+      console.log(`• ${acc.name} — ${existing.value.length} projects already, skipping`)
+      continue
+    }
+    const n = randInt(1, 3)
+    const shuffled = [...SERVICES].sort(() => Math.random() - 0.5)
+    let made = 0
+    for (let i = 0; i < n; i++) {
+      const service = shuffled[i % shuffled.length]
+      try {
+        await client.create('msdyn_projects', {
+          msdyn_subject: `${service} delivery — ${acc.name}`,
+          msdyn_description: marker('project'),
+          msdyn_scheduledstart: isoDate(randInt(-30, 30)),
+          msdyn_finish: isoDate(randInt(60, 240)),
+          'msdyn_customer@odata.bind': `/accounts(${account.accountid})`,
+        })
+        made++
+      } catch (err) {
+        // Project Operations may require extra fields on create depending on env
+        // config — surface it rather than failing the whole seed.
+        console.log(`  ! ${acc.name} project create failed: ${String(err.message).slice(0, 160)}`)
+        break
+      }
+    }
+    if (made) console.log(`✓ ${acc.name} — ${made} projects`)
+  }
+}
+
 async function seedRelated(client) {
   console.log('— Login contacts —')
   await seedLogins(client)
@@ -398,21 +482,26 @@ async function seedRelated(client) {
   console.log('\n— Quotes —')
   const priceListId = await ensurePriceList(client)
   await seedQuotes(client, priceListId)
+  console.log('\n— Projects —')
+  await seedProjects(client)
   console.log('\nRelated data done.')
 }
 
 // ─── clean ──────────────────────────────────────────────────────────────────
 async function clean(client) {
-  // Delete children before parents: quotes/opps reference accounts; contacts too.
+  // Delete children before parents: quotes/opps/projects reference accounts;
+  // contacts too. Each entry is [entitySet, idField, markerField] — msdyn_project
+  // tags the marker in msdyn_description, the rest in description.
   const sets = [
-    ['quotes', 'quoteid'],
-    ['opportunities', 'opportunityid'],
-    ['pricelevels', 'pricelevelid'],
-    ['contacts', 'contactid'],
-    ['accounts', 'accountid'],
+    ['quotes', 'quoteid', 'description'],
+    ['opportunities', 'opportunityid', 'description'],
+    ['msdyn_projects', 'msdyn_projectid', 'msdyn_description'],
+    ['pricelevels', 'pricelevelid', 'description'],
+    ['contacts', 'contactid', 'description'],
+    ['accounts', 'accountid', 'description'],
   ]
-  for (const [set, idField] of sets) {
-    const descFilter = encodeURIComponent(`contains(description,'${MARKER}')`)
+  for (const [set, idField, markerField] of sets) {
+    const descFilter = encodeURIComponent(`contains(${markerField},'${MARKER}')`)
     const found = await client.get(`${set}?$select=${idField}&$filter=${descFilter}`)
     const rows = found.value || []
     for (const row of rows) await client.del(set, row[idField])
