@@ -10,11 +10,14 @@ interface UseMyCompanyResult {
 }
 
 /**
- * The signed-in customer's own company (`account`, me tier).
+ * The signed-in customer's own company (`account`, TEAM tier).
  *
- * `me` on `account` returns the account the caller is the primary contact of —
- * at most one row. Used by the shell header to show the company name and by the
- * Company screen. Cheap and cached at the component that mounts it.
+ * Use `team`, not `me`: on the account table `team` = "your own account" (the
+ * one you belong to via parentcustomerid_account), whereas `me` = "accounts you
+ * are the *primary contact* of" — which is empty for any colleague who isn't the
+ * named primary contact, giving a blank company. `team` returns the caller's
+ * account for everyone. (See the join semantics in dataverse-rcportal-terraform.)
+ * Used by the shell header and the Company screen.
  */
 export function useMyCompany(): UseMyCompanyResult {
   const client = useDataverseClient()
@@ -28,7 +31,7 @@ export function useMyCompany(): UseMyCompanyResult {
       setLoading(true)
       setError(null)
       try {
-        const res = await client.me.list<Account>('account', {
+        const res = await client.team.list<Account>('account', {
           select: ACCOUNT_SELECT,
           top: 1,
         })
