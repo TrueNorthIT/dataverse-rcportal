@@ -27,3 +27,13 @@ export const env = {
   /** Full API base incl. scope path, e.g. "https://.../api/v2/rcportal". */
   API_BASE_URL: requireEnvVar('VITE_API_BASE_URL'),
 }
+
+/**
+ * Optional Dataverse environment URL — operator/demo aid only. When set (in the
+ * deployment's env), a "View in Dataverse" link appears in the footer. Leave it
+ * unset for a real customer deployment and the link simply doesn't render.
+ */
+export const DATAVERSE_URL = (import.meta.env.VITE_DATAVERSE_URL as string | undefined)?.replace(
+  /\/$/,
+  '',
+)

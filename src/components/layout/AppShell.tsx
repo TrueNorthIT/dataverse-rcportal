@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom'
 import { useMsal } from '@azure/msal-react'
 import { accountToUser } from '../../config/entra'
+import { DATAVERSE_URL } from '../../env'
 import { useMyCompany } from '../../hooks/useMyCompany'
 import { useSelectedCompany } from '../../context/SelectedCompanyContext'
 import { NavTabs } from './NavTabs'
@@ -62,6 +63,25 @@ export function AppShell() {
       <main className="mx-auto max-w-5xl px-4 py-8">
         <Outlet />
       </main>
+
+      {/* Operator/demo aid: jump to the backing record in Dataverse. Only
+          rendered when VITE_DATAVERSE_URL is set — leave it unset for customers. */}
+      {DATAVERSE_URL && (
+        <footer className="mx-auto max-w-5xl px-4 pb-8 pt-2 text-xs text-rc-teal/70">
+          <a
+            href={
+              account?.accountid
+                ? `${DATAVERSE_URL}/main.aspx?pagetype=entityrecord&etn=account&id=${account.accountid}`
+                : DATAVERSE_URL
+            }
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1 hover:text-rc-blue hover:underline"
+          >
+            {account?.name ? `View ${account.name} in Dataverse` : 'Open Dataverse environment'} ↗
+          </a>
+        </footer>
+      )}
     </div>
   )
 }

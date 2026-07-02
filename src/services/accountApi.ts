@@ -23,6 +23,7 @@ export const COLLEAGUE_SELECT = [
   'emailaddress1',
   'telephone1',
   'mobilephone',
+  'donotbulkemail',
 ]
 
 /** Fetch a single account by id (used from the Company screen when needed). */
