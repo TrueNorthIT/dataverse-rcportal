@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { PageHeader } from '../components/common/PageHeader'
 import { Card } from '../components/common/Card'
-import { apiBaseUrl, apiOrigin } from '../config/entra'
+import { apiBaseUrl } from '../config/entra'
 
 /**
  * "AI assistant" — not an embedded chatbot, but a bring-your-own-AI page. The
@@ -9,12 +9,11 @@ import { apiBaseUrl, apiOrigin } from '../config/entra'
  * connect Claude or ChatGPT directly to their own Redcentric data and talk to
  * it in plain language, under the same me / team permissions as the portal.
  *
- * The server URL is derived from VITE_API_BASE_URL so it always matches this
- * deployment's scope (…/api/v2/<scope>/mcp), and the "get a key" link deep-links
- * into the API's own MCP setup page.
+ * Connection is OAuth — the assistant signs the user in with their Redcentric
+ * login. No API key to mint, no install. The server URL is derived from
+ * VITE_API_BASE_URL so it always matches this deployment's scope.
  */
 const MCP_URL = `${apiBaseUrl}/mcp`
-const KEY_SETUP_URL = `${apiOrigin}/mcp`
 
 export function AiPage() {
   return (
@@ -25,10 +24,9 @@ export function AiPage() {
       />
 
       <Intro />
-      <Steps />
-      <Endpoint />
-      <ClientSetup />
-      <Capabilities />
+      <Connect />
+      <Showcase />
+      <Trust />
     </div>
   )
 }
@@ -73,127 +71,52 @@ function Intro() {
   )
 }
 
-/** Three-step getting-started strip. */
-function Steps() {
-  const steps = [
-    {
-      n: '1',
-      title: 'Get your key',
-      body: 'Generate a personal MCP key from the API playground. It carries your permissions and can be revoked at any time.',
-    },
-    {
-      n: '2',
-      title: 'Connect your assistant',
-      body: 'Add the MCP server URL below to Claude or ChatGPT with your key as a bearer token — no install, no code.',
-    },
-    {
-      n: '3',
-      title: 'Just ask',
-      body: '“How many open support cases do we have?” · “Summarise our quotes this quarter” · “Draft a note on the Data Centre Migration project.”',
-    },
-  ]
-  return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-      {steps.map((s) => (
-        <Card key={s.n} className="p-5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-rc-blue-light text-sm font-semibold text-rc-blue">
-            {s.n}
-          </div>
-          <h3 className="mt-3 text-base font-normal tracking-tight text-rc-navy">
-            {s.title}
-          </h3>
-          <p className="mt-1 text-sm leading-relaxed text-rc-teal">{s.body}</p>
-        </Card>
-      ))}
-    </div>
-  )
-}
+type ClientKey = 'chatgpt' | 'claude' | 'claude-code'
 
-/** The scope-specific MCP server URL, with copy + a link to generate a key. */
-function Endpoint() {
-  return (
-    <Card className="p-6">
-      <h3 className="text-base font-normal tracking-tight text-rc-navy">
-        Your MCP server
-      </h3>
-      <p className="mt-1 text-sm text-rc-teal">
-        Point your assistant at this endpoint and authenticate with a bearer key.
-      </p>
-      <CopyRow value={MCP_URL} className="mt-3" />
-      <div className="mt-4 flex flex-wrap items-center gap-3">
-        <a
-          href={KEY_SETUP_URL}
-          target="_blank"
-          rel="noreferrer"
-          className="rounded-lg bg-rc-blue px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-rc-navy"
-        >
-          Get your MCP key
-        </a>
-        <a
-          href={KEY_SETUP_URL}
-          target="_blank"
-          rel="noreferrer"
-          className="text-sm font-medium text-rc-blue hover:underline"
-        >
-          Full setup guide →
-        </a>
-      </div>
-    </Card>
-  )
-}
-
-type ClientKey = 'claude-desktop' | 'claude-code' | 'chatgpt'
-
-/** Per-client connection instructions with a copyable snippet. */
-function ClientSetup() {
-  const [client, setClient] = useState<ClientKey>('claude-desktop')
+/** How to connect — OAuth, no key. A short picker with per-client steps. */
+function Connect() {
+  const [client, setClient] = useState<ClientKey>('chatgpt')
 
   const tabs: { key: ClientKey; label: string }[] = [
-    { key: 'claude-desktop', label: 'Claude Desktop' },
-    { key: 'claude-code', label: 'Claude Code' },
     { key: 'chatgpt', label: 'ChatGPT' },
+    { key: 'claude', label: 'Claude' },
+    { key: 'claude-code', label: 'Claude Code' },
   ]
 
-  const snippets: Record<ClientKey, { note: string; code: string; lang: string }> = {
-    'claude-desktop': {
-      note: 'Add this to claude_desktop_config.json (Settings → Developer → Edit config), then restart Claude.',
-      lang: 'json',
-      code: `{
-  "mcpServers": {
-    "redcentric": {
-      "type": "streamableHttp",
-      "url": "${MCP_URL}",
-      "headers": {
-        "Authorization": "Bearer YOUR_MCP_KEY"
-      }
-    }
-  }
-}`,
+  const guides: Record<ClientKey, { steps?: string[]; code?: string }> = {
+    chatgpt: {
+      steps: [
+        'Open Settings → Connectors → Add custom connector.',
+        'Paste the MCP server URL above and click Connect.',
+        'Sign in with your Redcentric login when the browser opens — that’s it.',
+      ],
+    },
+    claude: {
+      steps: [
+        'Open Settings → Connectors → Add custom connector.',
+        'Paste the MCP server URL and confirm.',
+        'Sign in with your Redcentric login to authorise access.',
+      ],
     },
     'claude-code': {
-      note: 'Run this once in your terminal to register the server.',
-      lang: 'bash',
-      code: `claude mcp add redcentric --transport http \\
-  ${MCP_URL} \\
-  --header "Authorization: Bearer YOUR_MCP_KEY"`,
-    },
-    chatgpt: {
-      note: 'Settings → Connectors → Add MCP server. Paste the URL and choose “Bearer token” authentication.',
-      lang: 'text',
-      code: `Server URL:  ${MCP_URL}
-Auth:        Bearer token
-Token:       YOUR_MCP_KEY`,
+      code: `claude mcp add redcentric --transport http ${MCP_URL}`,
     },
   }
 
-  const active = snippets[client]
+  const active = guides[client]
 
   return (
     <Card className="p-6">
       <h3 className="text-base font-normal tracking-tight text-rc-navy">
-        Connect your assistant
+        Connect in under a minute
       </h3>
-      <div className="mt-3 flex flex-wrap gap-1 rounded-lg bg-rc-canvas p-1">
+      <p className="mt-1 text-sm text-rc-teal">
+        Point your assistant at this server and sign in with your Redcentric
+        login. No API key to create, nothing to install.
+      </p>
+      <CopyRow value={MCP_URL} className="mt-3" />
+
+      <div className="mt-4 flex flex-wrap gap-1 rounded-lg bg-rc-canvas p-1">
         {tabs.map((t) => (
           <button
             key={t.key}
@@ -210,49 +133,117 @@ Token:       YOUR_MCP_KEY`,
           </button>
         ))}
       </div>
-      <p className="mt-3 text-sm text-rc-teal">{active.note}</p>
-      <CodeBlock code={active.code} className="mt-3" />
-      <p className="mt-3 text-xs text-rc-teal">
-        Replace <code className="rounded bg-rc-canvas px-1 py-0.5">YOUR_MCP_KEY</code>{' '}
-        with the key you generated above.
-      </p>
+
+      {active.steps && (
+        <ol className="mt-4 space-y-2">
+          {active.steps.map((s, i) => (
+            <li key={i} className="flex gap-3 text-sm text-rc-teal">
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-rc-blue-light text-xs font-semibold text-rc-blue">
+                {i + 1}
+              </span>
+              <span className="leading-relaxed">{s}</span>
+            </li>
+          ))}
+        </ol>
+      )}
+      {active.code && (
+        <>
+          <p className="mt-4 text-sm text-rc-teal">
+            Run this once — it opens a browser to sign you in.
+          </p>
+          <CodeBlock code={active.code} className="mt-2" />
+        </>
+      )}
     </Card>
   )
 }
 
-/** What the assistant can actually do, and the guardrails. */
-function Capabilities() {
-  const tools = [
-    'List records',
-    'Get a record',
-    'Create records',
-    'Update records',
-    'Look up references',
-    'Read the schema',
-    'Read choice values',
-    'Who am I',
+/** A sample question. */
+type Turn = { q: string; a: string }
+
+/** "See what you can ask" — a back-and-forth transcript that shows the breadth
+ * of what the assistant can do against live data (read, aggregate, write). */
+function Showcase() {
+  const turns: Turn[] = [
+    {
+      q: 'How many open support tickets do we have, and which is most urgent?',
+      a: 'You’ve got 7 open tickets for Chevin Print. The most urgent is CAS‑1042 “VPN dropping at the Otley site” — High priority, raised 12 days ago and still unassigned.',
+    },
+    {
+      q: 'Summarise our quotes this quarter.',
+      a: '3 live quotes totalling £48,200. The largest is “Managed Firewall + SD‑WAN” at £27,500, sent 14 Jun and awaiting your sign‑off.',
+    },
+    {
+      q: 'When does the Data Centre Migration project finish?',
+      a: 'It runs 1 Jul → 21 Dec 2026 — one of 12 active projects for your company. Want the full schedule, or just the ones ending this year?',
+    },
+    {
+      q: 'Update my mobile number to 07700 900123.',
+      a: 'Done — I’ve updated your contact record. I can only change your own details, nothing else on the account.',
+    },
   ]
+
   return (
-    <Card className="p-6">
-      <h3 className="text-base font-normal tracking-tight text-rc-navy">
-        What it can do
+    <div>
+      <h3 className="mb-1 text-xl font-light tracking-tight text-white">
+        See what you can ask
       </h3>
-      <p className="mt-1 text-sm text-rc-teal">
-        Eight tools across your tables, every call scoped to your{' '}
-        <span className="font-medium text-rc-navy">my</span> or{' '}
-        <span className="font-medium text-rc-navy">company</span> access — the
-        assistant can never see more than you can.
+      <p className="mb-4 text-sm text-white/80">
+        Real questions, real answers — straight from your live Redcentric data.
       </p>
-      <div className="mt-4 flex flex-wrap gap-2">
-        {tools.map((t) => (
-          <span
-            key={t}
-            className="rounded-full border border-rc-blue-light bg-rc-canvas px-3 py-1 text-xs font-medium text-rc-navy"
-          >
-            {t}
-          </span>
-        ))}
+      <Card className="overflow-hidden">
+        <div className="rc-gradient h-1 w-full" />
+        <div className="space-y-4 p-5 sm:p-6">
+          {turns.map((t, i) => (
+            <div key={i} className="space-y-3">
+              <UserBubble>{t.q}</UserBubble>
+              <AiBubble>{t.a}</AiBubble>
+            </div>
+          ))}
+        </div>
+      </Card>
+    </div>
+  )
+}
+
+function UserBubble({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex justify-end">
+      <div className="max-w-[85%] rounded-2xl rounded-br-md bg-rc-blue px-4 py-2.5 text-sm leading-relaxed text-white shadow-sm">
+        {children}
       </div>
+    </div>
+  )
+}
+
+function AiBubble({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex items-start gap-2.5">
+      <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-rc-blue-light text-rc-blue">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M12 3v4M12 17v4M3 12h4M17 12h4" />
+          <path d="M12 8.5 13.2 11 15.5 12l-2.3 1L12 15.5 10.8 13 8.5 12l2.3-1L12 8.5Z" />
+        </svg>
+      </span>
+      <div className="max-w-[85%] rounded-2xl rounded-tl-md border border-rc-blue-light bg-white px-4 py-2.5 text-sm leading-relaxed text-rc-navy shadow-sm">
+        {children}
+      </div>
+    </div>
+  )
+}
+
+/** Reassurance line — the guardrail is part of the pitch. */
+function Trust() {
+  return (
+    <Card className="p-5">
+      <p className="text-sm leading-relaxed text-rc-teal">
+        <span className="font-medium text-rc-navy">Your data stays yours.</span>{' '}
+        The assistant signs in as you and is scoped to the same{' '}
+        <span className="font-medium text-rc-navy">my</span> /{' '}
+        <span className="font-medium text-rc-navy">company</span> access as this
+        portal — it can never see or change anything you couldn&rsquo;t. Revoke
+        access any time from your assistant&rsquo;s connector settings.
+      </p>
     </Card>
   )
 }
