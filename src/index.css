@@ -53,6 +53,61 @@ h3 {
   );
 }
 
+/* ── Motion — subtle, professional funk ─────────────────────────────────────
+ * A shimmer sweep for skeletons, an equalizer bounce for the brand loader, and
+ * a gentle fade-up for content entrances. All disabled under reduced-motion.
+ */
+@keyframes rc-shimmer {
+  100% { transform: translateX(100%); }
+}
+@keyframes rc-bar {
+  0%, 100% { transform: scaleY(0.3); }
+  50% { transform: scaleY(1); }
+}
+@keyframes rc-fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Skeleton block with a light sweep travelling across it. */
+.rc-skeleton {
+  position: relative;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--color-rc-blue-light) 55%, #fff);
+}
+.rc-skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, #fff 85%, transparent),
+    transparent
+  );
+  animation: rc-shimmer 1.5s infinite;
+}
+
+/* Equalizer bar — used by the brand loader; stagger delays inline. */
+.rc-bar {
+  transform-origin: bottom center;
+  animation: rc-bar 0.9s ease-in-out infinite;
+}
+
+/* Content entrance for list cards / panels. */
+.rc-fade-up {
+  animation: rc-fade-up 0.35s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rc-skeleton::after,
+  .rc-bar,
+  .rc-fade-up {
+    animation: none;
+  }
+}
+
 /* Shared text-input styling used across the portal's forms. */
 .rc-input {
   border-radius: 0.5rem;

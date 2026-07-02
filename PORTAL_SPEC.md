@@ -58,20 +58,28 @@ Demo login identities (one per company, all route to the operator's inbox):
 
 ## 5. Data model (published `rcportal` tables)
 
-All tables are read/write at `me` + `team`; opportunities/quotes also `create`.
+Customer-facing tables, read/write at `me` + `team` (support/quotes also `create`).
 Key fields and how each relates to the signed-in user:
 
 | Route | Dataverse | `me` = | `team` = | Notable fields |
 |---|---|---|---|---|
 | `contact` | contacts | own record | colleagues at account | fullname, emailaddress1, jobtitle, telephone1, mobilephone, address1_* |
 | `account` | accounts | account you're primary contact of | your own account | name, telephone1, websiteurl, address1_*, primarycontactid |
-| `opportunity` | opportunities | you're `parentcontactid` | your account's pipeline | name, estimatedvalue, estimatedclosedate, statecode/statuscode (labels) |
-| `quote` | quotes | quotes on your opportunities | your account's quotes | name, quotenumber, totalamount, statecode/statuscode, opportunityid |
-| `project` | msdyn_project | projects for your account (you = primary contact) | your account's projects | msdyn_subject (name), scheduling/status fields, custom account link |
+| `quote` | quotes | quotes on your deals | your company's quotes | name, quotenumber, totalamount, statecode/statuscode (labels) |
+| `project` | msdyn_project | your company's projects | your company's projects | msdyn_subject (name), status, `new_accountid` (custom account link) |
+| `support` | incident | cases you're the contact on | your company's cases | title, ticketnumber, prioritycode, statuscode (labels), createdon |
+| `site` | customeraddress | (via company) | your company's locations | name, line1, city, postalcode, addresstypecode |
 
 Relationships worth surfacing in the UI: contact → account (company);
-opportunity → account + primary contact; quote → opportunity (+ account);
-project → account.
+quote → account; project → account; support case → account + primary contact;
+site → account (via `parentid`).
+
+> **Opportunities & pipeline are intentionally OUT of customer scope.** An
+> opportunity is internal sales forecasting (value, win probability, stage) —
+> not something a customer should see. The `opportunity` table still exists and
+> backs quotes internally (a quote references its source opportunity), but there
+> is **no customer `opportunity` heading/page**. Don't surface it. If a sales/
+> pipeline view is ever wanted, it belongs in a separate internal/admin app.
 
 ## 6. Screens / features (build these)
 

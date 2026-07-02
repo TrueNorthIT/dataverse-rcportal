@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useDashboard } from '../hooks/useDashboard'
 import { useMyCompany } from '../hooks/useMyCompany'
-import { formatCurrency } from '../lib/format'
 import { PageHeader } from '../components/common/PageHeader'
 import { Card } from '../components/common/Card'
 
@@ -21,13 +20,9 @@ export function DashboardPage() {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Stat to="/cases" label="Open tickets" value={loading ? '…' : fmtCount(stats.cases)} />
-        <Stat to="/opportunities" label="Open opportunities" value={loading ? '…' : fmtCount(stats.opportunities)} />
-        <Stat
-          to="/opportunities"
-          label="Pipeline value"
-          value={loading ? '…' : stats.pipeline == null ? '—' : formatCurrency(stats.pipeline)}
-        />
         <Stat to="/quotes" label="Quotes" value={loading ? '…' : fmtCount(stats.quotes)} />
+        <Stat to="/projects" label="Projects" value={loading ? '…' : fmtCount(stats.projects)} />
+        <Stat to="/sites" label="Sites" value={loading ? '…' : fmtCount(stats.sites)} />
       </div>
 
       <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">

@@ -1,8 +1,8 @@
 import { useMemo } from 'react'
-import { InteractionRequiredAuthError } from '@azure/msal-browser'
-import { useMsal } from '@azure/msal-react'
 import { createClient } from '@truenorth-it/dataverse-client'
-import { apiOrigin, dataverseScope, entraConfig } from '../config/entra'
+import { apiOrigin, dataverseScope } from '../config/entra'
+import { useGetToken } from './getToken'
+import { useSelectedCompany } from '../context/SelectedCompanyContext'
 
 /**
  * Authenticated Dataverse client, bound to the signed-in user.
@@ -12,8 +12,12 @@ import { apiOrigin, dataverseScope, entraConfig } from '../config/entra'
  * query strings, and normalises errors into `ApiError`. Never set headers or
  * build `$filter` strings by hand; go through the SDK.
  *
- * Falls back to an interactive redirect if the silent acquisition needs UI
- * (e.g. consent prompt, expired refresh token).
+ * When the caller is a contact under more than one company and has picked one,
+ * the selected `contactId` is threaded in here so the SDK sends the
+ * `X-Contact-Id` header on every request — meaning all tiers, lists, and
+ * pagination automatically act as the chosen company. The server verifies the
+ * contact belongs to the caller. With no selection the API uses the default
+ * (earliest-created) company. See `SelectedCompanyContext`.
  *
  * Use the tier that matches the access you need:
  *   client.me   — records linked to the caller's own contact (this portal)
@@ -21,33 +25,17 @@ import { apiOrigin, dataverseScope, entraConfig } from '../config/entra'
  *   client.all  — every record (needs an `:all` permission on the token)
  */
 export function useDataverseClient() {
-  const { instance, accounts } = useMsal()
+  const getToken = useGetToken()
+  const { selectedContactId } = useSelectedCompany()
   return useMemo(
     () =>
       createClient({
         baseUrl: apiOrigin,
         scope: dataverseScope,
-        getToken: async () => {
-          const account = instance.getActiveAccount() ?? accounts[0]
-          if (!account) throw new Error('Not signed in')
-          try {
-            const result = await instance.acquireTokenSilent({
-              scopes: [entraConfig.apiScope],
-              account,
-            })
-            return result.accessToken
-          } catch (err) {
-            if (err instanceof InteractionRequiredAuthError) {
-              await instance.acquireTokenRedirect({
-                scopes: [entraConfig.apiScope],
-                account,
-              })
-            }
-            throw err
-          }
-        },
+        getToken,
+        ...(selectedContactId ? { contactId: selectedContactId } : {}),
       }),
-    [instance, accounts],
+    [getToken, selectedContactId],
   )
 }
 

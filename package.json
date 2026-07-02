@@ -15,7 +15,7 @@
   "dependencies": {
     "@azure/msal-browser": "^5.16.0",
     "@azure/msal-react": "^5.5.1",
-    "@truenorth-it/dataverse-client": "^1.4.0",
+    "@truenorth-it/dataverse-client": "^1.5.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-router-dom": "^7.18.1"

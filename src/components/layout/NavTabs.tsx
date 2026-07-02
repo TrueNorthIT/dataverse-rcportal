@@ -5,9 +5,9 @@ const NAV = [
   { to: '/', label: 'Dashboard', end: true },
   { to: '/profile', label: 'My profile' },
   { to: '/company', label: 'My company' },
-  { to: '/opportunities', label: 'Opportunities' },
   { to: '/quotes', label: 'Quotes' },
   { to: '/projects', label: 'Projects' },
+  { to: '/sites', label: 'Sites' },
   { to: '/cases', label: 'Support' },
 ]
 

@@ -4,9 +4,9 @@ import { useDataverseClient } from '../lib/client'
 
 export interface DashboardStats {
   cases: number | null
-  opportunities: number | null
-  pipeline: number | null
   quotes: number | null
+  projects: number | null
+  sites: number | null
 }
 
 /** Pull the first numeric value out of an aggregate row, whatever it's keyed as. */
@@ -17,18 +17,20 @@ function firstNumber(row: Record<string, unknown> | undefined): number | null {
 }
 
 /**
- * Dashboard tiles for the `me` tier (spec §6.8): open-opportunity count,
- * pipeline value, and quote/project counts. Each aggregate is independent and
- * failure-tolerant — a table that errors just shows "—" rather than blanking
- * the whole dashboard.
+ * Dashboard tiles for the `me` tier (spec §6.8): open support cases, quotes,
+ * projects, and sites. Each aggregate is independent and failure-tolerant — a
+ * table that errors just shows "—" rather than blanking the whole dashboard.
+ *
+ * (Opportunities/pipeline are intentionally excluded — internal sales, not a
+ * customer-facing view. See PORTAL_SPEC §5.)
  */
 export function useDashboard(): { stats: DashboardStats; loading: boolean } {
   const client = useDataverseClient()
   const [stats, setStats] = useState<DashboardStats>({
     cases: null,
-    opportunities: null,
-    pipeline: null,
     quotes: null,
+    projects: null,
+    sites: null,
   })
   const [loading, setLoading] = useState(true)
 
@@ -45,14 +47,14 @@ export function useDashboard(): { stats: DashboardStats; loading: boolean } {
 
     void (async () => {
       setLoading(true)
-      const [cases, opportunities, pipeline, quotes] = await Promise.all([
+      const [cases, quotes, projects, sites] = await Promise.all([
         agg('case', { aggregate: 'count' }),
-        agg('opportunity', { aggregate: 'count' }),
-        agg('opportunity', { aggregate: 'estimatedvalue:sum' }),
         agg('quote', { aggregate: 'count' }),
+        agg('project', { aggregate: 'count' }),
+        agg('site', { aggregate: 'count' }),
       ])
       if (!cancelled) {
-        setStats({ cases, opportunities, pipeline, quotes })
+        setStats({ cases, quotes, projects, sites })
         setLoading(false)
       }
     })()

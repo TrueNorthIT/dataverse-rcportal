@@ -3,15 +3,16 @@ import { useIsAuthenticated, useMsal } from '@azure/msal-react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { LoginScreen } from './components/LoginScreen'
 import { AppShell } from './components/layout/AppShell'
+import { SelectedCompanyProvider } from './context/SelectedCompanyContext'
 import { DashboardPage } from './pages/DashboardPage'
 import { ProfilePage } from './pages/ProfilePage'
 import { CompanyPage } from './pages/CompanyPage'
-import { OpportunitiesPage } from './pages/OpportunitiesPage'
-import { OpportunityDetailPage } from './pages/OpportunityDetailPage'
 import { QuotesPage } from './pages/QuotesPage'
 import { ProjectsPage } from './pages/ProjectsPage'
+import { SitesPage } from './pages/SitesPage'
 import { CasesPage } from './pages/CasesPage'
 import { CaseDetailPage } from './pages/CaseDetailPage'
+import { BrandLoader } from './components/common/BrandLoader'
 
 /**
  * Auth gate + routing. While MSAL is mid-interaction we show a loading state;
@@ -25,8 +26,8 @@ function App() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-rc-canvas text-rc-teal">
-        Loading…
+      <div className="flex min-h-screen items-center justify-center bg-rc-canvas">
+        <BrandLoader label="Signing you in…" />
       </div>
     )
   }
@@ -36,22 +37,23 @@ function App() {
   }
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route element={<AppShell />}>
+    <SelectedCompanyProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route element={<AppShell />}>
           <Route index element={<DashboardPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="company" element={<CompanyPage />} />
-          <Route path="opportunities" element={<OpportunitiesPage />} />
-          <Route path="opportunities/:id" element={<OpportunityDetailPage />} />
           <Route path="quotes" element={<QuotesPage />} />
           <Route path="projects" element={<ProjectsPage />} />
+          <Route path="sites" element={<SitesPage />} />
           <Route path="cases" element={<CasesPage />} />
           <Route path="cases/:id" element={<CaseDetailPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
-    </BrowserRouter>
+      </BrowserRouter>
+    </SelectedCompanyProvider>
   )
 }
 
