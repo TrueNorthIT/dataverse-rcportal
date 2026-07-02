@@ -21,15 +21,15 @@ export function AppShell() {
 
   return (
     <div className="min-h-screen bg-rc-canvas">
-      <header className="bg-white">
+      <header className="bg-rc-navy">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
             <img
-              src="/brand/Redcentric_logo_no-strapline.png"
+              src="/brand/Redcentric_logo_white_no-strapline.png"
               alt="Redcentric"
               className="h-6 w-auto"
             />
-            <span className="hidden text-sm font-medium text-rc-teal sm:inline">
+            <span className="hidden text-sm font-medium text-white/70 sm:inline">
               Contact Portal
             </span>
           </div>
@@ -37,10 +37,10 @@ export function AppShell() {
             <CompanySwitcher />
             <div className="hidden text-right sm:block">
               {!hasMultiple && account?.name && (
-                <div className="text-sm font-medium text-rc-navy">{account.name}</div>
+                <div className="text-sm font-medium text-white">{account.name}</div>
               )}
               {user?.email && (
-                <div className="text-xs text-rc-teal">{user.email}</div>
+                <div className="text-xs text-white/70">{user.email}</div>
               )}
             </div>
             <button
@@ -50,7 +50,7 @@ export function AppShell() {
                   postLogoutRedirectUri: window.location.origin,
                 })
               }
-              className="rounded-lg border border-rc-blue-light px-3 py-1.5 text-sm font-medium text-rc-navy hover:bg-rc-blue-light transition-colors"
+              className="rounded-lg border border-white/30 px-3 py-1.5 text-sm font-medium text-white hover:bg-white/10 transition-colors"
             >
               Sign out
             </button>
