@@ -1,5 +1,5 @@
 import { useTierList } from '../hooks/useTierList'
-import { PROJECT_ORDER, PROJECT_SELECT } from '../services/projectApi'
+import { PROJECT_ORDER, PROJECT_SELECT, projectHealth } from '../services/projectApi'
 import type { Project } from '../types/project'
 import { formatDate } from '../lib/format'
 import { PageHeader } from '../components/common/PageHeader'
@@ -34,21 +34,33 @@ export function ProjectsPage() {
         emptyMessage="No projects to show yet."
       >
         <div className="space-y-3 rc-land-list">
-          {items.map((p) => (
-            <Card key={p.msdyn_projectid} className="p-4">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <div className="font-medium text-rc-navy">
-                    {p.msdyn_subject || 'Untitled project'}
+          {items.map((p) => {
+            const health = projectHealth(p)
+            return (
+              <Card key={p.msdyn_projectid} className="p-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <div className="font-medium text-rc-navy">
+                      {p.msdyn_subject || 'Untitled project'}
+                    </div>
+                    <div className="mt-1 text-sm text-rc-teal">
+                      {formatDate(p.msdyn_scheduledstart)} – {formatDate(p.msdyn_finish)}
+                    </div>
+                    <div className="mt-0.5 text-xs text-rc-teal">{health.detail}</div>
                   </div>
-                  <div className="mt-1 text-sm text-rc-teal">
-                    {formatDate(p.msdyn_scheduledstart)} – {formatDate(p.msdyn_finish)}
+                  <div className="flex shrink-0 flex-col items-end gap-1.5">
+                    <span
+                      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${health.chip}`}
+                    >
+                      <span className={`h-1.5 w-1.5 rounded-full ${health.dot}`} />
+                      {health.label}
+                    </span>
+                    <StatusChip label={p.statuscode_label} />
                   </div>
                 </div>
-                <StatusChip label={p.statuscode_label} />
-              </div>
-            </Card>
-          ))}
+              </Card>
+            )
+          })}
         </div>
         <LoadMore hasMore={hasMore} loading={loadingMore} onClick={loadMore} />
       </ListStates>
