@@ -12,6 +12,7 @@ import { ProjectsPage } from './pages/ProjectsPage'
 import { SitesPage } from './pages/SitesPage'
 import { CasesPage } from './pages/CasesPage'
 import { CaseDetailPage } from './pages/CaseDetailPage'
+import { AiPage } from './pages/AiPage'
 import { BrandLoader } from './components/common/BrandLoader'
 
 /**
@@ -49,6 +50,7 @@ function App() {
           <Route path="sites" element={<SitesPage />} />
           <Route path="cases" element={<CasesPage />} />
           <Route path="cases/:id" element={<CaseDetailPage />} />
+          <Route path="ai" element={<AiPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
