@@ -51,7 +51,7 @@ export function useDashboard(): { stats: DashboardStats; loading: boolean } {
   })
 
   return {
-    stats: query.data ?? { quotes: null, projects: null, sites: null },
+    stats: query.data ?? { cases: null, quotes: null, projects: null, sites: null },
     loading: query.isFetching,
   }
 }
