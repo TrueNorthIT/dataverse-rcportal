@@ -12,6 +12,9 @@ import { dirname, join } from 'node:path'
 
 const MARKER = '[DEMO-RCPORTAL]'
 const TARGET_CONTACTS = 30
+// Per-account overrides (by slug). Chevin is bumped so its list clearly
+// unfolds under infinite scroll during the demo.
+const TARGET_OVERRIDE = { chevinprint: 80 }
 const here = dirname(fileURLToPath(import.meta.url))
 
 function loadEnv(path) {
@@ -64,7 +67,8 @@ async function main() {
     // count existing contacts + collect used emails
     const existing = (await (await fetch(`${API}/contacts?$select=emailaddress1&$filter=${enc(`_parentcustomerid_value eq ${a.accountid}`)}&$top=200`, { headers: H })).json()).value || []
     const used = new Set(existing.map((c) => (c.emailaddress1 || '').toLowerCase()))
-    let need = TARGET_CONTACTS - existing.length
+    const target = TARGET_OVERRIDE[acc.slug] ?? TARGET_CONTACTS
+    let need = target - existing.length
     if (need <= 0) { console.log(`• ${acc.name} — already ${existing.length}`); continue }
     let made = 0
     for (let i = 0; made < need; i++) {
