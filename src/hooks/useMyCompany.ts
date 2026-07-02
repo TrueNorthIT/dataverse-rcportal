@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { useDataverseClient } from '../lib/client'
+import { useSelectedCompany } from '../context/SelectedCompanyContext'
 import { ACCOUNT_SELECT } from '../services/accountApi'
 import type { Account } from '../types/account'
 
@@ -15,39 +16,27 @@ interface UseMyCompanyResult {
  * Use `team`, not `me`: on the account table `team` = "your own account" (the
  * one you belong to via parentcustomerid_account), whereas `me` = "accounts you
  * are the *primary contact* of" — which is empty for any colleague who isn't the
- * named primary contact, giving a blank company. `team` returns the caller's
- * account for everyone. (See the join semantics in dataverse-rcportal-terraform.)
- * Used by the shell header and the Company screen.
+ * named primary contact. `team` returns the caller's account for everyone.
+ *
+ * Keyed on the selected company so it refetches on switch (keeping the previous
+ * value until the new one lands), and refreshes on window focus.
  */
 export function useMyCompany(): UseMyCompanyResult {
   const client = useDataverseClient()
-  const [account, setAccount] = useState<Account | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { selectedContactId } = useSelectedCompany()
 
-  useEffect(() => {
-    let cancelled = false
-    void (async () => {
-      setLoading(true)
-      setError(null)
-      try {
-        const res = await client.team.list<Account>('account', {
-          select: ACCOUNT_SELECT,
-          top: 1,
-        })
-        if (!cancelled) setAccount(res.data[0] ?? null)
-      } catch (err) {
-        if (!cancelled) {
-          setError(err instanceof Error ? err.message : 'Failed to load your company')
-        }
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    })()
-    return () => {
-      cancelled = true
-    }
-  }, [client])
+  const query = useQuery({
+    queryKey: ['myCompany', selectedContactId ?? 'default'],
+    queryFn: async () => {
+      const res = await client.team.list<Account>('account', { select: ACCOUNT_SELECT, top: 1 })
+      return res.data[0] ?? null
+    },
+    placeholderData: keepPreviousData,
+  })
 
-  return { account, loading, error }
+  return {
+    account: query.data ?? null,
+    loading: query.isLoading,
+    error: query.error instanceof Error ? query.error.message : null,
+  }
 }

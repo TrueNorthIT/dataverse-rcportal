@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import type { AggregateOptions } from '@truenorth-it/dataverse-client'
 import { useDataverseClient } from '../lib/client'
+import { useSelectedCompany } from '../context/SelectedCompanyContext'
 
 export interface DashboardStats {
   quotes: number | null
@@ -17,51 +18,38 @@ function firstNumber(row: Record<string, unknown> | undefined): number | null {
 
 /**
  * Dashboard tiles: the caller's company at a glance — quotes, projects, and
- * sites. These are company-level assets (a project/site isn't owned by an
- * individual contact), so they're counted at the `team` tier — which also means
- * every user sees real numbers for the company they're currently viewing, not
- * just the account's primary contact. Each aggregate is independent and
- * failure-tolerant — a table that errors just shows "—".
- *
- * (Opportunities/pipeline are intentionally excluded — internal sales, not a
- * customer-facing view. See PORTAL_SPEC §5.)
+ * sites, counted at the `team` tier (company-level assets, so every user sees
+ * real numbers, not just the account's primary contact). Keyed on the selected
+ * company; keeps prior numbers while refetching and refreshes on window focus.
+ * Each aggregate is failure-tolerant — a table that errors just shows "—".
  */
 export function useDashboard(): { stats: DashboardStats; loading: boolean } {
   const client = useDataverseClient()
-  const [stats, setStats] = useState<DashboardStats>({
-    quotes: null,
-    projects: null,
-    sites: null,
-  })
-  const [loading, setLoading] = useState(true)
+  const { selectedContactId } = useSelectedCompany()
 
-  useEffect(() => {
-    let cancelled = false
-    const agg = async (table: string, options: AggregateOptions) => {
-      try {
-        const res = await client.team.aggregate(table, options)
-        return firstNumber(res.data[0] as Record<string, unknown> | undefined)
-      } catch {
-        return null
+  const query = useQuery({
+    queryKey: ['dashboard', selectedContactId ?? 'default'],
+    queryFn: async (): Promise<DashboardStats> => {
+      const agg = async (table: string, options: AggregateOptions) => {
+        try {
+          const res = await client.team.aggregate(table, options)
+          return firstNumber(res.data[0] as Record<string, unknown> | undefined)
+        } catch {
+          return null
+        }
       }
-    }
-
-    void (async () => {
-      setLoading(true)
       const [quotes, projects, sites] = await Promise.all([
         agg('quote', { aggregate: 'count' }),
         agg('project', { aggregate: 'count' }),
         agg('site', { aggregate: 'count' }),
       ])
-      if (!cancelled) {
-        setStats({ quotes, projects, sites })
-        setLoading(false)
-      }
-    })()
-    return () => {
-      cancelled = true
-    }
-  }, [client])
+      return { quotes, projects, sites }
+    },
+    placeholderData: keepPreviousData,
+  })
 
-  return { stats, loading }
+  return {
+    stats: query.data ?? { quotes: null, projects: null, sites: null },
+    loading: query.isFetching,
+  }
 }
