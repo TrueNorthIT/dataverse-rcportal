@@ -11,7 +11,10 @@ import { QueryClient } from '@tanstack/react-query'
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      refetchOnWindowFocus: true,
+      // 'always' refetches on tab focus even if the data was fetched moments
+      // ago — so an edit made in another window shows up when you switch back.
+      refetchOnWindowFocus: 'always',
+      refetchOnReconnect: 'always',
       staleTime: 0,
       gcTime: 5 * 60_000,
       retry: 1,
