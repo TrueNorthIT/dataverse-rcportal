@@ -18,7 +18,8 @@ export function DashboardPage() {
         subtitle={account?.name ? `Welcome — ${account.name}` : 'Welcome'}
       />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <Stat to="/cases" label="Open tickets" value={fmtCount(stats.cases)} loading={loading} />
         <Stat to="/quotes" label="Quotes" value={fmtCount(stats.quotes)} loading={loading} />
         <Stat to="/projects" label="Projects" value={fmtCount(stats.projects)} loading={loading} />
         <Stat to="/sites" label="Sites" value={fmtCount(stats.sites)} loading={loading} />
