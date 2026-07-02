@@ -42,8 +42,8 @@ export function CompanySwitcher() {
         aria-expanded={open}
         className="flex items-center gap-2 rounded-lg border border-rc-blue-light bg-white py-1.5 pl-1.5 pr-2.5 text-sm transition-colors hover:border-rc-blue hover:bg-rc-canvas"
       >
-        <BuildingBadge />
-        <span className="hidden max-w-[180px] truncate font-semibold text-rc-navy sm:inline">
+        <CompanyAvatar name={label(currentCompany)} />
+        <span className="hidden max-w-[240px] truncate font-semibold text-rc-navy sm:inline">
           {label(currentCompany)}
         </span>
         <Chevron className={open ? 'rotate-180' : ''} />
@@ -52,7 +52,7 @@ export function CompanySwitcher() {
       {open && (
         <div
           role="menu"
-          className="absolute right-0 z-30 mt-2 w-72 overflow-hidden rounded-xl border border-rc-blue-light bg-white shadow-xl"
+          className="absolute right-0 z-30 mt-2 w-max min-w-[16rem] max-w-[26rem] overflow-hidden rounded-xl border border-rc-blue-light bg-white shadow-xl"
         >
           <div className="rc-gradient h-1 w-full" />
           <div className="px-3 pb-1 pt-3 text-[10px] font-semibold uppercase tracking-wide text-rc-teal">
@@ -76,8 +76,8 @@ export function CompanySwitcher() {
                       (active ? 'bg-rc-blue-light/60' : '')
                     }
                   >
-                    <BuildingBadge small />
-                    <span className="flex-1 truncate font-medium text-rc-navy">{label(c)}</span>
+                    <CompanyAvatar name={label(c)} small />
+                    <span className="flex-1 font-medium text-rc-navy">{label(c)}</span>
                     {active && <Check />}
                   </button>
                 </li>
@@ -90,21 +90,47 @@ export function CompanySwitcher() {
   )
 }
 
-/** Building glyph in the brand gradient — the switcher's affordance. */
-function BuildingBadge({ small }: { small?: boolean }) {
+// Brand-aligned monogram palette. Each company gets a stable colour + its
+// initials — a tidy stand-in "logo" (think Slack/Workspace avatars), no janky
+// clip-art. bg from the brand palette; fg chosen for contrast.
+const AVATAR_COLORS = [
+  { bg: '#0066b3', fg: '#ffffff' }, // rc-blue
+  { bg: '#005862', fg: '#ffffff' }, // rc-teal
+  { bg: '#142d46', fg: '#ffffff' }, // rc-navy
+  { bg: '#00272b', fg: '#ffffff' }, // rc-green-dark
+  { bg: '#8dc63f', fg: '#142d46' }, // rc-lime (navy text for contrast)
+]
+const STOPWORDS = new Set(['ltd', 'plc', 'group', 'the', 'and', '&', 'co', 'limited'])
+
+/** Up to two initials from the significant words of a company name. */
+function initials(name: string): string {
+  const words = name
+    .split(/\s+/)
+    .filter((w) => w && !STOPWORDS.has(w.toLowerCase().replace(/[.,]/g, '')))
+  const letters = words.slice(0, 2).map((w) => w[0]?.toUpperCase() ?? '')
+  return (letters.join('') || name.slice(0, 2).toUpperCase()) || '?'
+}
+
+/** Stable palette index from the name (so a company's colour never changes). */
+function colorFor(name: string) {
+  let h = 0
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0
+  return AVATAR_COLORS[h % AVATAR_COLORS.length]
+}
+
+/** Per-company monogram avatar — the switcher's "logo". */
+function CompanyAvatar({ name, small }: { name: string; small?: boolean }) {
+  const { bg, fg } = colorFor(name)
   return (
     <span
+      aria-hidden="true"
       className={
-        'rc-gradient inline-flex shrink-0 items-center justify-center rounded-md text-white ' +
-        (small ? 'h-6 w-6' : 'h-7 w-7')
+        'inline-flex shrink-0 items-center justify-center rounded-md font-bold ' +
+        (small ? 'h-6 w-6 text-[10px]' : 'h-7 w-7 text-[11px]')
       }
+      style={{ backgroundColor: bg, color: fg }}
     >
-      <svg viewBox="0 0 24 24" width={small ? 13 : 15} height={small ? 13 : 15} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        <path d="M3 21h18" />
-        <path d="M6 21V5a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v16" />
-        <path d="M15 9h3a1 1 0 0 1 1 1v11" />
-        <path d="M9 8h.01M9 12h.01M9 16h.01" />
-      </svg>
+      {initials(name)}
     </span>
   )
 }

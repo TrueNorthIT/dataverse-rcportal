@@ -3,7 +3,6 @@ import type { AggregateOptions } from '@truenorth-it/dataverse-client'
 import { useDataverseClient } from '../lib/client'
 
 export interface DashboardStats {
-  cases: number | null
   quotes: number | null
   projects: number | null
   sites: number | null
@@ -27,7 +26,6 @@ function firstNumber(row: Record<string, unknown> | undefined): number | null {
 export function useDashboard(): { stats: DashboardStats; loading: boolean } {
   const client = useDataverseClient()
   const [stats, setStats] = useState<DashboardStats>({
-    cases: null,
     quotes: null,
     projects: null,
     sites: null,
@@ -47,14 +45,13 @@ export function useDashboard(): { stats: DashboardStats; loading: boolean } {
 
     void (async () => {
       setLoading(true)
-      const [cases, quotes, projects, sites] = await Promise.all([
-        agg('case', { aggregate: 'count' }),
+      const [quotes, projects, sites] = await Promise.all([
         agg('quote', { aggregate: 'count' }),
         agg('project', { aggregate: 'count' }),
         agg('site', { aggregate: 'count' }),
       ])
       if (!cancelled) {
-        setStats({ cases, quotes, projects, sites })
+        setStats({ quotes, projects, sites })
         setLoading(false)
       }
     })()
