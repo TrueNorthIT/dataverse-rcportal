@@ -60,10 +60,13 @@ export function ListStates({
 
   // Have content: keep it on screen during a refetch (e.g. company switch) —
   // a slim indeterminate progress bar zips across the top and the list dims
-  // gently, rather than flashing a skeleton.
+  // gently, rather than flashing a skeleton. The bar lives in a fixed-height
+  // reserved slot so showing/hiding it never shifts the layout (no jump).
   return (
     <div aria-busy={loading}>
-      {loading && <div className="rc-progress mb-3" aria-hidden="true" />}
+      <div className="mb-3 h-[3px]">
+        {loading && <div className="rc-progress h-full" aria-hidden="true" />}
+      </div>
       <div className={'transition-opacity duration-200 ' + (loading ? 'opacity-60' : 'opacity-100')}>
         {children}
       </div>
