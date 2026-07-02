@@ -32,6 +32,8 @@ const ADMINS = [
 ]
 const COMPANIES = [
   'Aire Valley Logistics Ltd',
+  'Wharfedale Textiles Ltd',
+  'Ebor Manufacturing Group',
   'Ridings Mutual Building Society',
   'Calder & Ryburn Care Group',
   'Chevin Print & Packaging Ltd',
