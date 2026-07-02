@@ -17,8 +17,8 @@ export function CompanySwitcher() {
   if (!hasMultiple) return null
 
   return (
-    <label className="hidden flex-col gap-0.5 text-right sm:flex">
-      <span className="text-[10px] font-semibold uppercase tracking-wide text-rc-teal">
+    <label className="hidden items-center gap-2 sm:flex">
+      <span className="whitespace-nowrap text-[10px] font-semibold uppercase tracking-wide text-rc-teal">
         Viewing as
       </span>
       <div className="rc-gradient rounded-lg p-px shadow-sm">
@@ -26,7 +26,7 @@ export function CompanySwitcher() {
           aria-label="Switch company"
           value={currentCompany?.contactid ?? ''}
           onChange={(e) => selectCompany(e.target.value || undefined)}
-          className="w-full cursor-pointer rounded-[7px] bg-white px-3 py-1.5 text-sm font-semibold text-rc-navy focus:outline-none focus:ring-2 focus:ring-rc-blue/30"
+          className="cursor-pointer rounded-[7px] bg-white px-3 py-1.5 text-sm font-semibold text-rc-navy focus:outline-none focus:ring-2 focus:ring-rc-blue/30"
         >
           {companies.map((c) => (
             <option key={c.contactid} value={c.contactid}>
