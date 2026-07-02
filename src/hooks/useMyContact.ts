@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useDataverseClient } from '../lib/client'
+import { useSelectedCompany } from '../context/SelectedCompanyContext'
 import {
   fetchMyContact,
   registerMyContact,
@@ -14,88 +15,55 @@ interface UseMyContactResult {
   error: string | null
   /** True once loaded and the user has no contact yet — offer to register. */
   needsRegistration: boolean
-  refresh: () => Promise<void>
+  refresh: () => void
   save: (patch: Partial<EditableContactFields>) => Promise<void>
   register: (names?: { firstname?: string; lastname?: string }) => Promise<void>
 }
 
 /**
- * Loads (and lets you edit) the signed-in user's own contact record.
- *
- * Owns the full lifecycle a screen needs: loading, error, empty
- * (needsRegistration), saving, and refresh. Components stay presentational —
- * they read this state and call save/register/refresh.
+ * Loads (and lets you edit) the signed-in user's own contact for the currently
+ * selected company. Read is a React Query query (refetches on window focus and
+ * on company switch); save/register are mutations that update the cache.
  */
 export function useMyContact(): UseMyContactResult {
   const client = useDataverseClient()
-  const [contact, setContact] = useState<Contact | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [needsRegistration, setNeedsRegistration] = useState(false)
+  const { selectedContactId } = useSelectedCompany()
+  const qc = useQueryClient()
+  const key = ['myContact', selectedContactId ?? 'default']
 
-  const refresh = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const result = await fetchMyContact(client)
-      setContact(result)
-      setNeedsRegistration(result === null)
-    } catch (err) {
-      // ApiError carries `.status` and `.message` from the API response.
-      setError(err instanceof Error ? err.message : 'Failed to load your contact')
-    } finally {
-      setLoading(false)
-    }
-  }, [client])
+  const query = useQuery({
+    queryKey: key,
+    queryFn: () => fetchMyContact(client),
+  })
 
-  useEffect(() => {
-    void refresh()
-  }, [refresh])
-
-  const save = useCallback(
-    async (patch: Partial<EditableContactFields>) => {
-      if (!contact) return
-      setSaving(true)
-      setError(null)
-      try {
-        const updated = await updateMyContact(client, contact.contactid, patch)
-        setContact(updated)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to save changes')
-        throw err
-      } finally {
-        setSaving(false)
-      }
+  const save = useMutation({
+    mutationFn: (patch: Partial<EditableContactFields>) => {
+      if (!query.data) throw new Error('No contact to update')
+      return updateMyContact(client, query.data.contactid, patch)
     },
-    [client, contact],
-  )
+    onSuccess: (updated) => qc.setQueryData(key, updated),
+  })
 
-  const register = useCallback(
-    async (names?: { firstname?: string; lastname?: string }) => {
-      setSaving(true)
-      setError(null)
-      try {
-        await registerMyContact(client, names)
-        await refresh()
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to create your contact')
-        throw err
-      } finally {
-        setSaving(false)
-      }
-    },
-    [client, refresh],
-  )
+  const register = useMutation({
+    mutationFn: (names?: { firstname?: string; lastname?: string }) =>
+      registerMyContact(client, names),
+    onSuccess: () => qc.invalidateQueries({ queryKey: key }),
+  })
+
+  const err = query.error ?? save.error ?? register.error
 
   return {
-    contact,
-    loading,
-    saving,
-    error,
-    needsRegistration,
-    refresh,
-    save,
-    register,
+    contact: query.data ?? null,
+    loading: query.isLoading,
+    saving: save.isPending || register.isPending,
+    error: err instanceof Error ? err.message : null,
+    needsRegistration: query.isSuccess && query.data === null,
+    refresh: () => void query.refetch(),
+    save: async (patch) => {
+      await save.mutateAsync(patch)
+    },
+    register: async (names) => {
+      await register.mutateAsync(names)
+    },
   }
 }

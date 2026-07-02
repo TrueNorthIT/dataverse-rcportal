@@ -6,7 +6,9 @@ import {
   type AuthenticationResult,
 } from '@azure/msal-browser'
 import { MsalProvider } from '@azure/msal-react'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { entraConfig } from './config/entra'
+import { queryClient } from './lib/queryClient'
 import App from './App.tsx'
 import './index.css'
 
@@ -41,7 +43,9 @@ async function bootstrap() {
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
       <MsalProvider instance={pca}>
-        <App />
+        <QueryClientProvider client={queryClient}>
+          <App />
+        </QueryClientProvider>
       </MsalProvider>
     </StrictMode>,
   )

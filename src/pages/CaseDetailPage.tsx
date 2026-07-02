@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { useDataverseClient } from '../lib/client'
+import { useSelectedCompany } from '../context/SelectedCompanyContext'
 import { getCase } from '../services/caseApi'
-import type { Case } from '../types/case'
 import { formatDate } from '../lib/format'
 import { Card } from '../components/common/Card'
 import { StatusChip } from '../components/common/StatusChip'
@@ -12,32 +12,16 @@ export function CaseDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const client = useDataverseClient()
+  const { selectedContactId } = useSelectedCompany()
 
-  const [record, setRecord] = useState<Case | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (!id) return
-    let cancelled = false
-    void (async () => {
-      setLoading(true)
-      setError(null)
-      try {
-        const c = await getCase(client, id)
-        if (!cancelled) setRecord(c)
-      } catch (err) {
-        if (!cancelled) {
-          setError(err instanceof Error ? err.message : 'Failed to load case')
-        }
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    })()
-    return () => {
-      cancelled = true
-    }
-  }, [client, id])
+  const query = useQuery({
+    queryKey: ['case', id, selectedContactId ?? 'default'],
+    queryFn: () => getCase(client, id!),
+    enabled: !!id,
+  })
+  const record = query.data ?? null
+  const loading = query.isLoading
+  const error = query.error instanceof Error ? query.error.message : null
 
   return (
     <div>
