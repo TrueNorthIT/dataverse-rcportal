@@ -145,12 +145,26 @@ h3 {
   animation: rc-fade-up 0.35s ease-out both;
 }
 
+/* Living blue→teal→green hero background (login), echoing the redcentric.com
+ * hero — the gradient slowly drifts across. */
+@keyframes rc-hero-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.rc-hero {
+  background: linear-gradient(120deg, #0a2e5c 0%, #0a5ca8 32%, #0e8aa0 63%, #1c6b4f 100%);
+  background-size: 220% 220%;
+  animation: rc-hero-shift 22s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .rc-skeleton,
   .rc-skeleton::after,
   .rc-progress::after,
   .rc-bar,
-  .rc-fade-up {
+  .rc-fade-up,
+  .rc-hero {
     animation: none;
   }
 }
