@@ -80,6 +80,10 @@ function api(token) {
       if (!res.ok) throw new Error(`POST ${set} → ${res.status} ${await res.text()}`)
       return res.json()
     },
+    async patch(set, id, body) {
+      const res = await fetch(`${API}/${set}(${id})`, { method: 'PATCH', headers: base, body: JSON.stringify(body) })
+      if (!res.ok) throw new Error(`PATCH ${set}(${id}) → ${res.status} ${await res.text()}`)
+    },
     async del(set, id) {
       const res = await fetch(`${API}/${set}(${id})`, { method: 'DELETE', headers: base })
       if (!res.ok && res.status !== 404) throw new Error(`DELETE ${set}(${id}) → ${res.status}`)
@@ -119,9 +123,10 @@ async function seed(client) {
   for (const name of ACCOUNTS) {
     const acc = await accountByName(client, name)
     if (!acc) { console.log(`• ${name} — no account, skipping`); continue }
-    // Idempotency: top up to TARGET_PROJECTS per account.
+    // Idempotency: top up to TARGET_PROJECTS per account (keyed on the native
+    // msdyn_customer account link).
     const existing = await client.get(
-      `msdyn_projects?$select=msdyn_projectid&$filter=${enc(`_new_accountid_value eq ${acc.accountid} and contains(msdyn_description,'${MARKER}')`)}`,
+      `msdyn_projects?$select=msdyn_projectid&$filter=${enc(`_msdyn_customer_value eq ${acc.accountid} and contains(msdyn_description,'${MARKER}')`)}`,
     )
     const have = existing.value?.length || 0
     const need = TARGET_PROJECTS - have
@@ -131,13 +136,35 @@ async function seed(client) {
       await client.create('msdyn_projects', {
         msdyn_subject: pn,
         msdyn_description: `${MARKER} Fictional demo project for ${name}.`,
-        'new_AccountId@odata.bind': `/accounts(${acc.accountid})`,
+        'msdyn_customer@odata.bind': `/accounts(${acc.accountid})`,
       })
       total++
     }
     console.log(`✓ ${name} — +${need} projects (now ${have + need})`)
   }
   console.log(`\nDone. ${total} projects.`)
+}
+
+/**
+ * One-time migration: earlier seeds set the custom `new_accountid` lookup; the
+ * route + schema use the native `msdyn_customer`. Copy new_accountid →
+ * msdyn_customer for any demo project missing it, so the custom lookup can be
+ * retired. No-op once migrated.
+ */
+async function migrateToNativeCustomer(client) {
+  const rows = (await client.get(
+    `msdyn_projects?$select=msdyn_projectid,_new_accountid_value,_msdyn_customer_value&$filter=${enc(`contains(msdyn_description,'${MARKER}')`)}`,
+  )).value || []
+  let n = 0
+  for (const p of rows) {
+    if (p._new_accountid_value && !p._msdyn_customer_value) {
+      await client.patch('msdyn_projects', p.msdyn_projectid, {
+        'msdyn_customer@odata.bind': `/accounts(${p._new_accountid_value})`,
+      })
+      n++
+    }
+  }
+  if (n) console.log(`↻ migrated ${n} projects new_accountid → msdyn_customer`)
 }
 
 async function main() {
@@ -148,8 +175,9 @@ async function main() {
     const r = await client.get(`msdyn_projects?$select=msdyn_projectid&$filter=${enc(`msdyn_subject eq '${s}'`)}`)
     for (const p of r.value || []) await client.del('msdyn_projects', p.msdyn_projectid)
   }
-  if (CLEAN) await clean(client)
-  else await seed(client)
+  if (CLEAN) return clean(client)
+  await migrateToNativeCustomer(client)
+  await seed(client)
 }
 
 main().catch((e) => { console.error(e.message || e); process.exit(1) })
