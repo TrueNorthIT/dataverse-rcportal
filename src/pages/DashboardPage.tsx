@@ -44,16 +44,26 @@ function Stat({
   value: string
   loading?: boolean
 }) {
+  // Skeleton only on first load (no value yet); on a refetch (company switch)
+  // keep the previous number and just dim it — no flash.
+  const firstLoad = loading && value === '—'
   return (
     <Link to={to} className="block">
       <Card className="overflow-hidden transition-colors hover:border-rc-blue">
         <div className="rc-gradient h-1 w-full" />
         <div className="p-5">
           <div className="text-xs font-medium text-rc-teal">{label}</div>
-          {loading ? (
+          {firstLoad ? (
             <div className="rc-skeleton mt-2 h-7 w-16 rounded" aria-label="Loading" />
           ) : (
-            <div className="mt-1 text-2xl font-semibold text-rc-navy">{value}</div>
+            <div
+              className={
+                'mt-1 text-2xl font-semibold text-rc-navy transition-opacity duration-200 ' +
+                (loading ? 'opacity-50' : 'opacity-100')
+              }
+            >
+              {value}
+            </div>
           )}
         </div>
       </Card>
