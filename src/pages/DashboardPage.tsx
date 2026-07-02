@@ -59,7 +59,7 @@ function Stat({
           ) : (
             <div
               className={
-                'mt-1 text-2xl font-semibold text-rc-navy transition-opacity duration-200 ' +
+                'mt-1 text-3xl font-light tracking-tight text-rc-navy transition-opacity duration-200 ' +
                 (loading ? 'opacity-50' : 'opacity-100')
               }
             >

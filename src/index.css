@@ -38,12 +38,15 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Redcentric headings are light/elegant — medium weight, not heavy. */
+/* Redcentric's type voice is light and airy — display/section headings use a
+ * light weight with slightly tight tracking (echoing "About Redcentric" on the
+ * live site), not the heavy semibold we had before. Small UI labels opt back
+ * into a heavier weight locally where legibility needs it. */
 h1,
 h2,
 h3 {
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-weight: 300;
+  letter-spacing: -0.02em;
 }
 
 /* Signature blue → teal → green gradient rule, matching the 2026 logo's

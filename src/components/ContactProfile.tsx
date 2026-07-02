@@ -90,7 +90,7 @@ export function ContactProfile() {
         <div className="p-6">
         {/* Read-only identity block */}
         <div className="mb-6 border-b border-rc-blue-light pb-4">
-          <h1 className="text-xl font-bold text-rc-navy">
+          <h1 className="text-2xl font-normal tracking-tight text-rc-navy">
             {contact.fullname || 'Your profile'}
           </h1>
           {contact.emailaddress1 && (
