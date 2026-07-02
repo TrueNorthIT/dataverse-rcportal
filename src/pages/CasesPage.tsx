@@ -78,7 +78,7 @@ export function CasesPage() {
             : 'No tickets for your company yet.'
         }
       >
-        <div className="space-y-3">
+        <div className="space-y-3 rc-land-list">
           {items.map((c) => (
             <CardButton
               key={c.incidentid}

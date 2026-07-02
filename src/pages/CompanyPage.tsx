@@ -69,7 +69,7 @@ export function CompanyPage() {
           isEmpty={colleagues.length === 0}
           emptyMessage="No colleagues found for your company."
         >
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 rc-land-list">
             {colleagues.map((c) => (
               <Card key={c.contactid} className="p-4">
                 <div className="flex items-start justify-between gap-2">

@@ -33,7 +33,7 @@ export function ProjectsPage() {
         isEmpty={items.length === 0}
         emptyMessage="No projects to show yet."
       >
-        <div className="space-y-3">
+        <div className="space-y-3 rc-land-list">
           {items.map((p) => (
             <Card key={p.msdyn_projectid} className="p-4">
               <div className="flex items-start justify-between gap-4">

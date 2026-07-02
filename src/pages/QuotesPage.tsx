@@ -33,7 +33,7 @@ export function QuotesPage() {
         isEmpty={items.length === 0}
         emptyMessage="No quotes to show yet."
       >
-        <div className="space-y-3">
+        <div className="space-y-3 rc-land-list">
           {items.map((q) => (
             <Card key={q.quoteid} className="p-4">
               <div className="flex items-start justify-between gap-4">

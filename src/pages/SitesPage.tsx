@@ -27,7 +27,7 @@ export function SitesPage() {
         isEmpty={items.length === 0}
         emptyMessage="No sites to show yet."
       >
-        <div className="space-y-3">
+        <div className="space-y-3 rc-land-list">
           {items.map((s) => (
             <Card key={s.customeraddressid} className="p-4">
               <div className="flex items-start justify-between gap-4">
