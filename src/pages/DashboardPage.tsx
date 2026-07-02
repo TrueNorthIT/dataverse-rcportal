@@ -19,9 +19,9 @@ export function DashboardPage() {
       />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <Stat to="/quotes" label="Quotes" value={loading ? '…' : fmtCount(stats.quotes)} />
-        <Stat to="/projects" label="Projects" value={loading ? '…' : fmtCount(stats.projects)} />
-        <Stat to="/sites" label="Sites" value={loading ? '…' : fmtCount(stats.sites)} />
+        <Stat to="/quotes" label="Quotes" value={fmtCount(stats.quotes)} loading={loading} />
+        <Stat to="/projects" label="Projects" value={fmtCount(stats.projects)} loading={loading} />
+        <Stat to="/sites" label="Sites" value={fmtCount(stats.sites)} loading={loading} />
       </div>
 
       <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -33,14 +33,28 @@ export function DashboardPage() {
   )
 }
 
-function Stat({ to, label, value }: { to: string; label: string; value: string }) {
+function Stat({
+  to,
+  label,
+  value,
+  loading,
+}: {
+  to: string
+  label: string
+  value: string
+  loading?: boolean
+}) {
   return (
     <Link to={to} className="block">
       <Card className="overflow-hidden transition-colors hover:border-rc-blue">
         <div className="rc-gradient h-1 w-full" />
         <div className="p-5">
           <div className="text-xs font-medium text-rc-teal">{label}</div>
-          <div className="mt-1 text-2xl font-semibold text-rc-navy">{value}</div>
+          {loading ? (
+            <div className="rc-skeleton mt-2 h-7 w-16 rounded" aria-label="Loading" />
+          ) : (
+            <div className="mt-1 text-2xl font-semibold text-rc-navy">{value}</div>
+          )}
         </div>
       </Card>
     </Link>

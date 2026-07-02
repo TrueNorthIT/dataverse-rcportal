@@ -9,12 +9,9 @@ import { ListStates, LoadMore } from '../components/common/ListStates'
 
 /** Sites list with My / Company toggle — the customer's locations/premises. */
 export function SitesPage() {
+  // Sites are company-level — default to the Company tier.
   const { tier, setTier, items, loading, error, hasMore, loadingMore, loadMore } =
-    useTierList<Site>('site', {
-      select: SITE_SELECT,
-      orderBy: SITE_ORDER,
-      top: 25,
-    })
+    useTierList<Site>('site', { select: SITE_SELECT, orderBy: SITE_ORDER, top: 25 }, 'team')
 
   return (
     <div>

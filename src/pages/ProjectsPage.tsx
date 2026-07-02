@@ -10,12 +10,14 @@ import { ListStates, LoadMore } from '../components/common/ListStates'
 
 /** Projects list with My / Company toggle; subject, status, and schedule dates. */
 export function ProjectsPage() {
+  // Projects are company-level, so default to the Company tier (me-tier only
+  // has rows for the account's primary contact).
   const { tier, setTier, items, loading, error, hasMore, loadingMore, loadMore } =
-    useTierList<Project>('project', {
-      select: PROJECT_SELECT,
-      orderBy: PROJECT_ORDER,
-      top: 25,
-    })
+    useTierList<Project>(
+      'project',
+      { select: PROJECT_SELECT, orderBy: PROJECT_ORDER, top: 25 },
+      'team',
+    )
 
   return (
     <div>

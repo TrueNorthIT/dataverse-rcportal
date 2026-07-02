@@ -29,11 +29,11 @@ export function CasesPage() {
     loadingMore,
     loadMore,
     refresh,
-  } = useTierList<Case>('case', {
-    select: CASE_SELECT,
-    orderBy: { field: 'createdon', direction: 'desc' },
-    top: 25,
-  })
+  } = useTierList<Case>(
+    'case',
+    { select: CASE_SELECT, orderBy: { field: 'createdon', direction: 'desc' }, top: 25 },
+    'team',
+  )
 
   const [raising, setRaising] = useState(false)
 

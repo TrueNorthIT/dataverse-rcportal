@@ -90,16 +90,6 @@ export function CompanySwitcher() {
   )
 }
 
-// Brand-aligned monogram palette. Each company gets a stable colour + its
-// initials — a tidy stand-in "logo" (think Slack/Workspace avatars), no janky
-// clip-art. bg from the brand palette; fg chosen for contrast.
-const AVATAR_COLORS = [
-  { bg: '#0066b3', fg: '#ffffff' }, // rc-blue
-  { bg: '#005862', fg: '#ffffff' }, // rc-teal
-  { bg: '#142d46', fg: '#ffffff' }, // rc-navy
-  { bg: '#00272b', fg: '#ffffff' }, // rc-green-dark
-  { bg: '#8dc63f', fg: '#142d46' }, // rc-lime (navy text for contrast)
-]
 const STOPWORDS = new Set(['ltd', 'plc', 'group', 'the', 'and', '&', 'co', 'limited'])
 
 /** Up to two initials from the significant words of a company name. */
@@ -111,11 +101,16 @@ function initials(name: string): string {
   return (letters.join('') || name.slice(0, 2).toUpperCase()) || '?'
 }
 
-/** Stable palette index from the name (so a company's colour never changes). */
+/**
+ * Deterministic colour from the name — same company always gets the same
+ * colour, but each distinct name gets its own hue (spread around the wheel).
+ * Fixed saturation/lightness keeps every hue rich and readable with white text.
+ */
 function colorFor(name: string) {
   let h = 0
   for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0
-  return AVATAR_COLORS[h % AVATAR_COLORS.length]
+  const hue = h % 360
+  return { bg: `hsl(${hue} 58% 40%)`, fg: '#ffffff' }
 }
 
 /** Per-company monogram avatar — the switcher's "logo". */

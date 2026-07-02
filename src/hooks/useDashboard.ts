@@ -16,9 +16,12 @@ function firstNumber(row: Record<string, unknown> | undefined): number | null {
 }
 
 /**
- * Dashboard tiles for the `me` tier (spec §6.8): open support cases, quotes,
- * projects, and sites. Each aggregate is independent and failure-tolerant — a
- * table that errors just shows "—" rather than blanking the whole dashboard.
+ * Dashboard tiles: the caller's company at a glance — quotes, projects, and
+ * sites. These are company-level assets (a project/site isn't owned by an
+ * individual contact), so they're counted at the `team` tier — which also means
+ * every user sees real numbers for the company they're currently viewing, not
+ * just the account's primary contact. Each aggregate is independent and
+ * failure-tolerant — a table that errors just shows "—".
  *
  * (Opportunities/pipeline are intentionally excluded — internal sales, not a
  * customer-facing view. See PORTAL_SPEC §5.)
@@ -36,7 +39,7 @@ export function useDashboard(): { stats: DashboardStats; loading: boolean } {
     let cancelled = false
     const agg = async (table: string, options: AggregateOptions) => {
       try {
-        const res = await client.me.aggregate(table, options)
+        const res = await client.team.aggregate(table, options)
         return firstNumber(res.data[0] as Record<string, unknown> | undefined)
       } catch {
         return null
