@@ -40,6 +40,7 @@ const SECRET = env.CLIENT_SECRET
 const DV = (env.VITE_DATAVERSE_URL || '').replace(/\/$/, '')
 const API = `${DV}/api/data/v9.2`
 const CLEAN = process.argv.includes('--clean')
+const RESCHEDULE = process.argv.includes('--reschedule')
 
 if (!TENANT || !CLIENT_ID || !SECRET || !DV) {
   console.error('Missing VITE_TENANT_ID / VITE_CLIENT_ID / CLIENT_SECRET / VITE_DATAVERSE_URL in .env')
@@ -111,13 +112,14 @@ const isoDate = (daysFromNow) => {
   return d.toISOString().slice(0, 10)
 }
 
-/** A plausible start/finish pair: start within the last ~4 months, running
- * 2–8 months. Keeps most projects "in flight" around today's date. */
+/** A plausible start/finish pair. Starts are spread across the last ~6 months
+ * and durations 1.5–10 months, so finish dates land both behind and ahead of
+ * today — giving the portal's RAG (overdue / due-soon / on-track) a real mix. */
 function projectDates() {
-  const start = randInt(-120, 20)
+  const start = randInt(-180, -10)
   return {
     msdyn_scheduledstart: isoDate(start),
-    msdyn_finish: isoDate(start + randInt(60, 240)),
+    msdyn_finish: isoDate(start + randInt(45, 320)),
   }
 }
 
@@ -179,6 +181,17 @@ async function seed(client) {
   console.log(`\nDone. ${total} created.`)
 }
 
+/** Re-spread every demo project's schedule so the portal's RAG shows a real
+ * mix of overdue / due-soon / on-track. Run: node seed-projects.mjs --reschedule */
+async function reschedule(client) {
+  const all = await client.get(
+    `msdyn_projects?$select=msdyn_projectid&$filter=${enc(`contains(msdyn_description,'${MARKER}')`)}`,
+  )
+  const rows = all.value || []
+  for (const p of rows) await client.patch('msdyn_projects', p.msdyn_projectid, projectDates())
+  console.log(`✓ rescheduled ${rows.length} projects`)
+}
+
 async function main() {
   console.log(`Target: ${DV}`)
   const client = api(await getToken())
@@ -188,6 +201,7 @@ async function main() {
     for (const p of r.value || []) await client.del('msdyn_projects', p.msdyn_projectid)
   }
   if (CLEAN) return clean(client)
+  if (RESCHEDULE) return reschedule(client)
   await seed(client)
 }
 

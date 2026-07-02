@@ -4,7 +4,7 @@ import { useTierList } from '../hooks/useTierList'
 import { useDataverseClient } from '../lib/client'
 import { CASE_SELECT, createCase } from '../services/caseApi'
 import type { Case } from '../types/case'
-import { formatDate } from '../lib/format'
+import { formatDate, relativeFromNow } from '../lib/format'
 import { PageHeader } from '../components/common/PageHeader'
 import { CardButton } from '../components/common/Card'
 import { TierToggle } from '../components/common/TierToggle'
@@ -90,6 +90,9 @@ export function CasesPage() {
                   <div className="mt-1 text-sm text-rc-teal">
                     {c.ticketnumber ? `${c.ticketnumber} · ` : ''}
                     Raised {formatDate(c.createdon)}
+                  </div>
+                  <div className="mt-0.5 text-xs text-rc-teal">
+                    {relativeFromNow(c.createdon)}
                   </div>
                 </div>
                 <div className="flex flex-col items-end gap-1">
