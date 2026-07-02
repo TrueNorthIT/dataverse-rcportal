@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useDataverseClient } from '../lib/client'
 import { useSelectedCompany } from '../context/SelectedCompanyContext'
 import { getCase } from '../services/caseApi'
-import { formatDate } from '../lib/format'
+import { cleanDescription, formatDate } from '../lib/format'
 import { Card } from '../components/common/Card'
 import { StatusChip } from '../components/common/StatusChip'
 
@@ -51,11 +51,11 @@ export function CaseDetailPage() {
               <Meta label="Priority" value={record.prioritycode_label || '—'} />
               <Meta label="Raised" value={formatDate(record.createdon)} />
             </dl>
-            {record.description && (
+            {cleanDescription(record.description) && (
               <div className="mt-6">
                 <dt className="text-xs font-medium text-rc-teal">Details</dt>
                 <p className="mt-1 whitespace-pre-wrap text-sm text-rc-navy">
-                  {record.description}
+                  {cleanDescription(record.description)}
                 </p>
               </div>
             )}

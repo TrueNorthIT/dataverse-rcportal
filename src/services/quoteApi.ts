@@ -5,6 +5,7 @@ import type { Quote } from '../types/quote'
 export const QUOTE_SELECT = [
   'quoteid',
   'name',
+  'description',
   'quotenumber',
   'totalamount',
   'statecode',
