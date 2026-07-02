@@ -4,6 +4,7 @@ import { useDataverseClient } from '../lib/client'
 import { useSelectedCompany } from '../context/SelectedCompanyContext'
 
 export interface DashboardStats {
+  cases: number | null
   quotes: number | null
   projects: number | null
   sites: number | null
@@ -38,12 +39,13 @@ export function useDashboard(): { stats: DashboardStats; loading: boolean } {
           return null
         }
       }
-      const [quotes, projects, sites] = await Promise.all([
+      const [cases, quotes, projects, sites] = await Promise.all([
+        agg('case', { aggregate: 'count' }),
         agg('quote', { aggregate: 'count' }),
         agg('project', { aggregate: 'count' }),
         agg('site', { aggregate: 'count' }),
       ])
-      return { quotes, projects, sites }
+      return { cases, quotes, projects, sites }
     },
     placeholderData: keepPreviousData,
   })
