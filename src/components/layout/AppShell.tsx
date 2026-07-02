@@ -21,7 +21,7 @@ export function AppShell() {
 
   return (
     <div className="rc-hero min-h-screen">
-      <header className="bg-rc-navy">
+      <header className="sticky top-0 z-40 bg-rc-navy shadow-sm">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-5">
           <div className="flex items-center gap-3">
             <img
