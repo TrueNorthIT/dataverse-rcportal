@@ -62,7 +62,7 @@ export function CompanyPage() {
       </div>
 
       <div>
-        <h2 className="mb-3 text-lg font-bold text-rc-navy">Colleagues</h2>
+        <h2 className="mb-3 text-lg font-semibold text-white">Colleagues</h2>
         <ListStates
           loading={loading}
           error={error}
