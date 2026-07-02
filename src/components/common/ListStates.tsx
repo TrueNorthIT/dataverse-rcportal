@@ -20,13 +20,15 @@ export function ListStates({
   emptyMessage?: string
   children: React.ReactNode
 }) {
-  // First load — nothing to keep on screen yet, so show the skeleton.
+  // First load — nothing to keep on screen yet, so show the skeleton. Each row
+  // gets a staggered delay so the shimmer ripples down the list.
   if (loading && isEmpty) {
     return (
       <div className="space-y-3" aria-busy="true" aria-label="Loading">
         {[0, 1, 2, 3].map((i) => (
           <div
             key={i}
+            style={{ ['--rc-delay' as string]: `${i * 0.12}s` }}
             className="flex items-center justify-between gap-4 rounded-2xl border border-rc-blue-light bg-white p-4"
           >
             <div className="flex-1 space-y-2">
@@ -56,14 +58,15 @@ export function ListStates({
     )
   }
 
-  // Have content: render it, dimming smoothly while a refetch is in flight so a
-  // company switch fades rather than flashing a skeleton.
+  // Have content: keep it on screen during a refetch (e.g. company switch) —
+  // a slim indeterminate progress bar zips across the top and the list dims
+  // gently, rather than flashing a skeleton.
   return (
-    <div
-      aria-busy={loading}
-      className={'transition-opacity duration-200 ' + (loading ? 'opacity-50' : 'opacity-100')}
-    >
-      {children}
+    <div aria-busy={loading}>
+      {loading && <div className="rc-progress mb-3" aria-hidden="true" />}
+      <div className={'transition-opacity duration-200 ' + (loading ? 'opacity-60' : 'opacity-100')}>
+        {children}
+      </div>
     </div>
   )
 }
