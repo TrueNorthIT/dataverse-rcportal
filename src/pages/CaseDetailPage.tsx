@@ -41,7 +41,7 @@ export function CaseDetailPage() {
           <div className="rc-gradient h-1 w-full" />
           <div className="p-6">
             <div className="flex items-start justify-between gap-4">
-              <h1 className="text-xl font-bold text-rc-navy">
+              <h1 className="text-2xl font-normal tracking-tight text-rc-navy">
                 {record.title || 'Support case'}
               </h1>
               <StatusChip label={record.statuscode_label} />
