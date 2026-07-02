@@ -43,4 +43,5 @@ export type EditableContactFields = Pick<
   | 'address1_city'
   | 'address1_postalcode'
   | 'address1_country'
+  | 'donotbulkemail'
 >

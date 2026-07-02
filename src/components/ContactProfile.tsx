@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react'
 import { useMyContact } from '../hooks/useMyContact'
 import type { EditableContactFields } from '../types/contact'
 
-/** The fields the form edits, in display order, with labels. */
-const FIELDS: { key: keyof EditableContactFields; label: string }[] = [
+/** Text fields the form edits, in display order (donotbulkemail is a toggle). */
+const FIELDS: { key: Exclude<keyof EditableContactFields, 'donotbulkemail'>; label: string }[] = [
   { key: 'firstname', label: 'First name' },
   { key: 'lastname', label: 'Last name' },
   { key: 'telephone1', label: 'Business phone' },
@@ -125,6 +125,12 @@ export function ContactProfile() {
         </div>
       </div>
 
+      <CommunicationPrefs
+        optedOut={contact.donotbulkemail === true}
+        saving={saving}
+        onChange={(receive) => void save({ donotbulkemail: !receive }).catch(() => {})}
+      />
+
       {/*
         TODO: Add related records — a contact's cases, bookings, or activities.
               Create a service like fetchMyCases(client) using
@@ -133,6 +139,55 @@ export function ContactProfile() {
 
         TODO: Add a `contactid`/`createdon` metadata footer, or an avatar upload.
       */}
+    </div>
+  )
+}
+
+/** Communication preferences card — the marketing-email opt-in toggle. */
+function CommunicationPrefs({
+  optedOut,
+  saving,
+  onChange,
+}: {
+  optedOut: boolean
+  saving: boolean
+  onChange: (receive: boolean) => void
+}) {
+  const receiving = !optedOut
+  return (
+    <div className="mt-4 overflow-hidden rounded-2xl border border-rc-blue-light bg-white shadow-sm">
+      <div className="p-6">
+        <h2 className="text-sm font-bold text-rc-navy">Communication preferences</h2>
+        <div className="mt-3 flex items-center justify-between gap-4">
+          <div>
+            <div className="text-sm font-medium text-rc-navy">Marketing emails</div>
+            <div className="text-xs text-rc-teal">
+              {receiving
+                ? 'You’re receiving occasional product news and offers.'
+                : 'You’ve opted out of marketing emails.'}
+            </div>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={receiving}
+            aria-label="Receive marketing emails"
+            disabled={saving}
+            onClick={() => onChange(!receiving)}
+            className={
+              'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ' +
+              (receiving ? 'bg-rc-blue' : 'bg-rc-blue-light')
+            }
+          >
+            <span
+              className={
+                'inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ' +
+                (receiving ? 'translate-x-5' : 'translate-x-0.5')
+              }
+            />
+          </button>
+        </div>
+      </div>
     </div>
   )
 }

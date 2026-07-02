@@ -1,3 +1,5 @@
+import { useEffect, useRef } from 'react'
+
 /**
  * Loading / error / empty presentation shared by every list screen.
  *
@@ -74,7 +76,14 @@ export function ListStates({
   )
 }
 
-/** "Load more" control for cursor pagination via `page.next`. */
+/**
+ * Infinite scroll: an invisible sentinel at the end of the list. When it scrolls
+ * into view (with a little lead via rootMargin) we pull the next page — no
+ * "Load more" button. A compact branded equalizer shows while the next page
+ * loads. Keeps the `onClick`/`hasMore`/`loading` prop shape so callers are
+ * unchanged (onClick = the query's fetchNextPage). TanStack dedupes overlapping
+ * fetches, so re-triggering while a page is in flight is a no-op.
+ */
 export function LoadMore({
   hasMore,
   loading,
@@ -84,17 +93,38 @@ export function LoadMore({
   loading: boolean
   onClick: () => void
 }) {
-  if (!hasMore) return null
+  const sentinel = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const el = sentinel.current
+    if (!el || !hasMore) return
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && hasMore && !loading) onClick()
+      },
+      { rootMargin: '240px' },
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [hasMore, loading, onClick])
+
+  if (!hasMore && !loading) return null
   return (
-    <div className="mt-4 flex justify-center">
-      <button
-        type="button"
-        onClick={onClick}
-        disabled={loading}
-        className="rounded-lg border border-rc-blue-light px-4 py-2 text-sm font-medium text-rc-navy hover:bg-rc-blue-light disabled:opacity-50 transition-colors"
-      >
-        {loading ? 'Loading…' : 'Load more'}
-      </button>
+    <div ref={sentinel} className="mt-5 flex min-h-[2rem] items-center justify-center">
+      {loading && (
+        <div className="flex items-center gap-2 text-xs font-medium text-rc-teal" role="status">
+          <span className="flex h-4 items-end gap-[3px]">
+            {['0s', '0.12s', '0.24s', '0.36s'].map((delay) => (
+              <span
+                key={delay}
+                className="rc-bar inline-block w-1 rounded-full bg-rc-blue"
+                style={{ height: '100%', animationDelay: delay }}
+              />
+            ))}
+          </span>
+          Loading more…
+        </div>
+      )}
     </div>
   )
 }
