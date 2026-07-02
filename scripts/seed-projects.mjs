@@ -1,12 +1,10 @@
 // @ts-nocheck
 /**
  * Project seeder — loads msdyn_project (Project Operations) demo data and links
- * each project to a customer account via the custom lookup new_accountid
- * (relationship new_account_msdyn_project, nav property `new_AccountId`).
+ * each project to a customer account via the native `msdyn_customer` lookup.
  *
- * msdyn_project has no native account/contact link, so we added new_accountid
- * (account 1:N msdyn_project). Team-tier scopes projects by account; me-tier
- * via account → primarycontactid → contact.
+ * Team-tier scopes projects by account (msdyn_customer); me-tier via
+ * account → primarycontactid → contact.
  *
  *   node scripts/seed-projects.mjs          # create (idempotent per account)
  *   node scripts/seed-projects.mjs --clean  # remove demo projects
@@ -18,7 +16,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 
 const MARKER = '[DEMO-RCPORTAL]'
-const TARGET_PROJECTS = 5
+const TARGET_PROJECTS = 12
 const here = dirname(fileURLToPath(import.meta.url))
 
 function loadEnv(path) {
@@ -145,28 +143,6 @@ async function seed(client) {
   console.log(`\nDone. ${total} projects.`)
 }
 
-/**
- * One-time migration: earlier seeds set the custom `new_accountid` lookup; the
- * route + schema use the native `msdyn_customer`. Copy new_accountid →
- * msdyn_customer for any demo project missing it, so the custom lookup can be
- * retired. No-op once migrated.
- */
-async function migrateToNativeCustomer(client) {
-  const rows = (await client.get(
-    `msdyn_projects?$select=msdyn_projectid,_new_accountid_value,_msdyn_customer_value&$filter=${enc(`contains(msdyn_description,'${MARKER}')`)}`,
-  )).value || []
-  let n = 0
-  for (const p of rows) {
-    if (p._new_accountid_value && !p._msdyn_customer_value) {
-      await client.patch('msdyn_projects', p.msdyn_projectid, {
-        'msdyn_customer@odata.bind': `/accounts(${p._new_accountid_value})`,
-      })
-      n++
-    }
-  }
-  if (n) console.log(`↻ migrated ${n} projects new_accountid → msdyn_customer`)
-}
-
 async function main() {
   console.log(`Target: ${DV}`)
   const client = api(await getToken())
@@ -176,7 +152,6 @@ async function main() {
     for (const p of r.value || []) await client.del('msdyn_projects', p.msdyn_projectid)
   }
   if (CLEAN) return clean(client)
-  await migrateToNativeCustomer(client)
   await seed(client)
 }
 

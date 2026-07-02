@@ -21,9 +21,9 @@ import { dirname, join } from 'node:path'
 
 const MARKER = '[DEMO-RCPORTAL]'
 const GBP = '4677622c-e96d-f111-ab0d-000d3ad5aafe'
-const TARGET_OPPS = 5
-const TARGET_QUOTES = 4
-const TARGET_CASES = 5
+const TARGET_OPPS = 10
+const TARGET_QUOTES = 8
+const TARGET_CASES = 10
 const here = dirname(fileURLToPath(import.meta.url))
 
 const ADMINS = [
