@@ -25,6 +25,8 @@ export interface Contact {
   address1_city?: string
   address1_postalcode?: string
   address1_country?: string
+  /** Marketing-email opt-out (Dataverse "Do not allow Bulk Emails"). true = opted out. */
+  donotbulkemail?: boolean
   createdon?: string // ISO 8601, read-only.
   modifiedon?: string // ISO 8601, read-only.
 }

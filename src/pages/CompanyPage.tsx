@@ -72,7 +72,10 @@ export function CompanyPage() {
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {colleagues.map((c) => (
               <Card key={c.contactid} className="p-4">
-                <div className="font-medium text-rc-navy">{c.fullname || '—'}</div>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="font-medium text-rc-navy">{c.fullname || '—'}</div>
+                  {c.donotbulkemail && <MarketingOptOut />}
+                </div>
                 {c.jobtitle && (
                   <div className="text-sm text-rc-teal">{c.jobtitle}</div>
                 )}
@@ -91,6 +94,23 @@ export function CompanyPage() {
         </ListStates>
       </div>
     </div>
+  )
+}
+
+/** Amber pill shown when a colleague has opted out of marketing email. */
+function MarketingOptOut() {
+  return (
+    <span
+      title="Opted out of marketing email (Do not allow Bulk Emails)"
+      className="inline-flex shrink-0 items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700"
+    >
+      <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="m2 2 20 20" />
+        <path d="M22 7v11a2 2 0 0 1-2 2H8" />
+        <path d="M4 4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2" />
+      </svg>
+      No marketing
+    </span>
   )
 }
 
