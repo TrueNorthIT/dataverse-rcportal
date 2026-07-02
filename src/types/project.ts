@@ -10,6 +10,8 @@ export interface Project {
   msdyn_projectid: string
   /** Display name of the project. */
   msdyn_subject?: string
+  /** Scope/summary text (carries the demo marker — clean before display). */
+  msdyn_description?: string
   msdyn_scheduledstart?: string
   /** Scheduled finish — the real field is `msdyn_finish` (not scheduledfinish). */
   msdyn_finish?: string

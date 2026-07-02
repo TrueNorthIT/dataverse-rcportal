@@ -26,6 +26,20 @@ export function formatDate(value: string | null | undefined): string {
   return dateFmt.format(d)
 }
 
+/**
+ * Clean a Dataverse description for display. Demo records carry a
+ * "[DEMO-RCPORTAL]" cleanup marker (kept for seed idempotency) and some legacy
+ * rows carry "Fictional demo … not real data." boilerplate — strip both so the
+ * UI shows only the real copy.
+ */
+export function cleanDescription(text: string | null | undefined): string {
+  if (!text) return ''
+  return text
+    .replace(/\[DEMO-RCPORTAL\]/g, '')
+    .replace(/Fictional demo[^.]*\./gi, '')
+    .trim()
+}
+
 /** A day count as a friendly span, e.g. 5→"5 days", 21→"3 weeks", 120→"4 months". */
 export function humanDuration(days: number): string {
   const n = Math.abs(Math.round(days))

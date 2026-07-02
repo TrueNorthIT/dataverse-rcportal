@@ -1,7 +1,7 @@
 import { useTierList } from '../hooks/useTierList'
 import { PROJECT_ORDER, PROJECT_SELECT, projectHealth } from '../services/projectApi'
 import type { Project } from '../types/project'
-import { formatDate } from '../lib/format'
+import { cleanDescription, formatDate } from '../lib/format'
 import { PageHeader } from '../components/common/PageHeader'
 import { Card } from '../components/common/Card'
 import { TierToggle } from '../components/common/TierToggle'
@@ -43,6 +43,11 @@ export function ProjectsPage() {
                     <div className="font-medium text-rc-navy">
                       {p.msdyn_subject || 'Untitled project'}
                     </div>
+                    {cleanDescription(p.msdyn_description) && (
+                      <p className="mt-1 line-clamp-2 text-sm text-rc-teal">
+                        {cleanDescription(p.msdyn_description)}
+                      </p>
+                    )}
                     <div className="mt-1 text-sm text-rc-teal">
                       {formatDate(p.msdyn_scheduledstart)} – {formatDate(p.msdyn_finish)}
                     </div>

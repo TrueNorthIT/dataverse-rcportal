@@ -8,6 +8,7 @@
 export interface Quote {
   quoteid: string
   name?: string
+  description?: string
   quotenumber?: string
   totalamount?: number
   statecode?: number

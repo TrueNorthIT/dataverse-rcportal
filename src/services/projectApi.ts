@@ -7,10 +7,9 @@ export const PROJECT_SELECT = [
   'msdyn_subject',
   'msdyn_scheduledstart',
   'msdyn_finish',
+  'msdyn_description',
   'statecode',
   'statuscode',
-  'statuscode_label',
-  'statecode_label',
   'createdon',
 ]
 

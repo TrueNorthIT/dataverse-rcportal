@@ -1,7 +1,7 @@
 import { useTierList } from '../hooks/useTierList'
 import { QUOTE_SELECT } from '../services/quoteApi'
 import type { Quote } from '../types/quote'
-import { formatCurrency, formatDate } from '../lib/format'
+import { cleanDescription, formatCurrency, formatDate } from '../lib/format'
 import { PageHeader } from '../components/common/PageHeader'
 import { Card } from '../components/common/Card'
 import { TierToggle } from '../components/common/TierToggle'
@@ -41,6 +41,11 @@ export function QuotesPage() {
                   <div className="font-medium text-rc-navy">
                     {q.name || q.quotenumber || 'Quote'}
                   </div>
+                  {cleanDescription(q.description) && (
+                    <p className="mt-1 line-clamp-2 text-sm text-rc-teal">
+                      {cleanDescription(q.description)}
+                    </p>
+                  )}
                   <div className="mt-1 text-sm text-rc-teal">
                     {q.quotenumber ? `${q.quotenumber} · ` : ''}
                     {formatDate(q.createdon)}
