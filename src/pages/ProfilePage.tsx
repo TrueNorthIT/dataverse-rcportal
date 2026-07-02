@@ -25,10 +25,10 @@ export function ProfilePage() {
         }
       />
       {hasMultiple && company && (
-        <div className="mb-5 rounded-lg border border-rc-blue-light bg-rc-blue-light/40 px-4 py-2.5 text-sm text-rc-navy">
+        <div className="mb-5 rounded-lg border border-white/20 bg-white/10 px-4 py-2.5 text-sm text-white/90 backdrop-blur-sm">
           You have a separate profile for each company. This is your profile at{' '}
-          <span className="font-semibold">{company}</span> — switch company in the
-          header to edit another.
+          <span className="font-semibold text-white">{company}</span> — switch company
+          in the header to edit another.
         </div>
       )}
       <ContactProfile />

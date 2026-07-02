@@ -38,11 +38,11 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Brand headings use Avenir Black — render them heavy. */
+/* Redcentric headings are light/elegant — medium weight, not heavy. */
 h1,
 h2,
 h3 {
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: -0.01em;
 }
 

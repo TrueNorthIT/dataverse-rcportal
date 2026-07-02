@@ -20,14 +20,14 @@ export function AppShell() {
   const { hasMultiple } = useSelectedCompany()
 
   return (
-    <div className="min-h-screen bg-rc-canvas">
+    <div className="rc-hero min-h-screen">
       <header className="bg-rc-navy">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-5">
           <div className="flex items-center gap-3">
             <img
               src="/brand/Redcentric_logo_white_no-strapline.png"
               alt="Redcentric"
-              className="h-6 w-auto"
+              className="h-7 w-auto"
             />
             <span className="hidden text-sm font-medium text-white/70 sm:inline">
               Contact Portal
@@ -67,7 +67,7 @@ export function AppShell() {
       {/* Operator/demo aid: jump to the backing record in Dataverse. Only
           rendered when VITE_DATAVERSE_URL is set — leave it unset for customers. */}
       {DATAVERSE_URL && (
-        <footer className="mx-auto max-w-5xl px-4 pb-8 pt-2 text-xs text-rc-teal/70">
+        <footer className="mx-auto max-w-5xl px-4 pb-8 pt-2 text-xs text-white/70">
           <a
             href={
               account?.accountid
@@ -76,7 +76,7 @@ export function AppShell() {
             }
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-1 hover:text-rc-blue hover:underline"
+            className="inline-flex items-center gap-1 hover:text-white hover:underline"
           >
             {account?.name ? `View ${account.name} in Dataverse` : 'Open Dataverse environment'} ↗
           </a>

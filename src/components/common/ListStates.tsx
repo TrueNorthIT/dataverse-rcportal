@@ -112,12 +112,12 @@ export function LoadMore({
   return (
     <div ref={sentinel} className="mt-5 flex min-h-[2rem] items-center justify-center">
       {loading && (
-        <div className="flex items-center gap-2 text-xs font-medium text-rc-teal" role="status">
+        <div className="flex items-center gap-2 text-xs font-medium text-white/80" role="status">
           <span className="flex h-4 items-end gap-[3px]">
             {['0s', '0.12s', '0.24s', '0.36s'].map((delay) => (
               <span
                 key={delay}
-                className="rc-bar inline-block w-1 rounded-full bg-rc-blue"
+                className="rc-bar inline-block w-1 rounded-full bg-white"
                 style={{ height: '100%', animationDelay: delay }}
               />
             ))}

@@ -28,13 +28,13 @@ export function CaseDetailPage() {
       <button
         type="button"
         onClick={() => navigate('/cases')}
-        className="mb-4 text-sm font-medium text-rc-blue hover:underline"
+        className="mb-4 text-sm font-medium text-white/90 hover:underline"
       >
         ← Support
       </button>
 
-      {loading && <p className="text-sm text-rc-teal">Loading…</p>}
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {loading && <p className="text-sm text-white/80">Loading…</p>}
+      {error && <p className="text-sm text-red-200">{error}</p>}
 
       {record && (
         <Card className="overflow-hidden">
