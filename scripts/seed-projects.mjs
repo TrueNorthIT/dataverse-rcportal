@@ -104,6 +104,23 @@ const PROJECT_NAMES = [
 const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min
 const enc = (s) => encodeURIComponent(s)
 
+/** Date-only ISO string (YYYY-MM-DD) offset from today — matches seed-demo. */
+const isoDate = (daysFromNow) => {
+  const d = new Date()
+  d.setDate(d.getDate() + daysFromNow)
+  return d.toISOString().slice(0, 10)
+}
+
+/** A plausible start/finish pair: start within the last ~4 months, running
+ * 2–8 months. Keeps most projects "in flight" around today's date. */
+function projectDates() {
+  const start = randInt(-120, 20)
+  return {
+    msdyn_scheduledstart: isoDate(start),
+    msdyn_finish: isoDate(start + randInt(60, 240)),
+  }
+}
+
 async function accountByName(client, name) {
   const r = await client.get(`accounts?$select=accountid&$filter=${enc(`name eq '${name.replace(/'/g, "''")}'`)}`)
   return r.value?.[0] || null
@@ -134,13 +151,32 @@ async function seed(client) {
       await client.create('msdyn_projects', {
         msdyn_subject: pn,
         msdyn_description: `${MARKER} Fictional demo project for ${name}.`,
+        ...projectDates(),
         'msdyn_customer@odata.bind': `/accounts(${acc.accountid})`,
       })
       total++
     }
-    console.log(`✓ ${name} — +${need} projects (now ${have + need})`)
+    if (need > 0) console.log(`✓ ${name} — +${need} projects (now ${have + need})`)
   }
-  console.log(`\nDone. ${total} projects.`)
+  // Backfill: earlier seeds created projects without dates, so the schedule
+  // showed "start – —". Patch any demo project missing a finish date.
+  const stale = await client.get(
+    `msdyn_projects?$select=msdyn_projectid,msdyn_scheduledstart&$filter=${enc(`contains(msdyn_description,'${MARKER}') and msdyn_finish eq null`)}`,
+  )
+  const staleRows = stale.value || []
+  for (const p of staleRows) {
+    const dates = projectDates()
+    // Keep an existing start if one is set; only guarantee a finish after it.
+    if (p.msdyn_scheduledstart) {
+      const base = new Date(p.msdyn_scheduledstart)
+      base.setDate(base.getDate() + randInt(60, 240))
+      dates.msdyn_scheduledstart = p.msdyn_scheduledstart
+      dates.msdyn_finish = base.toISOString().slice(0, 10)
+    }
+    await client.patch('msdyn_projects', p.msdyn_projectid, dates)
+  }
+  if (staleRows.length) console.log(`✓ backfilled dates on ${staleRows.length} projects`)
+  console.log(`\nDone. ${total} created.`)
 }
 
 async function main() {
