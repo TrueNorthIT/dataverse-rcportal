@@ -2,7 +2,9 @@ import { Outlet } from 'react-router-dom'
 import { useMsal } from '@azure/msal-react'
 import { accountToUser } from '../../config/entra'
 import { useMyCompany } from '../../hooks/useMyCompany'
+import { useSelectedCompany } from '../../context/SelectedCompanyContext'
 import { NavTabs } from './NavTabs'
+import { CompanySwitcher } from './CompanySwitcher'
 
 /**
  * Authenticated app frame: brand top bar (logo, company, email, sign-out) with
@@ -12,6 +14,9 @@ export function AppShell() {
   const { instance, accounts } = useMsal()
   const user = accountToUser(instance.getActiveAccount() ?? accounts[0])
   const { account } = useMyCompany()
+  // When the caller belongs to multiple companies, the switcher names the
+  // active company, so the static name would be redundant.
+  const { hasMultiple } = useSelectedCompany()
 
   return (
     <div className="min-h-screen bg-rc-canvas">
@@ -28,8 +33,9 @@ export function AppShell() {
             </span>
           </div>
           <div className="flex items-center gap-3">
+            <CompanySwitcher />
             <div className="hidden text-right sm:block">
-              {account?.name && (
+              {!hasMultiple && account?.name && (
                 <div className="text-sm font-medium text-rc-navy">{account.name}</div>
               )}
               {user?.email && (

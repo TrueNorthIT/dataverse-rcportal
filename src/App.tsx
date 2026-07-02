@@ -3,6 +3,7 @@ import { useIsAuthenticated, useMsal } from '@azure/msal-react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { LoginScreen } from './components/LoginScreen'
 import { AppShell } from './components/layout/AppShell'
+import { SelectedCompanyProvider } from './context/SelectedCompanyContext'
 import { DashboardPage } from './pages/DashboardPage'
 import { ProfilePage } from './pages/ProfilePage'
 import { CompanyPage } from './pages/CompanyPage'
@@ -36,9 +37,10 @@ function App() {
   }
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route element={<AppShell />}>
+    <SelectedCompanyProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route element={<AppShell />}>
           <Route index element={<DashboardPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="company" element={<CompanyPage />} />
@@ -50,7 +52,8 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
-    </BrowserRouter>
+      </BrowserRouter>
+    </SelectedCompanyProvider>
   )
 }
 
