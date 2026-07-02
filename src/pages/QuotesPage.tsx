@@ -10,12 +10,14 @@ import { ListStates, LoadMore } from '../components/common/ListStates'
 
 /** Quotes list with My / Company toggle; number, total, status. */
 export function QuotesPage() {
+  // Default to the Company view (all the company's quotes); toggle to "My" to
+  // filter to the signed-in contact's own.
   const { tier, setTier, items, loading, error, hasMore, loadingMore, loadMore } =
-    useTierList<Quote>('quote', {
-      select: QUOTE_SELECT,
-      orderBy: { field: 'createdon', direction: 'desc' },
-      top: 25,
-    })
+    useTierList<Quote>(
+      'quote',
+      { select: QUOTE_SELECT, orderBy: { field: 'createdon', direction: 'desc' }, top: 25 },
+      'team',
+    )
 
   return (
     <div>
