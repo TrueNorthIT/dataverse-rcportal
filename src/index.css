@@ -68,12 +68,32 @@ h3 {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: none; }
 }
+/* Indeterminate progress chunk zipping across a track. */
+@keyframes rc-indeterminate {
+  0%   { left: -35%; width: 35%; }
+  55%  { left: 55%;  width: 45%; }
+  100% { left: 100%; width: 35%; }
+}
+/* Slow brand-hue drift for skeleton backgrounds — a living, breathing shimmer. */
+@keyframes rc-pan {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
 
-/* Skeleton block with a light sweep travelling across it. */
+/* Skeleton block: a softly drifting blue↔teal wash with a brand-tinted sheen
+ * sweeping across it. `--rc-delay` staggers rows for a ripple down the list. */
 .rc-skeleton {
   position: relative;
   overflow: hidden;
-  background: color-mix(in srgb, var(--color-rc-blue-light) 55%, #fff);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--color-rc-blue-light) 70%, #fff),
+    color-mix(in srgb, var(--color-rc-green-light) 70%, #fff),
+    color-mix(in srgb, var(--color-rc-blue-light) 70%, #fff)
+  );
+  background-size: 200% 100%;
+  animation: rc-pan 3s ease-in-out infinite;
+  animation-delay: var(--rc-delay, 0s);
 }
 .rc-skeleton::after {
   content: '';
@@ -83,10 +103,31 @@ h3 {
   background: linear-gradient(
     90deg,
     transparent,
-    color-mix(in srgb, #fff 85%, transparent),
+    color-mix(in srgb, var(--color-rc-blue) 22%, #fff),
     transparent
   );
-  animation: rc-shimmer 1.5s infinite;
+  animation: rc-shimmer 1.4s infinite;
+  animation-delay: var(--rc-delay, 0s);
+}
+
+/* Slim indeterminate progress bar — shown while a list refetches. */
+.rc-progress {
+  position: relative;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--color-rc-blue-light) 60%, #fff);
+}
+.rc-progress::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -35%;
+  width: 35%;
+  border-radius: inherit;
+  background-image: linear-gradient(90deg, var(--color-rc-blue), var(--color-rc-teal));
+  animation: rc-indeterminate 1.1s ease-in-out infinite;
 }
 
 /* Equalizer bar — used by the brand loader; stagger delays inline. */
@@ -101,7 +142,9 @@ h3 {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .rc-skeleton,
   .rc-skeleton::after,
+  .rc-progress::after,
   .rc-bar,
   .rc-fade-up {
     animation: none;
