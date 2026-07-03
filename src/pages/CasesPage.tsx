@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTierList } from '../hooks/useTierList'
 import { useDataverseClient } from '../lib/client'
@@ -10,21 +10,23 @@ import { CardButton } from '../components/common/Card'
 import { TierToggle } from '../components/common/TierToggle'
 import { StatusChip } from '../components/common/StatusChip'
 import { FilterPills } from '../components/common/FilterPills'
+import { usePillCounts } from '../hooks/usePillCounts'
 import { ListStates, LoadMore } from '../components/common/ListStates'
 import type { FilterCondition } from '@truenorth-it/dataverse-client'
 
-const CASE_PILLS = [
-  { key: 'all', label: 'All' },
-  { key: 'high', label: 'High' },
-  { key: 'normal', label: 'Normal' },
-  { key: 'low', label: 'Low' },
-]
-
-/** Map a pill to a prioritycode filter (1 = High, 2 = Normal, 3 = Low). */
-function caseFilter(key: string): FilterCondition | undefined {
-  const code = { high: 1, normal: 2, low: 3 }[key]
-  return code ? { field: 'prioritycode', operator: 'eq', value: code } : undefined
+interface Pill {
+  key: string
+  label: string
+  filter?: FilterCondition | FilterCondition[]
 }
+
+// prioritycode: 1 = High, 2 = Normal, 3 = Low.
+const CASE_PILLS: Pill[] = [
+  { key: 'all', label: 'All' },
+  { key: 'high', label: 'High', filter: { field: 'prioritycode', operator: 'eq', value: 1 } },
+  { key: 'normal', label: 'Normal', filter: { field: 'prioritycode', operator: 'eq', value: 2 } },
+  { key: 'low', label: 'Low', filter: { field: 'prioritycode', operator: 'eq', value: 3 } },
+]
 
 /**
  * Support cases — the primary self-service action a customer takes (spec: the
@@ -51,10 +53,16 @@ export function CasesPage() {
       select: CASE_SELECT,
       orderBy: { field: 'createdon', direction: 'desc' },
       top: 25,
-      filter: caseFilter(priority),
+      filter: CASE_PILLS.find((p) => p.key === priority)?.filter,
     },
     'team',
   )
+
+  const counts = usePillCounts('case', tier, [...CASE_PILLS])
+  const disabledKeys = new Set(CASE_PILLS.filter((p) => counts[p.key] === 0).map((p) => p.key))
+  useEffect(() => {
+    if (priority !== 'all' && counts[priority] === 0) setPriority('all')
+  }, [counts, priority])
 
   const [raising, setRaising] = useState(false)
 
@@ -77,7 +85,13 @@ export function CasesPage() {
         }
       />
 
-      <FilterPills options={CASE_PILLS} value={priority} onChange={setPriority} className="mb-4" />
+      <FilterPills
+        options={CASE_PILLS.map((p) => ({ key: p.key, label: p.label }))}
+        value={priority}
+        onChange={setPriority}
+        disabledKeys={disabledKeys}
+        className="mb-4"
+      />
 
       {raising && (
         <RaiseCase

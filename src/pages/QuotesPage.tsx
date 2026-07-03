@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { FilterCondition } from '@truenorth-it/dataverse-client'
 import { useTierList } from '../hooks/useTierList'
+import { usePillCounts } from '../hooks/usePillCounts'
 import { QUOTE_SELECT } from '../services/quoteApi'
 import type { Quote } from '../types/quote'
 import { cleanDescription, formatCurrency, formatDate } from '../lib/format'
@@ -11,24 +12,25 @@ import { StatusChip } from '../components/common/StatusChip'
 import { FilterPills } from '../components/common/FilterPills'
 import { ListStates, LoadMore } from '../components/common/ListStates'
 
-const QUOTE_PILLS = [
-  { key: 'all', label: 'All' },
-  { key: 'active', label: 'Active' },
-  { key: 'draft', label: 'Draft' },
-]
-
-/** Map a pill to a statecode filter (0 = Draft, 1 = Active). */
-function quoteFilter(key: string): FilterCondition | undefined {
-  if (key === 'active') return { field: 'statecode', operator: 'eq', value: 1 }
-  if (key === 'draft') return { field: 'statecode', operator: 'eq', value: 0 }
-  return undefined
+interface Pill {
+  key: string
+  label: string
+  filter?: FilterCondition | FilterCondition[]
 }
+
+// statecode: 0 = Draft, 1 = Active.
+const QUOTE_PILLS: Pill[] = [
+  { key: 'all', label: 'All' },
+  { key: 'active', label: 'Active', filter: { field: 'statecode', operator: 'eq', value: 1 } },
+  { key: 'draft', label: 'Draft', filter: { field: 'statecode', operator: 'eq', value: 0 } },
+]
 
 /** Quotes list with My / Company toggle; number, total, status. */
 export function QuotesPage() {
   // Default to the Company view (all the company's quotes); toggle to "My" to
   // filter to the signed-in contact's own.
   const [status, setStatus] = useState('all')
+  const activeFilter = QUOTE_PILLS.find((p) => p.key === status)?.filter
   const { tier, setTier, items, loading, error, hasMore, loadingMore, loadMore } =
     useTierList<Quote>(
       'quote',
@@ -36,10 +38,16 @@ export function QuotesPage() {
         select: QUOTE_SELECT,
         orderBy: { field: 'createdon', direction: 'desc' },
         top: 25,
-        filter: quoteFilter(status),
+        filter: activeFilter,
       },
       'team',
     )
+
+  const counts = usePillCounts('quote', tier, [...QUOTE_PILLS])
+  const disabledKeys = new Set(QUOTE_PILLS.filter((p) => counts[p.key] === 0).map((p) => p.key))
+  useEffect(() => {
+    if (status !== 'all' && counts[status] === 0) setStatus('all')
+  }, [counts, status])
 
   return (
     <div>
@@ -49,7 +57,13 @@ export function QuotesPage() {
         actions={<TierToggle tier={tier} onChange={setTier} />}
       />
 
-      <FilterPills options={QUOTE_PILLS} value={status} onChange={setStatus} className="mb-4" />
+      <FilterPills
+        options={QUOTE_PILLS.map((p) => ({ key: p.key, label: p.label }))}
+        value={status}
+        onChange={setStatus}
+        disabledKeys={disabledKeys}
+        className="mb-4"
+      />
 
       <ListStates
         loading={loading}
