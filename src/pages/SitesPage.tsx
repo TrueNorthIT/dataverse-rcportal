@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTierList } from '../hooks/useTierList'
 import {
   SITE_ORDER,
@@ -30,6 +30,17 @@ export function SitesPage() {
   const visible =
     conn === 'all' ? items : items.filter((s) => siteConnectivity(s.name).key === conn)
 
+  // Connectivity is derived, so grey out pills with no matching loaded rows.
+  const present = new Set(items.map((s) => siteConnectivity(s.name).key))
+  const disabledKeys =
+    items.length > 0
+      ? new Set(CONNECTIVITY_TYPES.filter((c) => !present.has(c.key)).map((c) => c.key))
+      : new Set<string>()
+  useEffect(() => {
+    if (conn !== 'all' && items.length > 0 && !present.has(conn)) setConn('all')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items, conn])
+
   return (
     <div>
       <PageHeader
@@ -38,7 +49,13 @@ export function SitesPage() {
         actions={<TierToggle tier={tier} onChange={setTier} />}
       />
 
-      <FilterPills options={SITE_PILLS} value={conn} onChange={setConn} className="mb-4" />
+      <FilterPills
+        options={SITE_PILLS}
+        value={conn}
+        onChange={setConn}
+        disabledKeys={disabledKeys}
+        className="mb-4"
+      />
 
       <ListStates
         loading={loading}

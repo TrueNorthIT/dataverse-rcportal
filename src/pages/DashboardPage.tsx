@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useDashboard } from '../hooks/useDashboard'
+import { useAttention } from '../hooks/useAttention'
 import { useMyCompany } from '../hooks/useMyCompany'
 import { PageHeader } from '../components/common/PageHeader'
 import { Card } from '../components/common/Card'
@@ -24,6 +25,8 @@ export function DashboardPage() {
         <Stat to="/projects" label="Projects" value={fmtCount(stats.projects)} loading={loading} />
         <Stat to="/sites" label="Sites" value={fmtCount(stats.sites)} loading={loading} />
       </div>
+
+      <Attention />
 
       <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Shortcut to="/cases" title="Raise a ticket" body="Log a new support case with our team." />
@@ -69,6 +72,53 @@ function Stat({
         </div>
       </Card>
     </Link>
+  )
+}
+
+/** "Needs your attention" — a few actionable highlights, or an all-clear. */
+function Attention() {
+  const { items, loading } = useAttention()
+  const dot: Record<string, string> = {
+    red: 'bg-red-500',
+    amber: 'bg-amber-500',
+    blue: 'bg-rc-blue',
+  }
+
+  return (
+    <Card className="mt-8 overflow-hidden">
+      <div className="rc-gradient h-1 w-full" />
+      <div className="p-5">
+        <h2 className="text-base font-normal tracking-tight text-rc-navy">
+          Needs your attention
+        </h2>
+        {items.length === 0 ? (
+          <p className="mt-2 text-sm text-rc-teal">
+            {loading ? 'Checking…' : 'You’re all caught up — nothing needs attention.'}
+          </p>
+        ) : (
+          <div className="mt-3 space-y-2">
+            {items.map((it) => (
+              <Link
+                key={it.key}
+                to={it.to}
+                className="flex items-center gap-3 rounded-xl border border-rc-blue-light bg-white p-3 transition-colors hover:border-rc-blue hover:bg-rc-blue-light/30"
+              >
+                <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${dot[it.tone]}`} />
+                <span className="text-sm text-rc-navy">{it.label}</span>
+                <svg
+                  className="ml-auto shrink-0 text-rc-teal"
+                  width="16" height="16" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="m9 18 6-6-6-6" />
+                </svg>
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+    </Card>
   )
 }
 

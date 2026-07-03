@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { FilterCondition } from '@truenorth-it/dataverse-client'
 import { useTierList } from '../hooks/useTierList'
+import { usePillCounts } from '../hooks/usePillCounts'
 import { PROJECT_ORDER, PROJECT_SELECT, projectHealth } from '../services/projectApi'
 import type { Project } from '../types/project'
 import { cleanDescription, formatDate } from '../lib/format'
@@ -11,12 +12,11 @@ import { StatusChip } from '../components/common/StatusChip'
 import { FilterPills } from '../components/common/FilterPills'
 import { ListStates, LoadMore } from '../components/common/ListStates'
 
-const PROJECT_PILLS = [
-  { key: 'all', label: 'All' },
-  { key: 'ontrack', label: 'On track' },
-  { key: 'duesoon', label: 'Due soon' },
-  { key: 'overdue', label: 'Overdue' },
-]
+interface ProjectPill {
+  key: string
+  label: string
+  filter?: FilterCondition | FilterCondition[]
+}
 
 const isoOffset = (days: number) => {
   const d = new Date()
@@ -25,21 +25,26 @@ const isoOffset = (days: number) => {
 }
 
 /**
- * Map a RAG pill to a msdyn_finish date filter — mirrors projectHealth():
- * overdue = finish before today; due soon = finish within 30 days; on track =
- * finish more than 30 days out. (Array conditions are AND-ed by default.)
+ * RAG pills with msdyn_finish date filters — mirrors projectHealth(): overdue =
+ * finish before today; due soon = finish within 30 days; on track = finish more
+ * than 30 days out. (Array conditions are AND-ed by default.)
  */
-function projectFilter(key: string): FilterCondition | FilterCondition[] | undefined {
+function buildProjectPills(): ProjectPill[] {
   const today = isoOffset(0)
   const in30 = isoOffset(30)
-  if (key === 'overdue') return { field: 'msdyn_finish', operator: 'lt', value: today }
-  if (key === 'ontrack') return { field: 'msdyn_finish', operator: 'gt', value: in30 }
-  if (key === 'duesoon')
-    return [
-      { field: 'msdyn_finish', operator: 'ge', value: today },
-      { field: 'msdyn_finish', operator: 'le', value: in30 },
-    ]
-  return undefined
+  return [
+    { key: 'all', label: 'All' },
+    { key: 'ontrack', label: 'On track', filter: { field: 'msdyn_finish', operator: 'gt', value: in30 } },
+    {
+      key: 'duesoon',
+      label: 'Due soon',
+      filter: [
+        { field: 'msdyn_finish', operator: 'ge', value: today },
+        { field: 'msdyn_finish', operator: 'le', value: in30 },
+      ],
+    },
+    { key: 'overdue', label: 'Overdue', filter: { field: 'msdyn_finish', operator: 'lt', value: today } },
+  ]
 }
 
 /** Projects list with My / Company toggle; subject, status, and schedule dates. */
@@ -47,12 +52,24 @@ export function ProjectsPage() {
   // Projects are company-level, so default to the Company tier (me-tier only
   // has rows for the account's primary contact).
   const [rag, setRag] = useState('all')
+  const pills = buildProjectPills()
   const { tier, setTier, items, loading, error, hasMore, loadingMore, loadMore } =
     useTierList<Project>(
       'project',
-      { select: PROJECT_SELECT, orderBy: PROJECT_ORDER, top: 25, filter: projectFilter(rag) },
+      {
+        select: PROJECT_SELECT,
+        orderBy: PROJECT_ORDER,
+        top: 25,
+        filter: pills.find((p) => p.key === rag)?.filter,
+      },
       'team',
     )
+
+  const counts = usePillCounts('project', tier, pills)
+  const disabledKeys = new Set(pills.filter((p) => counts[p.key] === 0).map((p) => p.key))
+  useEffect(() => {
+    if (rag !== 'all' && counts[rag] === 0) setRag('all')
+  }, [counts, rag])
 
   return (
     <div>
@@ -62,7 +79,13 @@ export function ProjectsPage() {
         actions={<TierToggle tier={tier} onChange={setTier} />}
       />
 
-      <FilterPills options={PROJECT_PILLS} value={rag} onChange={setRag} className="mb-4" />
+      <FilterPills
+        options={pills.map((p) => ({ key: p.key, label: p.label }))}
+        value={rag}
+        onChange={setRag}
+        disabledKeys={disabledKeys}
+        className="mb-4"
+      />
 
       <ListStates
         loading={loading}
