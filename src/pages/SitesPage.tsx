@@ -1,17 +1,34 @@
+import { useState } from 'react'
 import { useTierList } from '../hooks/useTierList'
-import { SITE_ORDER, SITE_SELECT } from '../services/siteApi'
+import {
+  SITE_ORDER,
+  SITE_SELECT,
+  CONNECTIVITY_TYPES,
+  siteConnectivity,
+} from '../services/siteApi'
 import type { Site } from '../types/site'
 import { PageHeader } from '../components/common/PageHeader'
 import { Card } from '../components/common/Card'
 import { TierToggle } from '../components/common/TierToggle'
-import { StatusChip } from '../components/common/StatusChip'
+import { FilterPills } from '../components/common/FilterPills'
 import { ListStates, LoadMore } from '../components/common/ListStates'
+
+const SITE_PILLS = [
+  { key: 'all', label: 'All' },
+  ...CONNECTIVITY_TYPES.map((c) => ({ key: c.key, label: c.label })),
+]
 
 /** Sites list with My / Company toggle — the customer's locations/premises. */
 export function SitesPage() {
   // Sites are company-level — default to the Company tier.
   const { tier, setTier, items, loading, error, hasMore, loadingMore, loadMore } =
     useTierList<Site>('site', { select: SITE_SELECT, orderBy: SITE_ORDER, top: 25 }, 'team')
+
+  // Connectivity type is derived from the site name (demo dressing), so filter
+  // client-side over the loaded rows rather than server-side.
+  const [conn, setConn] = useState('all')
+  const visible =
+    conn === 'all' ? items : items.filter((s) => siteConnectivity(s.name).key === conn)
 
   return (
     <div>
@@ -21,26 +38,46 @@ export function SitesPage() {
         actions={<TierToggle tier={tier} onChange={setTier} />}
       />
 
+      <FilterPills options={SITE_PILLS} value={conn} onChange={setConn} className="mb-4" />
+
       <ListStates
         loading={loading}
         error={error}
-        isEmpty={items.length === 0}
-        emptyMessage="No sites to show yet."
+        isEmpty={visible.length === 0}
+        emptyMessage={
+          conn === 'all' ? 'No sites to show yet.' : 'No sites with that connectivity.'
+        }
       >
         <div className="space-y-3 rc-land-list">
-          {items.map((s) => (
-            <Card key={s.customeraddressid} className="p-4">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <div className="font-medium text-rc-navy">{s.name || 'Site'}</div>
-                  <div className="mt-1 text-sm text-rc-teal">
-                    {[s.line1, s.city, s.postalcode].filter(Boolean).join(', ')}
+          {visible.map((s) => {
+            const link = siteConnectivity(s.name)
+            return (
+              <Card key={s.customeraddressid} className="p-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <div className="font-medium text-rc-navy">{s.name || 'Site'}</div>
+                    <div className="mt-1 text-sm text-rc-teal">
+                      {[s.line1, s.city, s.postalcode].filter(Boolean).join(', ')}
+                    </div>
+                    {s.addresstypecode_label && (
+                      <div className="mt-0.5 text-xs text-rc-teal/80">
+                        {s.addresstypecode_label} address
+                      </div>
+                    )}
                   </div>
+                  <span
+                    title={link.full}
+                    className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-rc-blue-light px-2.5 py-0.5 text-xs font-medium text-rc-navy"
+                  >
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M2 20h.01M7 20v-4M12 20v-8M17 20V8M22 4v16" />
+                    </svg>
+                    {link.label}
+                  </span>
                 </div>
-                {s.addresstypecode_label && <StatusChip label={s.addresstypecode_label} />}
-              </div>
-            </Card>
-          ))}
+              </Card>
+            )
+          })}
         </div>
         <LoadMore hasMore={hasMore} loading={loadingMore} onClick={loadMore} />
       </ListStates>
