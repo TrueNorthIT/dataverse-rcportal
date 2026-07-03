@@ -18,6 +18,9 @@ export function AppShell() {
   // When the caller belongs to multiple companies, the switcher names the
   // active company, so the static name would be redundant.
   const { hasMultiple } = useSelectedCompany()
+  // The Dataverse deep link is a demo/operator aid — only surface it for the
+  // operator account, never for other demo logins or real customers.
+  const isOperator = user?.email?.toLowerCase() === 'steve@drakey.co.uk'
 
   return (
     <div className="rc-hero min-h-screen">
@@ -64,9 +67,10 @@ export function AppShell() {
         <Outlet />
       </main>
 
-      {/* Operator/demo aid: jump to the backing record in Dataverse. Only
-          rendered when VITE_DATAVERSE_URL is set — leave it unset for customers. */}
-      {DATAVERSE_URL && (
+      {/* Operator/demo aid: jump to the backing record in Dataverse. Shown only
+          when VITE_DATAVERSE_URL is set AND the operator (Steve) is signed in —
+          never for other demo logins or real customers. */}
+      {DATAVERSE_URL && isOperator && (
         <footer className="mx-auto max-w-5xl px-4 pb-8 pt-2 text-xs text-white/70">
           <a
             href={

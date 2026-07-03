@@ -26,9 +26,25 @@ const TARGET_QUOTES = 8
 const TARGET_CASES = 10
 const here = dirname(fileURLToPath(import.meta.url))
 
+// `companies` (optional) restricts an identity to a subset of accounts; omit to
+// seed under every company.
 const ADMINS = [
   { email: 'steve@drakey.co.uk', first: 'Steve', last: 'Drake', title: 'Group IT Manager' },
   { email: 'martin.court@redcentricplc.com', first: 'Martin', last: 'Court', title: 'IT Director' },
+  {
+    email: 'brian.bullman@redcentricplc.com',
+    first: 'Brian',
+    last: 'Bullman',
+    title: 'Program Manager',
+    telephone1: '01632 960 245',
+    mobilephone: '07700 900 245',
+    // Brian sits under half of the companies (3 of 6).
+    companies: [
+      'Aire Valley Logistics Ltd',
+      'Ebor Manufacturing Group',
+      'Chevin Print & Packaging Ltd',
+    ],
+  },
 ]
 const COMPANIES = [
   'Aire Valley Logistics Ltd',
@@ -90,6 +106,8 @@ async function ensureContact(client, admin, account) {
   if (existing.length) return existing[0].contactid
   const c = await client.create('contacts', {
     firstname: admin.first, lastname: admin.last, emailaddress1: admin.email, jobtitle: admin.title,
+    ...(admin.telephone1 ? { telephone1: admin.telephone1 } : {}),
+    ...(admin.mobilephone ? { mobilephone: admin.mobilephone } : {}),
     description: `${MARKER} Multi-company demo identity.`,
     'parentcustomerid_account@odata.bind': `/accounts(${account.accountid})`,
   })
@@ -103,6 +121,7 @@ async function seed(client) {
     const account = await accountByName(client, name)
     if (!account) { console.log(`• ${name} — no account`); continue }
     for (const admin of ADMINS) {
+      if (admin.companies && !admin.companies.includes(name)) continue
       const contactId = await ensureContact(client, admin, account)
       // opportunities owned by this contact
       const oppF = enc(`_parentcontactid_value eq ${contactId} and _customerid_value eq ${account.accountid} and contains(description,'${MARKER}')`)
