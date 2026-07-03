@@ -9,7 +9,22 @@ import { PageHeader } from '../components/common/PageHeader'
 import { CardButton } from '../components/common/Card'
 import { TierToggle } from '../components/common/TierToggle'
 import { StatusChip } from '../components/common/StatusChip'
+import { FilterPills } from '../components/common/FilterPills'
 import { ListStates, LoadMore } from '../components/common/ListStates'
+import type { FilterCondition } from '@truenorth-it/dataverse-client'
+
+const CASE_PILLS = [
+  { key: 'all', label: 'All' },
+  { key: 'high', label: 'High' },
+  { key: 'normal', label: 'Normal' },
+  { key: 'low', label: 'Low' },
+]
+
+/** Map a pill to a prioritycode filter (1 = High, 2 = Normal, 3 = Low). */
+function caseFilter(key: string): FilterCondition | undefined {
+  const code = { high: 1, normal: 2, low: 3 }[key]
+  return code ? { field: 'prioritycode', operator: 'eq', value: code } : undefined
+}
 
 /**
  * Support cases — the primary self-service action a customer takes (spec: the
@@ -19,6 +34,7 @@ import { ListStates, LoadMore } from '../components/common/ListStates'
 export function CasesPage() {
   const navigate = useNavigate()
   const client = useDataverseClient()
+  const [priority, setPriority] = useState('all')
   const {
     tier,
     setTier,
@@ -31,7 +47,12 @@ export function CasesPage() {
     refresh,
   } = useTierList<Case>(
     'case',
-    { select: CASE_SELECT, orderBy: { field: 'createdon', direction: 'desc' }, top: 25 },
+    {
+      select: CASE_SELECT,
+      orderBy: { field: 'createdon', direction: 'desc' },
+      top: 25,
+      filter: caseFilter(priority),
+    },
     'team',
   )
 
@@ -55,6 +76,8 @@ export function CasesPage() {
           </>
         }
       />
+
+      <FilterPills options={CASE_PILLS} value={priority} onChange={setPriority} className="mb-4" />
 
       {raising && (
         <RaiseCase
@@ -85,7 +108,7 @@ export function CasesPage() {
               onClick={() => navigate(`/cases/${c.incidentid}`)}
             >
               <div className="flex items-start justify-between gap-4">
-                <div>
+                <div className="min-w-0">
                   <div className="font-medium text-rc-navy">{c.title || 'Untitled'}</div>
                   {cleanDescription(c.description) && (
                     <p className="mt-1 line-clamp-2 text-sm text-rc-teal">
@@ -100,7 +123,7 @@ export function CasesPage() {
                     {relativeFromNow(c.createdon)}
                   </div>
                 </div>
-                <div className="flex flex-col items-end gap-1">
+                <div className="flex shrink-0 flex-col items-end gap-1">
                   <StatusChip label={c.statuscode_label} />
                   {c.prioritycode_label && (
                     <span className="text-xs text-rc-teal">{c.prioritycode_label}</span>
