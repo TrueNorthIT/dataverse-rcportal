@@ -80,11 +80,18 @@ export function ScrollManager() {
     }
   }, [key, navType])
 
-  // Record the current entry's scroll position — but only while the page is
-  // genuinely scrollable, so the height-collapse-to-0 on unmount can't clobber it.
+  // Record the current entry's scroll position. Two guards stop the page
+  // collapse on unmount (which resets scrollY to 0) from clobbering it:
+  //   1. ignore saves while the page isn't scrollable (mid-collapse);
+  //   2. never overwrite a real (screenful+) saved position with an abrupt 0 —
+  //      that 0 is almost always the collapse, and losing it sent "back" to the
+  //      top even when you hadn't scrolled since the last restore.
   useEffect(() => {
     const save = () => {
-      if (maxScroll() > 4) positions.set(key, currentScroll())
+      const y = currentScroll()
+      if (maxScroll() <= 4) return
+      if (y === 0 && (positions.get(key) ?? 0) > window.innerHeight) return
+      positions.set(key, y)
     }
     window.addEventListener('scroll', save, { passive: true })
     return () => {
