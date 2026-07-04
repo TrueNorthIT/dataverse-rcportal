@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
-import type { FilterCondition } from '@truenorth-it/dataverse-client'
+import { useEffect } from 'react'
+import type { FilterCondition, OrderBy } from '@truenorth-it/dataverse-client'
 import { useTierList } from '../hooks/useTierList'
 import { usePillCounts } from '../hooks/usePillCounts'
+import { useListControls } from '../hooks/useListControls'
 import { QUOTE_SELECT } from '../services/quoteApi'
 import type { Quote } from '../types/quote'
 import { cleanDescription, formatCurrency, formatDate } from '../lib/format'
@@ -10,6 +11,7 @@ import { Card } from '../components/common/Card'
 import { TierToggle } from '../components/common/TierToggle'
 import { StatusChip } from '../components/common/StatusChip'
 import { FilterPills } from '../components/common/FilterPills'
+import { SortMenu } from '../components/common/SortMenu'
 import { ListStates, LoadMore } from '../components/common/ListStates'
 
 interface Pill {
@@ -25,18 +27,25 @@ const QUOTE_PILLS: Pill[] = [
   { key: 'draft', label: 'Draft', filter: { field: 'statecode', operator: 'eq', value: 0 } },
 ]
 
+const QUOTE_SORTS: { key: string; label: string; order: OrderBy }[] = [
+  { key: 'newest', label: 'Newest', order: { field: 'createdon', direction: 'desc' } },
+  { key: 'oldest', label: 'Oldest', order: { field: 'createdon', direction: 'asc' } },
+  { key: 'value', label: 'Value (high–low)', order: { field: 'totalamount', direction: 'desc' } },
+]
+
 /** Quotes list with My / Company toggle; number, total, status. */
 export function QuotesPage() {
   // Default to the Company view (all the company's quotes); toggle to "My" to
   // filter to the signed-in contact's own.
-  const [status, setStatus] = useState('all')
+  const { filter: status, setFilter: setStatus, sort, setSort } = useListControls('all', 'newest')
   const activeFilter = QUOTE_PILLS.find((p) => p.key === status)?.filter
+  const activeSort = QUOTE_SORTS.find((s) => s.key === sort) ?? QUOTE_SORTS[0]
   const { tier, setTier, items, loading, error, hasMore, loadingMore, loadMore } =
     useTierList<Quote>(
       'quote',
       {
         select: QUOTE_SELECT,
-        orderBy: { field: 'createdon', direction: 'desc' },
+        orderBy: activeSort.order,
         top: 25,
         filter: activeFilter,
       },
@@ -47,7 +56,7 @@ export function QuotesPage() {
   const disabledKeys = new Set(QUOTE_PILLS.filter((p) => counts[p.key] === 0).map((p) => p.key))
   useEffect(() => {
     if (status !== 'all' && counts[status] === 0) setStatus('all')
-  }, [counts, status])
+  }, [counts, status, setStatus])
 
   return (
     <div>
@@ -57,13 +66,15 @@ export function QuotesPage() {
         actions={<TierToggle tier={tier} onChange={setTier} />}
       />
 
-      <FilterPills
-        options={QUOTE_PILLS.map((p) => ({ key: p.key, label: p.label }))}
-        value={status}
-        onChange={setStatus}
-        disabledKeys={disabledKeys}
-        className="mb-4"
-      />
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <FilterPills
+          options={QUOTE_PILLS.map((p) => ({ key: p.key, label: p.label }))}
+          value={status}
+          onChange={setStatus}
+          disabledKeys={disabledKeys}
+        />
+        <SortMenu options={QUOTE_SORTS} value={activeSort.key} onChange={setSort} />
+      </div>
 
       <ListStates
         loading={loading}

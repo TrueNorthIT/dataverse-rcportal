@@ -20,6 +20,27 @@ export async function getCase(client: DataverseClient, id: string): Promise<Case
 }
 
 /**
+ * Fetch a case for the detail view, tolerating company (team) tickets.
+ *
+ * `me` only resolves cases the caller raised, so opening a colleague's / the
+ * company's ticket 404s there. Fall back to the `team` tier (read-only,
+ * account-scoped) so the customer can still see its status and detail. `mine`
+ * says whether it's the caller's own ticket, so the UI can note the difference.
+ */
+export async function fetchCaseDetail(
+  client: DataverseClient,
+  id: string,
+): Promise<{ record: Case; mine: boolean }> {
+  try {
+    const res = await client.me.get<Case>('case', id, { select: CASE_SELECT })
+    return { record: res.data, mine: true }
+  } catch {
+    const res = await client.team.get<Case>('case', id, { select: CASE_SELECT })
+    return { record: res.data, mine: false }
+  }
+}
+
+/**
  * Raise a support case for the signed-in customer.
  *
  * Auto-binding on the `rcportal` scope sets the primary contact + customer

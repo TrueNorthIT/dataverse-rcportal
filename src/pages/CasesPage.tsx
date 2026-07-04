@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTierList } from '../hooks/useTierList'
+import { useListControls } from '../hooks/useListControls'
 import { useDataverseClient } from '../lib/client'
 import { CASE_SELECT, createCase } from '../services/caseApi'
 import type { Case } from '../types/case'
@@ -10,9 +11,10 @@ import { CardButton } from '../components/common/Card'
 import { TierToggle } from '../components/common/TierToggle'
 import { StatusChip } from '../components/common/StatusChip'
 import { FilterPills } from '../components/common/FilterPills'
+import { SortMenu } from '../components/common/SortMenu'
 import { usePillCounts } from '../hooks/usePillCounts'
 import { ListStates, LoadMore } from '../components/common/ListStates'
-import type { FilterCondition } from '@truenorth-it/dataverse-client'
+import type { FilterCondition, OrderBy } from '@truenorth-it/dataverse-client'
 
 interface Pill {
   key: string
@@ -28,6 +30,12 @@ const CASE_PILLS: Pill[] = [
   { key: 'low', label: 'Low', filter: { field: 'prioritycode', operator: 'eq', value: 3 } },
 ]
 
+const CASE_SORTS: { key: string; label: string; order: OrderBy }[] = [
+  { key: 'newest', label: 'Newest', order: { field: 'createdon', direction: 'desc' } },
+  { key: 'oldest', label: 'Oldest', order: { field: 'createdon', direction: 'asc' } },
+  { key: 'priority', label: 'Priority (high first)', order: { field: 'prioritycode', direction: 'asc' } },
+]
+
 /**
  * Support cases — the primary self-service action a customer takes (spec: the
  * customer manages their identity and raises tickets; everything else is
@@ -36,7 +44,8 @@ const CASE_PILLS: Pill[] = [
 export function CasesPage() {
   const navigate = useNavigate()
   const client = useDataverseClient()
-  const [priority, setPriority] = useState('all')
+  const { filter: priority, setFilter: setPriority, sort, setSort } = useListControls('all', 'newest')
+  const activeSort = CASE_SORTS.find((s) => s.key === sort) ?? CASE_SORTS[0]
   const {
     tier,
     setTier,
@@ -51,7 +60,7 @@ export function CasesPage() {
     'case',
     {
       select: CASE_SELECT,
-      orderBy: { field: 'createdon', direction: 'desc' },
+      orderBy: activeSort.order,
       top: 25,
       filter: CASE_PILLS.find((p) => p.key === priority)?.filter,
     },
@@ -62,7 +71,7 @@ export function CasesPage() {
   const disabledKeys = new Set(CASE_PILLS.filter((p) => counts[p.key] === 0).map((p) => p.key))
   useEffect(() => {
     if (priority !== 'all' && counts[priority] === 0) setPriority('all')
-  }, [counts, priority])
+  }, [counts, priority, setPriority])
 
   const [raising, setRaising] = useState(false)
 
@@ -85,13 +94,15 @@ export function CasesPage() {
         }
       />
 
-      <FilterPills
-        options={CASE_PILLS.map((p) => ({ key: p.key, label: p.label }))}
-        value={priority}
-        onChange={setPriority}
-        disabledKeys={disabledKeys}
-        className="mb-4"
-      />
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <FilterPills
+          options={CASE_PILLS.map((p) => ({ key: p.key, label: p.label }))}
+          value={priority}
+          onChange={setPriority}
+          disabledKeys={disabledKeys}
+        />
+        <SortMenu options={CASE_SORTS} value={activeSort.key} onChange={setSort} />
+      </div>
 
       {raising && (
         <RaiseCase

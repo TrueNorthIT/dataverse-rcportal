@@ -1,16 +1,14 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
+import type { OrderBy } from '@truenorth-it/dataverse-client'
 import { useTierList } from '../hooks/useTierList'
-import {
-  SITE_ORDER,
-  SITE_SELECT,
-  CONNECTIVITY_TYPES,
-  siteConnectivity,
-} from '../services/siteApi'
+import { useListControls } from '../hooks/useListControls'
+import { SITE_SELECT, CONNECTIVITY_TYPES, siteConnectivity } from '../services/siteApi'
 import type { Site } from '../types/site'
 import { PageHeader } from '../components/common/PageHeader'
 import { Card } from '../components/common/Card'
 import { TierToggle } from '../components/common/TierToggle'
 import { FilterPills } from '../components/common/FilterPills'
+import { SortMenu } from '../components/common/SortMenu'
 import { ListStates, LoadMore } from '../components/common/ListStates'
 
 const SITE_PILLS = [
@@ -18,15 +16,21 @@ const SITE_PILLS = [
   ...CONNECTIVITY_TYPES.map((c) => ({ key: c.key, label: c.label })),
 ]
 
+const SITE_SORTS: { key: string; label: string; order: OrderBy }[] = [
+  { key: 'name', label: 'Name (A–Z)', order: { field: 'name', direction: 'asc' } },
+  { key: 'added', label: 'Recently added', order: { field: 'createdon', direction: 'desc' } },
+]
+
 /** Sites list with My / Company toggle — the customer's locations/premises. */
 export function SitesPage() {
   // Sites are company-level — default to the Company tier.
+  const { filter: conn, setFilter: setConn, sort, setSort } = useListControls('all', 'name')
+  const activeSort = SITE_SORTS.find((s) => s.key === sort) ?? SITE_SORTS[0]
   const { tier, setTier, items, loading, error, hasMore, loadingMore, loadMore } =
-    useTierList<Site>('site', { select: SITE_SELECT, orderBy: SITE_ORDER, top: 25 }, 'team')
+    useTierList<Site>('site', { select: SITE_SELECT, orderBy: activeSort.order, top: 25 }, 'team')
 
   // Connectivity type is derived from the site name (demo dressing), so filter
   // client-side over the loaded rows rather than server-side.
-  const [conn, setConn] = useState('all')
   const visible =
     conn === 'all' ? items : items.filter((s) => siteConnectivity(s.name).key === conn)
 
@@ -49,13 +53,15 @@ export function SitesPage() {
         actions={<TierToggle tier={tier} onChange={setTier} />}
       />
 
-      <FilterPills
-        options={SITE_PILLS}
-        value={conn}
-        onChange={setConn}
-        disabledKeys={disabledKeys}
-        className="mb-4"
-      />
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <FilterPills
+          options={SITE_PILLS}
+          value={conn}
+          onChange={setConn}
+          disabledKeys={disabledKeys}
+        />
+        <SortMenu options={SITE_SORTS} value={activeSort.key} onChange={setSort} />
+      </div>
 
       <ListStates
         loading={loading}

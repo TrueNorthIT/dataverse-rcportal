@@ -74,7 +74,8 @@ export function useAttention(): { items: AttentionItem[]; loading: boolean } {
         key: 'overdue',
         label: `${d.overdue} overdue ${plural(d.overdue, 'project', 'projects')}`,
         count: d.overdue,
-        to: '/projects',
+        // Deep-link filtered to overdue + sorted by due date → most overdue first.
+        to: '/projects?f=overdue&s=due',
         tone: 'red',
       })
     if (d.staleHigh > 0)
@@ -82,7 +83,8 @@ export function useAttention(): { items: AttentionItem[]; loading: boolean } {
         key: 'stale',
         label: `${d.staleHigh} high-priority ${plural(d.staleHigh, 'ticket', 'tickets')} open over a week`,
         count: d.staleHigh,
-        to: '/cases',
+        // High priority, oldest first → the stalest tickets surface at the top.
+        to: '/cases?f=high&s=oldest',
         tone: 'amber',
       })
     if (d.recentQuotes > 0)
@@ -90,7 +92,8 @@ export function useAttention(): { items: AttentionItem[]; loading: boolean } {
         key: 'recent',
         label: `${d.recentQuotes} new ${plural(d.recentQuotes, 'quote', 'quotes')} in the last 30 days`,
         count: d.recentQuotes,
-        to: '/quotes',
+        // Newest first → the recent quotes are already at the top.
+        to: '/quotes?s=newest',
         tone: 'blue',
       })
   }
