@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useDataverseClient } from '../lib/client'
 import { useSelectedCompany } from '../context/SelectedCompanyContext'
@@ -7,12 +7,30 @@ import { cleanDescription, formatDate, relativeFromNow } from '../lib/format'
 import { Card } from '../components/common/Card'
 import { StatusChip } from '../components/common/StatusChip'
 
+/** Navigation context passed from the list: the ordered ids + where we came from. */
+interface CaseNav {
+  ids?: string[]
+  from?: string
+}
+
 /** Support case detail: summary, status/priority, description, dates. */
 export function CaseDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const location = useLocation()
   const client = useDataverseClient()
   const { selectedContactId } = useSelectedCompany()
+
+  // Prev/next context from the list (null on a deep link / refresh).
+  const nav = (location.state ?? {}) as CaseNav
+  const idx = id && nav.ids ? nav.ids.indexOf(id) : -1
+  const prevId = idx > 0 ? nav.ids![idx - 1] : undefined
+  const nextId = idx >= 0 && nav.ids && idx < nav.ids.length - 1 ? nav.ids[idx + 1] : undefined
+  // Step to another case in place (replace) so history stays list → case; back
+  // then returns to the list (and its scroll) rather than walking prior cases.
+  const goToCase = (target: string) =>
+    navigate(`/cases/${target}`, { replace: true, state: nav })
+  const goBack = () => (nav.from ? navigate(-1) : navigate('/cases'))
 
   const query = useQuery({
     queryKey: ['case', id, selectedContactId ?? 'default'],
@@ -34,13 +52,21 @@ export function CaseDetailPage() {
 
   return (
     <div>
-      <button
-        type="button"
-        onClick={() => navigate('/cases')}
-        className="mb-4 text-sm font-medium text-white/90 hover:underline"
-      >
-        ← Support
-      </button>
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <button
+          type="button"
+          onClick={goBack}
+          className="text-sm font-medium text-white/90 hover:underline"
+        >
+          ← Support
+        </button>
+        {(prevId || nextId) && (
+          <div className="flex items-center gap-2">
+            <NavArrow label="Previous case" dir="prev" disabled={!prevId} onClick={() => prevId && goToCase(prevId)} />
+            <NavArrow label="Next case" dir="next" disabled={!nextId} onClick={() => nextId && goToCase(nextId)} />
+          </div>
+        )}
+      </div>
 
       {loading && <CaseSkeleton />}
       {error && <p className="text-sm text-red-200">{error}</p>}
@@ -110,6 +136,38 @@ export function CaseDetailPage() {
         </div>
       )}
     </div>
+  )
+}
+
+/** Prev/next stepper arrow, styled like a light control on the gradient. */
+function NavArrow({
+  label,
+  dir,
+  disabled,
+  onClick,
+}: {
+  label: string
+  dir: 'prev' | 'next'
+  disabled: boolean
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={label}
+      className={
+        'flex h-8 w-8 items-center justify-center rounded-lg border text-white transition-colors ' +
+        (disabled
+          ? 'cursor-not-allowed border-white/15 text-white/30'
+          : 'border-white/30 hover:bg-white/10')
+      }
+    >
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d={dir === 'prev' ? 'm15 18-6-6 6-6' : 'm9 18 6-6-6-6'} />
+      </svg>
+    </button>
   )
 }
 
