@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useTierList } from '../hooks/useTierList'
 import { useListControls } from '../hooks/useListControls'
 import { useDataverseClient } from '../lib/client'
@@ -43,6 +43,7 @@ const CASE_SORTS: { key: string; label: string; order: OrderBy }[] = [
  */
 export function CasesPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const client = useDataverseClient()
   const { filter: priority, setFilter: setPriority, sort, setSort } = useListControls('all', 'newest')
   const activeSort = CASE_SORTS.find((s) => s.key === sort) ?? CASE_SORTS[0]
@@ -130,7 +131,14 @@ export function CasesPage() {
           {items.map((c) => (
             <CardButton
               key={c.incidentid}
-              onClick={() => navigate(`/cases/${c.incidentid}`)}
+              onClick={() =>
+                navigate(`/cases/${c.incidentid}`, {
+                  state: {
+                    ids: items.map((i) => i.incidentid),
+                    from: location.pathname + location.search,
+                  },
+                })
+              }
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">

@@ -14,6 +14,8 @@ import { CasesPage } from './pages/CasesPage'
 import { CaseDetailPage } from './pages/CaseDetailPage'
 import { AiPage } from './pages/AiPage'
 import { BrandLoader } from './components/common/BrandLoader'
+import { ScrollManager } from './components/layout/ScrollManager'
+import { ScrollToTop } from './components/common/ScrollToTop'
 
 /**
  * Auth gate + routing. While MSAL is mid-interaction we show a loading state;
@@ -40,6 +42,8 @@ function App() {
   return (
     <SelectedCompanyProvider>
       <BrowserRouter>
+        <ScrollManager />
+        <ScrollToTop />
         <Routes>
           <Route element={<AppShell />}>
           <Route index element={<DashboardPage />} />
