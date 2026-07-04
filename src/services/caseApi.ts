@@ -1,5 +1,36 @@
 import type { DataverseClient } from '@truenorth-it/dataverse-client'
 import type { Case, NewCase } from '../types/case'
+import type { CaseNote } from '../types/caseNote'
+
+/** Columns read for the case-notes timeline. */
+export const CASE_NOTE_SELECT = [
+  'annotationid',
+  'subject',
+  'notetext',
+  'objecttypecode',
+  'isdocument',
+  'createdon',
+  'modifiedon',
+]
+
+/**
+ * List the notes on a case (newest first). Scoped to the same tier the case was
+ * read at — `me` for your own tickets, `team` for a colleague's/company ticket —
+ * filtered to the parent case via the polymorphic regarding value.
+ */
+export async function listCaseNotes(
+  client: DataverseClient,
+  caseId: string,
+  mine: boolean,
+): Promise<CaseNote[]> {
+  const res = await client[mine ? 'me' : 'team'].list<CaseNote>('casenotes', {
+    select: CASE_NOTE_SELECT,
+    filter: { field: '_objectid_value', operator: 'eq', value: caseId },
+    orderBy: { field: 'createdon', direction: 'desc' },
+    top: 50,
+  })
+  return res.data
+}
 
 /** Columns the portal reads for support cases. */
 export const CASE_SELECT = [
