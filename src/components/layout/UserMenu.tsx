@@ -7,10 +7,16 @@ import { useSelectedCompany } from '../../context/SelectedCompanyContext'
 
 /**
  * Signed-in user chip in the header: avatar + first name (avatar only on the
- * smallest screens) opening a popover with the full name/email, a link to
- * "My profile", and sign out. This is the sole home of profile navigation —
- * it's deliberately not a core nav tab (spec §6 keeps tabs for company data).
+ * smallest screens) opening a popover with the full name/email, links to
+ * "My profile" / "My company", and sign out. This is the sole home of those
+ * two account-level pages — they're deliberately not core nav tabs, which
+ * keeps the tab row for the customer's operational data.
  */
+const MENU_LINKS = [
+  { to: '/profile', label: 'My profile' },
+  { to: '/company', label: 'My company' },
+]
+
 export function UserMenu() {
   const { instance, accounts } = useMsal()
   const user = accountToUser(instance.getActiveAccount() ?? accounts[0])
@@ -70,19 +76,22 @@ export function UserMenu() {
               <div className="mt-0.5 truncate text-xs text-rc-teal">{account.name}</div>
             )}
           </div>
-          <NavLink
-            to="/profile"
-            role="menuitem"
-            onClick={() => setOpen(false)}
-            className={({ isActive }) =>
-              'block px-4 py-2.5 text-sm transition-colors ' +
-              (isActive
-                ? 'bg-rc-blue-light/50 font-medium text-rc-navy'
-                : 'text-rc-teal hover:bg-rc-blue-light/30 hover:text-rc-navy')
-            }
-          >
-            My profile
-          </NavLink>
+          {MENU_LINKS.map(({ to, label }) => (
+            <NavLink
+              key={to}
+              to={to}
+              role="menuitem"
+              onClick={() => setOpen(false)}
+              className={({ isActive }) =>
+                'block px-4 py-2.5 text-sm transition-colors ' +
+                (isActive
+                  ? 'bg-rc-blue-light/50 font-medium text-rc-navy'
+                  : 'text-rc-teal hover:bg-rc-blue-light/30 hover:text-rc-navy')
+              }
+            >
+              {label}
+            </NavLink>
+          ))}
           <button
             type="button"
             role="menuitem"
