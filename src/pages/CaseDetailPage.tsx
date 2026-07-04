@@ -7,10 +7,11 @@ import { cleanDescription, formatDate, relativeFromNow } from '../lib/format'
 import { Card } from '../components/common/Card'
 import { StatusChip } from '../components/common/StatusChip'
 
-/** Navigation context passed from the list: the ordered ids + where we came from. */
+/** Navigation context passed from the list: ordered ids, origin, and the tier. */
 interface CaseNav {
   ids?: string[]
   from?: string
+  tier?: 'me' | 'team'
 }
 
 /** Support case detail: summary, status/priority, description, dates. */
@@ -33,8 +34,8 @@ export function CaseDetailPage() {
   const goBack = () => (nav.from ? navigate(-1) : navigate('/cases'))
 
   const query = useQuery({
-    queryKey: ['case', id, selectedContactId ?? 'default'],
-    queryFn: () => fetchCaseDetail(client, id!),
+    queryKey: ['case', id, nav.tier ?? 'auto', selectedContactId ?? 'default'],
+    queryFn: () => fetchCaseDetail(client, id!, nav.tier),
     enabled: !!id,
   })
   const record = query.data?.record ?? null

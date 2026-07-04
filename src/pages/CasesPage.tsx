@@ -136,6 +136,7 @@ export function CasesPage() {
                   state: {
                     ids: items.map((i) => i.incidentid),
                     from: location.pathname + location.search,
+                    tier,
                   },
                 })
               }

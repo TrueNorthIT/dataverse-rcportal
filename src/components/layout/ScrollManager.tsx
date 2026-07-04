@@ -3,20 +3,27 @@ import { useLocation, useNavigationType } from 'react-router-dom'
 
 /**
  * Scroll restoration for the SPA. BrowserRouter doesn't restore scroll, and the
- * browser's own `scrollRestoration` mis-fires for client-rendered content
- * (measures height before the list has painted). So we take manual control:
+ * browser's own `scrollRestoration` mis-fires for client-rendered content. So
+ * we take manual control:
  *   • forward navigation (PUSH/REPLACE) starts at the top;
- *   • back/forward (POP) restores the position you left — returning from a case
- *     drops you back where you were in the (infinite-scrolling) list.
+ *   • back/forward (POP) restores the position you left.
  *
- * Restoring is retried over ~1.5s because React-Query-cached list pages may
- * paint a few frames after mount (the page isn't tall enough to scroll back
- * to yet); we stop early once the target is reached, or if the user scrolls.
+ * Restoring is retried over ~1.5s because React-Query-cached list pages paint a
+ * few frames after mount; we stop early once reached, or if the user scrolls.
+ *
+ * Temporarily instrumented with `[scroll]` console logs to diagnose a report of
+ * lost scroll on back.
  */
 const positions = new Map<string, number>()
+const DEBUG = true
+
+/** Current vertical scroll offset, whichever element is actually scrolling. */
+function currentScroll(): number {
+  return window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0
+}
 
 export function ScrollManager() {
-  const { key } = useLocation()
+  const { key, pathname } = useLocation()
   const navType = useNavigationType()
 
   useEffect(() => {
@@ -30,10 +37,12 @@ export function ScrollManager() {
 
   useEffect(() => {
     if (navType !== 'POP') {
+      if (DEBUG) console.debug('[scroll]', navType, pathname, '→ top')
       window.scrollTo(0, 0)
       return
     }
     const target = positions.get(key) ?? 0
+    if (DEBUG) console.debug('[scroll] POP', pathname, 'key', key, 'target', target)
     if (target <= 0) {
       window.scrollTo(0, 0)
       return
@@ -41,19 +50,38 @@ export function ScrollManager() {
 
     let raf = 0
     let cancelled = false
+    let attempts = 0
     const start = performance.now()
     const cancel = () => {
       cancelled = true
     }
-    // If the user grabs the page mid-restore, stop fighting them.
     window.addEventListener('wheel', cancel, { passive: true, once: true })
     window.addEventListener('touchstart', cancel, { passive: true, once: true })
 
     const step = () => {
       if (cancelled) return
+      attempts++
       window.scrollTo(0, target)
-      const reached = Math.abs(window.scrollY - target) <= 2
-      if (!reached && performance.now() - start < 1500) raf = requestAnimationFrame(step)
+      const now = currentScroll()
+      const reached = Math.abs(now - target) <= 2
+      if (!reached && performance.now() - start < 1500) {
+        raf = requestAnimationFrame(step)
+      } else if (DEBUG) {
+        console.debug(
+          '[scroll] restore end',
+          reached ? 'reached' : 'gave-up',
+          'at',
+          now,
+          '/',
+          target,
+          'docH',
+          document.documentElement.scrollHeight,
+          'winH',
+          window.innerHeight,
+          'attempts',
+          attempts,
+        )
+      }
     }
     raf = requestAnimationFrame(step)
 
@@ -63,17 +91,25 @@ export function ScrollManager() {
       window.removeEventListener('wheel', cancel)
       window.removeEventListener('touchstart', cancel)
     }
-  }, [key, navType])
+  }, [key, navType, pathname])
 
   // Track the current entry's scroll position so POP can restore it.
   useEffect(() => {
-    const save = () => positions.set(key, window.scrollY)
+    let last = 0
+    const save = () => {
+      const y = currentScroll()
+      positions.set(key, y)
+      if (DEBUG && Math.abs(y - last) > 150) {
+        last = y
+        console.debug('[scroll] save', pathname, 'key', key, '=', y)
+      }
+    }
     window.addEventListener('scroll', save, { passive: true })
     return () => {
       save()
       window.removeEventListener('scroll', save)
     }
-  }, [key])
+  }, [key, pathname])
 
   return null
 }
