@@ -37,12 +37,12 @@ export function ScrollManager() {
 
   useEffect(() => {
     if (navType !== 'POP') {
-      if (DEBUG) console.debug('[scroll]', navType, pathname, '→ top')
+      if (DEBUG) console.log('[scroll]', navType, pathname, '→ top')
       window.scrollTo(0, 0)
       return
     }
     const target = positions.get(key) ?? 0
-    if (DEBUG) console.debug('[scroll] POP', pathname, 'key', key, 'target', target)
+    if (DEBUG) console.log('[scroll] POP', pathname, 'key', key, 'target', target)
     if (target <= 0) {
       window.scrollTo(0, 0)
       return
@@ -67,7 +67,7 @@ export function ScrollManager() {
       if (!reached && performance.now() - start < 1500) {
         raf = requestAnimationFrame(step)
       } else if (DEBUG) {
-        console.debug(
+        console.log(
           '[scroll] restore end',
           reached ? 'reached' : 'gave-up',
           'at',
@@ -95,16 +95,28 @@ export function ScrollManager() {
 
   // Track the current entry's scroll position so POP can restore it.
   useEffect(() => {
-    let last = 0
+    let lastLog = 0
     const save = () => {
       const y = currentScroll()
       positions.set(key, y)
-      if (DEBUG && Math.abs(y - last) > 150) {
-        last = y
-        console.debug('[scroll] save', pathname, 'key', key, '=', y)
+      if (DEBUG && performance.now() - lastLog > 400) {
+        lastLog = performance.now()
+        console.log(
+          '[scroll] save',
+          pathname,
+          'key',
+          key,
+          'win',
+          window.scrollY,
+          'docEl',
+          document.documentElement.scrollTop,
+          'body',
+          document.body.scrollTop,
+        )
       }
     }
     window.addEventListener('scroll', save, { passive: true })
+    if (DEBUG) console.log('[scroll] listening on', pathname, 'key', key)
     return () => {
       save()
       window.removeEventListener('scroll', save)
