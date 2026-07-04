@@ -3,10 +3,10 @@ import { NavLink, useLocation } from 'react-router-dom'
 import { useFeedback } from '../common/FeedbackDialog'
 
 /** Core sections — the customer's own data (spec §6). */
+// "My profile" and "My company" are intentionally absent — they live in the
+// header's UserMenu.
 const CORE = [
   { to: '/', label: 'Dashboard', end: true },
-  { to: '/profile', label: 'My profile' },
-  { to: '/company', label: 'My company' },
   { to: '/quotes', label: 'Quotes' },
   { to: '/projects', label: 'Projects' },
   { to: '/sites', label: 'Sites' },
