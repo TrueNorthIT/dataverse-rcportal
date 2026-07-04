@@ -4,9 +4,10 @@ import { useFeedback } from '../common/FeedbackDialog'
 
 /** Core sections — the customer's own data (spec §6). */
 // "My profile" and "My company" are intentionally absent — they live in the
-// header's UserMenu.
+// header's UserMenu. Dashboard is icon-only (a home glyph) so the whole row
+// fits a phone without sideways scrolling.
 const CORE = [
-  { to: '/', label: 'Dashboard', end: true },
+  { to: '/', label: 'Dashboard', end: true, icon: true },
   { to: '/quotes', label: 'Quotes' },
   { to: '/projects', label: 'Projects' },
   { to: '/sites', label: 'Sites' },
@@ -21,7 +22,7 @@ const HELP = [
 ]
 
 const tabClass = ({ isActive }: { isActive: boolean }) =>
-  'whitespace-nowrap border-b-2 px-3 py-3 text-sm font-medium transition-colors ' +
+  'whitespace-nowrap border-b-2 px-2 py-3 text-sm font-medium transition-colors sm:px-3 ' +
   (isActive ? 'border-rc-blue text-rc-navy' : 'border-transparent text-rc-teal hover:text-rc-navy')
 
 /** Horizontal section nav under the shell header: core tabs + a Help dropdown. */
@@ -31,16 +32,51 @@ export function NavTabs() {
       <div className="mx-auto flex max-w-5xl items-center gap-1 px-4">
         {/* min-w-0 lets this shrink so its own overflow-x scrolls on mobile,
             instead of pushing the Help menu off-screen. */}
-        <div className="flex min-w-0 flex-1 gap-1 overflow-x-auto rc-noscrollbar">
-          {CORE.map(({ to, label, end }) => (
-            <NavLink key={to} to={to} end={end} className={tabClass}>
-              {label}
+        <div className="flex min-w-0 flex-1 gap-0.5 overflow-x-auto rc-noscrollbar sm:gap-1">
+          {CORE.map(({ to, label, end, icon }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={end}
+              className={tabClass}
+              aria-label={icon ? label : undefined}
+              title={icon ? label : undefined}
+            >
+              {icon ? <HomeIcon /> : label}
             </NavLink>
           ))}
         </div>
         <HelpMenu />
       </div>
     </nav>
+  )
+}
+
+/** Home glyph for the icon-only Dashboard tab. */
+function HomeIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
+      className="block"
+    >
+      <path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7h-6v7H4a1 1 0 0 1-1-1Z" />
+    </svg>
+  )
+}
+
+/** Circled question mark for the icon-only Help menu button. */
+function HelpIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
+      className="block"
+    >
+      <circle cx="12" cy="12" r="9" />
+      <path d="M9.3 9.2a2.8 2.8 0 1 1 3.9 2.9c-.8.3-1.2.9-1.2 1.7v.3" />
+      <path d="M12 17.2h.01" />
+    </svg>
   )
 }
 
@@ -77,14 +113,17 @@ function HelpMenu() {
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
+        aria-label="Help"
+        title="Help"
         className={
-          'inline-flex items-center gap-1 whitespace-nowrap border-b-2 px-3 py-3 text-sm font-medium transition-colors ' +
+          'inline-flex items-center gap-1 whitespace-nowrap border-b-2 px-2 py-3 text-sm font-medium transition-colors sm:px-3 ' +
           (active ? 'border-rc-blue text-rc-navy' : 'border-transparent text-rc-teal hover:text-rc-navy')
         }
       >
-        Help
+        <HelpIcon />
+        {/* Chevron is a desktop nicety — dropped on mobile to help the row fit. */}
         <svg
-          className={`transition-transform ${open ? 'rotate-180' : ''}`}
+          className={`hidden transition-transform sm:block ${open ? 'rotate-180' : ''}`}
           width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
           strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
         >
