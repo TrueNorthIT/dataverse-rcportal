@@ -38,8 +38,9 @@ export function useMyContact(): UseMyContactResult {
 
   const save = useMutation({
     mutationFn: (patch: Partial<EditableContactFields>) => {
-      if (!query.data) throw new Error('No contact to update')
-      return updateMyContact(client, query.data.contactid, patch)
+      const id = query.data?.contactid
+      if (!id) throw new Error('No contact to update')
+      return updateMyContact(client, id, patch)
     },
     onSuccess: (updated) => qc.setQueryData(key, updated),
   })

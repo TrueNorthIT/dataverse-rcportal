@@ -13,6 +13,7 @@ import { StatusChip } from '../components/common/StatusChip'
 import { FilterPills } from '../components/common/FilterPills'
 import { SortMenu } from '../components/common/SortMenu'
 import { ListStates, LoadMore } from '../components/common/ListStates'
+import { QuoteStatecode } from '../types/dataverse.generated'
 
 interface Pill {
   key: string
@@ -20,11 +21,10 @@ interface Pill {
   filter?: FilterCondition | FilterCondition[]
 }
 
-// statecode: 0 = Draft, 1 = Active.
 const QUOTE_PILLS: Pill[] = [
   { key: 'all', label: 'All' },
-  { key: 'active', label: 'Active', filter: { field: 'statecode', operator: 'eq', value: 1 } },
-  { key: 'draft', label: 'Draft', filter: { field: 'statecode', operator: 'eq', value: 0 } },
+  { key: 'active', label: 'Active', filter: { field: 'statecode', operator: 'eq', value: QuoteStatecode.Active } },
+  { key: 'draft', label: 'Draft', filter: { field: 'statecode', operator: 'eq', value: QuoteStatecode.Draft } },
 ]
 
 const QUOTE_SORTS: { key: string; label: string; order: OrderBy }[] = [

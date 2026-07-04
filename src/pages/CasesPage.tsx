@@ -15,6 +15,7 @@ import { SortMenu } from '../components/common/SortMenu'
 import { usePillCounts } from '../hooks/usePillCounts'
 import { ListStates, LoadMore } from '../components/common/ListStates'
 import type { FilterCondition, OrderBy } from '@truenorth-it/dataverse-client'
+import { CasePrioritycode } from '../types/dataverse.generated'
 
 interface Pill {
   key: string
@@ -22,12 +23,11 @@ interface Pill {
   filter?: FilterCondition | FilterCondition[]
 }
 
-// prioritycode: 1 = High, 2 = Normal, 3 = Low.
 const CASE_PILLS: Pill[] = [
   { key: 'all', label: 'All' },
-  { key: 'high', label: 'High', filter: { field: 'prioritycode', operator: 'eq', value: 1 } },
-  { key: 'normal', label: 'Normal', filter: { field: 'prioritycode', operator: 'eq', value: 2 } },
-  { key: 'low', label: 'Low', filter: { field: 'prioritycode', operator: 'eq', value: 3 } },
+  { key: 'high', label: 'High', filter: { field: 'prioritycode', operator: 'eq', value: CasePrioritycode.High } },
+  { key: 'normal', label: 'Normal', filter: { field: 'prioritycode', operator: 'eq', value: CasePrioritycode.Normal } },
+  { key: 'low', label: 'Low', filter: { field: 'prioritycode', operator: 'eq', value: CasePrioritycode.Low } },
 ]
 
 const CASE_SORTS: { key: string; label: string; order: OrderBy }[] = [

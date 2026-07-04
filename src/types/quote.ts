@@ -1,25 +1,8 @@
 /**
- * Shape of a Dataverse `quote` record as this portal uses it.
- *
- * PROVISIONAL — standard Dataverse `quote` columns. Regenerate from the
- * published schema once the `rcportal` scope is provisioned:
- *   contact-admin tables get quote --scope rcportal --json
+ * Sales quote. Record shape from the generated schema types
+ * (`dataverse.generated.ts`); create-input hand-declared.
  */
-export interface Quote {
-  quoteid: string
-  name?: string
-  description?: string
-  quotenumber?: string
-  totalamount?: number
-  statecode?: number
-  statecode_label?: string
-  statuscode?: number
-  statuscode_label?: string
-  /** Lookup → opportunity this quote belongs to. */
-  _opportunityid_value?: string
-  createdon?: string
-  modifiedon?: string
-}
+export type { Quote } from './dataverse.generated'
 
 /** Fields accepted when a customer creates a quote (`client.me.create`). */
 export interface NewQuote {
