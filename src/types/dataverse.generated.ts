@@ -4,28 +4,6 @@
 // │ DO NOT EDIT — regenerate with the CLI when your schema changes.     │
 // └──────────────────────────────────────────────────────────────────────┘
 
-/** Fields for the `casenotes` table */
-export interface Casenotes {
-  /** Unique note identifier */
-  annotationid?: string;
-  /** Date created */
-  createdon?: string;
-  /** Has attachment */
-  isdocument?: boolean;
-  /** Date last modified */
-  modifiedon?: string;
-  /** Note text */
-  notetext?: string;
-  /** Regarding case */
-  objectid?: string;
-  /** GUID of the related case */
-  _objectid_value?: string;
-  /** Regarding entity type */
-  objecttypecode?: string;
-  /** Note subject */
-  subject?: string;
-}
-
 /** Fields for the `account` table */
 export interface Account {
   /** Unique account identifier */
@@ -52,10 +30,61 @@ export interface Account {
   primarycontactid?: string;
   /** GUID of the related contact */
   _primarycontactid_value?: string;
-  /** Record status */
+  /** Record status Allowed values: {@link AccountStatecode}. */
   statecode?: number;
   /** Display label for statecode */
   statecode_label?: string;
+  /** Main phone */
+  telephone1?: string;
+  /** Website */
+  websiteurl?: string;
+}
+
+/** Field names for the `account` table (for typed select/filter/orderBy). */
+export type AccountField = "accountid" | "address1_city" | "address1_country" | "address1_line1" | "address1_postalcode" | "address1_stateorprovince" | "createdon" | "emailaddress1" | "modifiedon" | "name" | "primarycontactid" | "statecode" | "telephone1" | "websiteurl";
+
+/** Writable fields for creating a `account` record. */
+export interface AccountCreateInput {
+  /** City */
+  address1_city?: string;
+  /** Country */
+  address1_country?: string;
+  /** Address line 1 */
+  address1_line1?: string;
+  /** Postcode */
+  address1_postalcode?: string;
+  /** County */
+  address1_stateorprovince?: string;
+  /** Primary email */
+  emailaddress1?: string;
+  /** Company name */
+  name?: string;
+  /** Primary contact */
+  primarycontactid?: string;
+  /** Main phone */
+  telephone1?: string;
+  /** Website */
+  websiteurl?: string;
+}
+
+/** Writable fields for updating a `account` record. */
+export interface AccountUpdateInput {
+  /** City */
+  address1_city?: string;
+  /** Country */
+  address1_country?: string;
+  /** Address line 1 */
+  address1_line1?: string;
+  /** Postcode */
+  address1_postalcode?: string;
+  /** County */
+  address1_stateorprovince?: string;
+  /** Primary email */
+  emailaddress1?: string;
+  /** Company name */
+  name?: string;
+  /** Primary contact */
+  primarycontactid?: string;
   /** Main phone */
   telephone1?: string;
   /** Website */
@@ -71,102 +100,314 @@ export const AccountStatecode = {
 } as const;
 export type AccountStatecode = typeof AccountStatecode[keyof typeof AccountStatecode];
 
-/** Fields for the `site` table */
-export interface Site {
-  /** Address type */
-  addresstypecode?: number;
-  /** Display label for addresstypecode */
-  addresstypecode_label?: string;
-  /** City */
-  city?: string;
+/** Fields for the `case` table */
+export interface Case {
   /** Date created */
   createdon?: string;
-  /** Unique site identifier */
-  customeraddressid?: string;
-  /** Address line 1 */
-  line1?: string;
-  /** Site name */
-  name?: string;
-  /** Postcode */
-  postalcode?: string;
-}
-
-/** Choice values for `site.addresstypecode` */
-export const SiteAddresstypecode = {
-  /** Bill To */
-  BillTo: 1,
-  /** Ship To */
-  ShipTo: 2,
-  /** Primary */
-  Primary: 3,
-  /** Other */
-  Other: 4,
-} as const;
-export type SiteAddresstypecode = typeof SiteAddresstypecode[keyof typeof SiteAddresstypecode];
-
-/** Fields for the `project` table */
-export interface Project {
-  /** Date created */
-  createdon?: string;
+  /** Customer (account) */
+  customerid?: string;
+  /** GUID of the related record */
+  _customerid_value?: string;
+  /** Details */
+  description?: string;
+  /** Unique case identifier */
+  incidentid?: string;
   /** Date last modified */
   modifiedon?: string;
-  /** Customer (account) */
-  msdyn_customer?: string;
-  /** GUID of the related account */
-  _msdyn_customer_value?: string;
-  /** Description */
-  msdyn_description?: string;
-  /** Scheduled finish */
-  msdyn_finish?: string;
-  /** Unique project identifier */
-  msdyn_projectid?: string;
-  /** Scheduled start */
-  msdyn_scheduledstart?: string;
-  /** Project name */
-  msdyn_subject?: string;
-  /** Status */
+  /** Primary contact */
+  primarycontactid?: string;
+  /** GUID of the related contact */
+  _primarycontactid_value?: string;
+  /** Priority Allowed values: {@link CasePrioritycode}. */
+  prioritycode?: number;
+  /** Display label for prioritycode */
+  prioritycode_label?: string;
+  /** Status (Active/Resolved/Cancelled) Allowed values: {@link CaseStatecode}. */
   statecode?: number;
   /** Display label for statecode */
   statecode_label?: string;
-  /** Status reason */
+  /** Status reason Allowed values: {@link CaseStatuscode}. */
   statuscode?: number;
   /** Display label for statuscode */
   statuscode_label?: string;
+  /** Case number */
+  ticketnumber?: string;
+  /** Summary */
+  title?: string;
 }
 
-/** Choice values for `project.statecode` */
-export const ProjectStatecode = {
+/** Field names for the `case` table (for typed select/filter/orderBy). */
+export type CaseField = "createdon" | "customerid" | "description" | "incidentid" | "modifiedon" | "primarycontactid" | "prioritycode" | "statecode" | "statuscode" | "ticketnumber" | "title";
+
+/** Writable fields for creating a `case` record. */
+export interface CaseCreateInput {
+  /** Details */
+  description?: string;
+  /** Priority */
+  prioritycode?: number;
+  /** Summary */
+  title?: string;
+}
+
+/** Writable fields for updating a `case` record. */
+export interface CaseUpdateInput {
+  /** Details */
+  description?: string;
+  /** Priority */
+  prioritycode?: number;
+  /** Summary */
+  title?: string;
+}
+
+/** Choice values for `case.prioritycode` */
+export const CasePrioritycode = {
+  /** High */
+  High: 1,
+  /** Normal */
+  Normal: 2,
+  /** Low */
+  Low: 3,
+} as const;
+export type CasePrioritycode = typeof CasePrioritycode[keyof typeof CasePrioritycode];
+
+/** Choice values for `case.statecode` */
+export const CaseStatecode = {
+  /** Active */
+  Active: 0,
+  /** Resolved */
+  Resolved: 1,
+  /** Cancelled */
+  Cancelled: 2,
+} as const;
+export type CaseStatecode = typeof CaseStatecode[keyof typeof CaseStatecode];
+
+/** Choice values for `case.statuscode` */
+export const CaseStatuscode = {
+  /** In Progress */
+  InProgress: 1,
+  /** On Hold */
+  OnHold: 2,
+  /** Waiting for Details */
+  WaitingForDetails: 3,
+  /** Researching */
+  Researching: 4,
+  /** Problem Solved */
+  ProblemSolved: 5,
+  /** Cancelled */
+  Cancelled: 6,
+  /** Information Provided */
+  InformationProvided: 1000,
+  /** Merged */
+  Merged: 2000,
+} as const;
+export type CaseStatuscode = typeof CaseStatuscode[keyof typeof CaseStatuscode];
+
+/** Fields for the `casenotes` table */
+export interface Casenotes {
+  /** Unique note identifier */
+  annotationid?: string;
+  /** Date created */
+  createdon?: string;
+  /** Has attachment */
+  isdocument?: boolean;
+  /** Date last modified */
+  modifiedon?: string;
+  /** Note text */
+  notetext?: string;
+  /** Regarding case */
+  objectid?: string;
+  /** GUID of the related case */
+  _objectid_value?: string;
+  /** Regarding entity type */
+  objecttypecode?: string;
+  /** Note subject */
+  subject?: string;
+}
+
+/** Field names for the `casenotes` table (for typed select/filter/orderBy). */
+export type CasenotesField = "annotationid" | "createdon" | "isdocument" | "modifiedon" | "notetext" | "objectid" | "objecttypecode" | "subject";
+
+/** Writable fields for creating a `casenotes` record. */
+export interface CasenotesCreateInput {
+  /** Note text */
+  notetext?: string;
+  /** Regarding case */
+  objectid?: string;
+  /** Note subject */
+  subject?: string;
+}
+
+/** Writable fields for updating a `casenotes` record. */
+export interface CasenotesUpdateInput {
+  /** Note text */
+  notetext?: string;
+  /** Regarding case */
+  objectid?: string;
+  /** Note subject */
+  subject?: string;
+}
+
+/** Fields for the `contact` table */
+export interface Contact {
+  /** City */
+  address1_city?: string;
+  /** Country */
+  address1_country?: string;
+  /** Address line 1 */
+  address1_line1?: string;
+  /** Postcode */
+  address1_postalcode?: string;
+  /** Unique contact identifier */
+  contactid?: string;
+  /** Date created */
+  createdon?: string;
+  /** Department */
+  department?: string;
+  /** Opted out of marketing email */
+  donotbulkemail?: boolean;
+  /** Primary email address */
+  emailaddress1?: string;
+  /** First name */
+  firstname?: string;
+  /** Full name */
+  fullname?: string;
+  /** Job title */
+  jobtitle?: string;
+  /** Last name */
+  lastname?: string;
+  /** Mobile phone */
+  mobilephone?: string;
+  /** Date last modified */
+  modifiedon?: string;
+  /** Record status Allowed values: {@link ContactStatecode}. */
+  statecode?: number;
+  /** Display label for statecode */
+  statecode_label?: string;
+  /** Business phone */
+  telephone1?: string;
+}
+
+/** Field names for the `contact` table (for typed select/filter/orderBy). */
+export type ContactField = "address1_city" | "address1_country" | "address1_line1" | "address1_postalcode" | "contactid" | "createdon" | "department" | "donotbulkemail" | "emailaddress1" | "firstname" | "fullname" | "jobtitle" | "lastname" | "mobilephone" | "modifiedon" | "statecode" | "telephone1";
+
+/** Writable fields for creating a `contact` record. */
+export interface ContactCreateInput {
+  /** City */
+  address1_city?: string;
+  /** Country */
+  address1_country?: string;
+  /** Address line 1 */
+  address1_line1?: string;
+  /** Postcode */
+  address1_postalcode?: string;
+  /** Department */
+  department?: string;
+  /** Opted out of marketing email */
+  donotbulkemail?: boolean;
+  /** Primary email address */
+  emailaddress1?: string;
+  /** First name */
+  firstname?: string;
+  /** Job title */
+  jobtitle?: string;
+  /** Last name */
+  lastname?: string;
+  /** Mobile phone */
+  mobilephone?: string;
+  /** Business phone */
+  telephone1?: string;
+}
+
+/** Writable fields for updating a `contact` record. */
+export interface ContactUpdateInput {
+  /** City */
+  address1_city?: string;
+  /** Country */
+  address1_country?: string;
+  /** Address line 1 */
+  address1_line1?: string;
+  /** Postcode */
+  address1_postalcode?: string;
+  /** Department */
+  department?: string;
+  /** Opted out of marketing email */
+  donotbulkemail?: boolean;
+  /** Primary email address */
+  emailaddress1?: string;
+  /** First name */
+  firstname?: string;
+  /** Job title */
+  jobtitle?: string;
+  /** Last name */
+  lastname?: string;
+  /** Mobile phone */
+  mobilephone?: string;
+  /** Business phone */
+  telephone1?: string;
+}
+
+/** Choice values for `contact.statecode` */
+export const ContactStatecode = {
   /** Active */
   Active: 0,
   /** Inactive */
   Inactive: 1,
 } as const;
-export type ProjectStatecode = typeof ProjectStatecode[keyof typeof ProjectStatecode];
+export type ContactStatecode = typeof ContactStatecode[keyof typeof ContactStatecode];
 
-/** Choice values for `project.statuscode` */
-export const ProjectStatuscode = {
-  /** Active */
-  Active: 1,
-  /** Project copying */
-  ProjectCopying: 192350001,
-  /** Project copy failed */
-  ProjectCopyFailed: 192350002,
-  /** Project importing */
-  ProjectImporting: 192350011,
-  /** Project import failed */
-  ProjectImportFailed: 192350012,
-  /** Project converting */
-  ProjectConverting: 192350021,
-  /** Project convert failed */
-  ProjectConvertFailed: 192350022,
-  /** Project estimates copy failed */
-  ProjectEstimatesCopyFailed: 192350023,
-  /** Inactive - Sets project to read only */
-  InactiveSetsProjectToReadOnly: 2,
-  /** Closed - Sets project to read only and cancels future bookings */
-  ClosedSetsProjectToReadOnlyAndCancelsFutureBookings: 192350000,
+/** Fields for the `knowledgearticle` table */
+export interface Knowledgearticle {
+  /** Public article number */
+  articlepublicnumber?: string;
+  /** Article body (HTML) */
+  content?: string;
+  /** Date created */
+  createdon?: string;
+  /** Short summary */
+  description?: string;
+  /** Keywords */
+  keywords?: string;
+  /** Unique article identifier */
+  knowledgearticleid?: string;
+  /** Date last modified */
+  modifiedon?: string;
+  /** Status Allowed values: {@link KnowledgearticleStatecode}. */
+  statecode?: number;
+  /** Display label for statecode */
+  statecode_label?: string;
+  /** Article title */
+  title?: string;
+}
+
+/** Field names for the `knowledgearticle` table (for typed select/filter/orderBy). */
+export type KnowledgearticleField = "articlepublicnumber" | "content" | "createdon" | "description" | "keywords" | "knowledgearticleid" | "modifiedon" | "statecode" | "title";
+
+/** Writable fields for creating a `knowledgearticle` record. */
+export interface KnowledgearticleCreateInput {
+}
+
+/** Writable fields for updating a `knowledgearticle` record. */
+export interface KnowledgearticleUpdateInput {
+}
+
+/** Choice values for `knowledgearticle.statecode` */
+export const KnowledgearticleStatecode = {
+  /** Draft */
+  Draft: 0,
+  /** Approved */
+  Approved: 1,
+  /** Scheduled */
+  Scheduled: 2,
+  /** Published */
+  Published: 3,
+  /** Expired */
+  Expired: 4,
+  /** Archived */
+  Archived: 5,
+  /** Discarded */
+  Discarded: 6,
 } as const;
-export type ProjectStatuscode = typeof ProjectStatuscode[keyof typeof ProjectStatuscode];
+export type KnowledgearticleStatecode = typeof KnowledgearticleStatecode[keyof typeof KnowledgearticleStatecode];
 
 /** Fields for the `opportunity` table */
 export interface Opportunity {
@@ -196,14 +437,53 @@ export interface Opportunity {
   parentcontactid?: string;
   /** GUID of the related contact */
   _parentcontactid_value?: string;
-  /** Status (Open/Won/Lost) */
+  /** Status (Open/Won/Lost) Allowed values: {@link OpportunityStatecode}. */
   statecode?: number;
   /** Display label for statecode */
   statecode_label?: string;
-  /** Status reason */
+  /** Status reason Allowed values: {@link OpportunityStatuscode}. */
   statuscode?: number;
   /** Display label for statuscode */
   statuscode_label?: string;
+}
+
+/** Field names for the `opportunity` table (for typed select/filter/orderBy). */
+export type OpportunityField = "createdon" | "customerid" | "description" | "estimatedclosedate" | "estimatedvalue" | "modifiedon" | "name" | "opportunityid" | "parentaccountid" | "parentcontactid" | "statecode" | "statuscode";
+
+/** Writable fields for creating a `opportunity` record. */
+export interface OpportunityCreateInput {
+  /** Notes */
+  description?: string;
+  /** Estimated close date */
+  estimatedclosedate?: string;
+  /** Estimated value (£) */
+  estimatedvalue?: number;
+  /** Opportunity name */
+  name?: string;
+  /** Primary contact */
+  parentcontactid?: string;
+  /** Status (Open/Won/Lost) */
+  statecode?: number;
+  /** Status reason */
+  statuscode?: number;
+}
+
+/** Writable fields for updating a `opportunity` record. */
+export interface OpportunityUpdateInput {
+  /** Notes */
+  description?: string;
+  /** Estimated close date */
+  estimatedclosedate?: string;
+  /** Estimated value (£) */
+  estimatedvalue?: number;
+  /** Opportunity name */
+  name?: string;
+  /** Primary contact */
+  parentcontactid?: string;
+  /** Status (Open/Won/Lost) */
+  statecode?: number;
+  /** Status reason */
+  statuscode?: number;
 }
 
 /** Choice values for `opportunity.statecode` */
@@ -242,7 +522,7 @@ export interface Portalfeedback {
   new_accountid?: string;
   /** GUID of the related account */
   _new_accountid_value?: string;
-  /** Category (Bug/Idea/Praise/Question/Other) */
+  /** Category (Bug/Idea/Praise/Question/Other) Allowed values: {@link PortalfeedbackNewCategory}. */
   new_category?: number;
   /** Display label for new_category */
   new_category_label?: string;
@@ -256,6 +536,33 @@ export interface Portalfeedback {
   new_name?: string;
   /** Unique feedback identifier */
   new_portalfeedbackid?: string;
+  /** Rating 1–5 */
+  new_rating?: number;
+}
+
+/** Field names for the `portalfeedback` table (for typed select/filter/orderBy). */
+export type PortalfeedbackField = "createdon" | "modifiedon" | "new_accountid" | "new_category" | "new_contactid" | "new_message" | "new_name" | "new_portalfeedbackid" | "new_rating";
+
+/** Writable fields for creating a `portalfeedback` record. */
+export interface PortalfeedbackCreateInput {
+  /** Category (Bug/Idea/Praise/Question/Other) */
+  new_category?: number;
+  /** Feedback message */
+  new_message?: string;
+  /** Summary */
+  new_name?: string;
+  /** Rating 1–5 */
+  new_rating?: number;
+}
+
+/** Writable fields for updating a `portalfeedback` record. */
+export interface PortalfeedbackUpdateInput {
+  /** Category (Bug/Idea/Praise/Question/Other) */
+  new_category?: number;
+  /** Feedback message */
+  new_message?: string;
+  /** Summary */
+  new_name?: string;
   /** Rating 1–5 */
   new_rating?: number;
 }
@@ -275,174 +582,100 @@ export const PortalfeedbackNewCategory = {
 } as const;
 export type PortalfeedbackNewCategory = typeof PortalfeedbackNewCategory[keyof typeof PortalfeedbackNewCategory];
 
-/** Fields for the `knowledgearticle` table */
-export interface Knowledgearticle {
-  /** Public article number */
-  articlepublicnumber?: string;
-  /** Article body (HTML) */
-  content?: string;
+/** Fields for the `project` table */
+export interface Project {
   /** Date created */
   createdon?: string;
-  /** Short summary */
-  description?: string;
-  /** Keywords */
-  keywords?: string;
-  /** Unique article identifier */
-  knowledgearticleid?: string;
   /** Date last modified */
   modifiedon?: string;
-  /** Status */
+  /** Actual finish */
+  msdyn_actualend?: string;
+  /** Actual start */
+  msdyn_actualstart?: string;
+  /** Customer (account) */
+  msdyn_customer?: string;
+  /** GUID of the related account */
+  _msdyn_customer_value?: string;
+  /** Description */
+  msdyn_description?: string;
+  /** Scheduled finish */
+  msdyn_finish?: string;
+  /** Unique project identifier */
+  msdyn_projectid?: string;
+  /** Scheduled start */
+  msdyn_scheduledstart?: string;
+  /** Project name */
+  msdyn_subject?: string;
+  /** Status Allowed values: {@link ProjectStatecode}. */
   statecode?: number;
   /** Display label for statecode */
   statecode_label?: string;
-  /** Article title */
-  title?: string;
+  /** Status reason Allowed values: {@link ProjectStatuscode}. */
+  statuscode?: number;
+  /** Display label for statuscode */
+  statuscode_label?: string;
 }
 
-/** Choice values for `knowledgearticle.statecode` */
-export const KnowledgearticleStatecode = {
-  /** Draft */
-  Draft: 0,
-  /** Approved */
-  Approved: 1,
-  /** Scheduled */
-  Scheduled: 2,
-  /** Published */
-  Published: 3,
-  /** Expired */
-  Expired: 4,
-  /** Archived */
-  Archived: 5,
-  /** Discarded */
-  Discarded: 6,
-} as const;
-export type KnowledgearticleStatecode = typeof KnowledgearticleStatecode[keyof typeof KnowledgearticleStatecode];
+/** Field names for the `project` table (for typed select/filter/orderBy). */
+export type ProjectField = "createdon" | "modifiedon" | "msdyn_actualend" | "msdyn_actualstart" | "msdyn_customer" | "msdyn_description" | "msdyn_finish" | "msdyn_projectid" | "msdyn_scheduledstart" | "msdyn_subject" | "statecode" | "statuscode";
 
-/** Fields for the `contact` table */
-export interface Contact {
-  /** City */
-  address1_city?: string;
-  /** Country */
-  address1_country?: string;
-  /** Address line 1 */
-  address1_line1?: string;
-  /** Postcode */
-  address1_postalcode?: string;
-  /** Unique contact identifier */
-  contactid?: string;
-  /** Date created */
-  createdon?: string;
-  /** Opted out of marketing email */
-  donotbulkemail?: boolean;
-  /** Primary email address */
-  emailaddress1?: string;
-  /** First name */
-  firstname?: string;
-  /** Full name */
-  fullname?: string;
-  /** Job title */
-  jobtitle?: string;
-  /** Last name */
-  lastname?: string;
-  /** Mobile phone */
-  mobilephone?: string;
-  /** Date last modified */
-  modifiedon?: string;
-  /** Record status */
-  statecode?: number;
-  /** Display label for statecode */
-  statecode_label?: string;
-  /** Business phone */
-  telephone1?: string;
+/** Writable fields for creating a `project` record. */
+export interface ProjectCreateInput {
+  /** Description */
+  msdyn_description?: string;
+  /** Scheduled finish */
+  msdyn_finish?: string;
+  /** Scheduled start */
+  msdyn_scheduledstart?: string;
+  /** Project name */
+  msdyn_subject?: string;
 }
 
-/** Choice values for `contact.statecode` */
-export const ContactStatecode = {
+/** Writable fields for updating a `project` record. */
+export interface ProjectUpdateInput {
+  /** Description */
+  msdyn_description?: string;
+  /** Scheduled finish */
+  msdyn_finish?: string;
+  /** Scheduled start */
+  msdyn_scheduledstart?: string;
+  /** Project name */
+  msdyn_subject?: string;
+}
+
+/** Choice values for `project.statecode` */
+export const ProjectStatecode = {
   /** Active */
   Active: 0,
   /** Inactive */
   Inactive: 1,
 } as const;
-export type ContactStatecode = typeof ContactStatecode[keyof typeof ContactStatecode];
+export type ProjectStatecode = typeof ProjectStatecode[keyof typeof ProjectStatecode];
 
-/** Fields for the `case` table */
-export interface Case {
-  /** Date created */
-  createdon?: string;
-  /** Customer (account) */
-  customerid?: string;
-  /** GUID of the related record */
-  _customerid_value?: string;
-  /** Details */
-  description?: string;
-  /** Unique case identifier */
-  incidentid?: string;
-  /** Date last modified */
-  modifiedon?: string;
-  /** Primary contact */
-  primarycontactid?: string;
-  /** GUID of the related contact */
-  _primarycontactid_value?: string;
-  /** Priority */
-  prioritycode?: number;
-  /** Display label for prioritycode */
-  prioritycode_label?: string;
-  /** Status (Active/Resolved/Cancelled) */
-  statecode?: number;
-  /** Display label for statecode */
-  statecode_label?: string;
-  /** Status reason */
-  statuscode?: number;
-  /** Display label for statuscode */
-  statuscode_label?: string;
-  /** Case number */
-  ticketnumber?: string;
-  /** Summary */
-  title?: string;
-}
-
-/** Choice values for `case.prioritycode` */
-export const CasePrioritycode = {
-  /** High */
-  High: 1,
-  /** Normal */
-  Normal: 2,
-  /** Low */
-  Low: 3,
-} as const;
-export type CasePrioritycode = typeof CasePrioritycode[keyof typeof CasePrioritycode];
-
-/** Choice values for `case.statecode` */
-export const CaseStatecode = {
+/** Choice values for `project.statuscode` */
+export const ProjectStatuscode = {
   /** Active */
-  Active: 0,
-  /** Resolved */
-  Resolved: 1,
-  /** Cancelled */
-  Cancelled: 2,
+  Active: 1,
+  /** Inactive - Sets project to read only */
+  InactiveSetsProjectToReadOnly: 2,
+  /** Closed - Sets project to read only and cancels future bookings */
+  ClosedSetsProjectToReadOnlyAndCancelsFutureBookings: 192350000,
+  /** Project copying */
+  ProjectCopying: 192350001,
+  /** Project copy failed */
+  ProjectCopyFailed: 192350002,
+  /** Project importing */
+  ProjectImporting: 192350011,
+  /** Project import failed */
+  ProjectImportFailed: 192350012,
+  /** Project converting */
+  ProjectConverting: 192350021,
+  /** Project convert failed */
+  ProjectConvertFailed: 192350022,
+  /** Project estimates copy failed */
+  ProjectEstimatesCopyFailed: 192350023,
 } as const;
-export type CaseStatecode = typeof CaseStatecode[keyof typeof CaseStatecode];
-
-/** Choice values for `case.statuscode` */
-export const CaseStatuscode = {
-  /** Problem Solved */
-  ProblemSolved: 5,
-  /** Information Provided */
-  InformationProvided: 1000,
-  /** Cancelled */
-  Cancelled: 6,
-  /** Merged */
-  Merged: 2000,
-  /** In Progress */
-  InProgress: 1,
-  /** On Hold */
-  OnHold: 2,
-  /** Waiting for Details */
-  WaitingForDetails: 3,
-  /** Researching */
-  Researching: 4,
-} as const;
-export type CaseStatuscode = typeof CaseStatuscode[keyof typeof CaseStatuscode];
+export type ProjectStatuscode = typeof ProjectStatuscode[keyof typeof ProjectStatuscode];
 
 /** Fields for the `quote` table */
 export interface Quote {
@@ -454,6 +687,14 @@ export interface Quote {
   _customerid_value?: string;
   /** Notes */
   description?: string;
+  /** Discount (£) */
+  discountamount?: number;
+  /** Valid from */
+  effectivefrom?: string;
+  /** Valid until */
+  effectiveto?: string;
+  /** Delivery/setup (£) */
+  freightamount?: number;
   /** Date last modified */
   modifiedon?: string;
   /** Quote name */
@@ -466,16 +707,49 @@ export interface Quote {
   quoteid?: string;
   /** Quote number */
   quotenumber?: string;
-  /** Status (Draft/Active/Won/Closed) */
+  /** Status (Draft/Active/Won/Closed) Allowed values: {@link QuoteStatecode}. */
   statecode?: number;
   /** Display label for statecode */
   statecode_label?: string;
-  /** Status reason */
+  /** Status reason Allowed values: {@link QuoteStatuscode}. */
   statuscode?: number;
   /** Display label for statuscode */
   statuscode_label?: string;
   /** Total amount (£) */
   totalamount?: number;
+  /** Tax (£) */
+  totaltax?: number;
+}
+
+/** Field names for the `quote` table (for typed select/filter/orderBy). */
+export type QuoteField = "createdon" | "customerid" | "description" | "discountamount" | "effectivefrom" | "effectiveto" | "freightamount" | "modifiedon" | "name" | "opportunityid" | "quoteid" | "quotenumber" | "statecode" | "statuscode" | "totalamount" | "totaltax";
+
+/** Writable fields for creating a `quote` record. */
+export interface QuoteCreateInput {
+  /** Notes */
+  description?: string;
+  /** Quote name */
+  name?: string;
+  /** Source opportunity */
+  opportunityid?: string;
+  /** Status (Draft/Active/Won/Closed) */
+  statecode?: number;
+  /** Status reason */
+  statuscode?: number;
+}
+
+/** Writable fields for updating a `quote` record. */
+export interface QuoteUpdateInput {
+  /** Notes */
+  description?: string;
+  /** Quote name */
+  name?: string;
+  /** Source opportunity */
+  opportunityid?: string;
+  /** Status (Draft/Active/Won/Closed) */
+  statecode?: number;
+  /** Status reason */
+  statuscode?: number;
 }
 
 /** Choice values for `quote.statecode` */
@@ -494,7 +768,9 @@ export type QuoteStatecode = typeof QuoteStatecode[keyof typeof QuoteStatecode];
 /** Choice values for `quote.statuscode` */
 export const QuoteStatuscode = {
   /** In Progress */
-  InProgress: 2,
+  InProgress: 1,
+  /** In Progress */
+  InProgress_2: 2,
   /** Open */
   Open: 3,
   /** Won */
@@ -505,10 +781,135 @@ export const QuoteStatuscode = {
   Canceled: 6,
   /** Revised */
   Revised: 7,
-  /** In Progress */
-  InProgress_1: 1,
 } as const;
 export type QuoteStatuscode = typeof QuoteStatuscode[keyof typeof QuoteStatuscode];
 
+/** Fields for the `quotedetail` table */
+export interface Quotedetail {
+  /** Date created */
+  createdon?: string;
+  /** Line total (£) */
+  extendedamount?: number;
+  /** Unit price (£) */
+  priceperunit?: number;
+  /** Line item */
+  productdescription?: string;
+  /** Quantity */
+  quantity?: number;
+  /** Unique line identifier */
+  quotedetailid?: string;
+  /** Quote */
+  quoteid?: string;
+  /** GUID of the related quote */
+  _quoteid_value?: string;
+}
+
+/** Field names for the `quotedetail` table (for typed select/filter/orderBy). */
+export type QuotedetailField = "createdon" | "extendedamount" | "priceperunit" | "productdescription" | "quantity" | "quotedetailid" | "quoteid";
+
+/** Writable fields for creating a `quotedetail` record. */
+export interface QuotedetailCreateInput {
+  /** Line item */
+  productdescription?: string;
+}
+
+/** Writable fields for updating a `quotedetail` record. */
+export interface QuotedetailUpdateInput {
+  /** Line item */
+  productdescription?: string;
+}
+
+/** Fields for the `site` table */
+export interface Site {
+  /** Address type Allowed values: {@link SiteAddresstypecode}. */
+  addresstypecode?: number;
+  /** Display label for addresstypecode */
+  addresstypecode_label?: string;
+  /** City */
+  city?: string;
+  /** Country */
+  country?: string;
+  /** Date created */
+  createdon?: string;
+  /** Unique site identifier */
+  customeraddressid?: string;
+  /** Latitude */
+  latitude?: number;
+  /** Address line 1 */
+  line1?: string;
+  /** Address line 2 */
+  line2?: string;
+  /** Longitude */
+  longitude?: number;
+  /** Site name */
+  name?: string;
+  /** Postcode */
+  postalcode?: string;
+  /** County */
+  stateorprovince?: string;
+  /** Site phone */
+  telephone1?: string;
+}
+
+/** Field names for the `site` table (for typed select/filter/orderBy). */
+export type SiteField = "addresstypecode" | "city" | "country" | "createdon" | "customeraddressid" | "latitude" | "line1" | "line2" | "longitude" | "name" | "postalcode" | "stateorprovince" | "telephone1";
+
+/** Writable fields for creating a `site` record. */
+export interface SiteCreateInput {
+  /** Address type */
+  addresstypecode?: number;
+  /** City */
+  city?: string;
+  /** Country */
+  country?: string;
+  /** Address line 1 */
+  line1?: string;
+  /** Address line 2 */
+  line2?: string;
+  /** Site name */
+  name?: string;
+  /** Postcode */
+  postalcode?: string;
+  /** County */
+  stateorprovince?: string;
+  /** Site phone */
+  telephone1?: string;
+}
+
+/** Writable fields for updating a `site` record. */
+export interface SiteUpdateInput {
+  /** Address type */
+  addresstypecode?: number;
+  /** City */
+  city?: string;
+  /** Country */
+  country?: string;
+  /** Address line 1 */
+  line1?: string;
+  /** Address line 2 */
+  line2?: string;
+  /** Site name */
+  name?: string;
+  /** Postcode */
+  postalcode?: string;
+  /** County */
+  stateorprovince?: string;
+  /** Site phone */
+  telephone1?: string;
+}
+
+/** Choice values for `site.addresstypecode` */
+export const SiteAddresstypecode = {
+  /** Bill To */
+  BillTo: 1,
+  /** Ship To */
+  ShipTo: 2,
+  /** Primary */
+  Primary: 3,
+  /** Other */
+  Other: 4,
+} as const;
+export type SiteAddresstypecode = typeof SiteAddresstypecode[keyof typeof SiteAddresstypecode];
+
 /** All valid table names accepted by the API */
-export type TableName = "casenotes" | "account" | "site" | "project" | "opportunity" | "portalfeedback" | "knowledgearticle" | "contact" | "case" | "quote" | "casenote" | "notes" | "sites" | "locations" | "customeraddress" | "projects" | "msdyn_projects" | "opportunities" | "opps" | "feedback" | "kb" | "knowledge" | "contacts" | "cases" | "incidents" | "tickets" | "quotes";
+export type TableName = "account" | "case" | "casenote" | "casenotes" | "cases" | "contact" | "contacts" | "customeraddress" | "feedback" | "incidents" | "kb" | "knowledge" | "knowledgearticle" | "locations" | "msdyn_projects" | "notes" | "opportunities" | "opportunity" | "opps" | "portalfeedback" | "project" | "projects" | "quote" | "quotedetail" | "quotedetails" | "quoteline" | "quotelines" | "quotes" | "site" | "sites" | "tickets";

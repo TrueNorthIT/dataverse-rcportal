@@ -1,5 +1,49 @@
 import type { DataverseClient } from '@truenorth-it/dataverse-client'
 import type { Contact, EditableContactFields } from '../types/contact'
+import type { Case } from '../types/case'
+import { CASE_SELECT } from './caseApi'
+
+/** Richer column set for a colleague's read-only detail view. */
+export const COLLEAGUE_DETAIL_SELECT = [
+  'contactid',
+  'fullname',
+  'firstname',
+  'lastname',
+  'emailaddress1',
+  'jobtitle',
+  'department',
+  'telephone1',
+  'mobilephone',
+  'address1_line1',
+  'address1_city',
+  'address1_postalcode',
+  'address1_country',
+  'donotbulkemail',
+  'createdon',
+]
+
+/**
+ * Fetch a colleague's contact by id. Colleagues live on the `team` tier (same
+ * account), so we read from there — read-only in the portal.
+ */
+export async function fetchColleague(client: DataverseClient, id: string): Promise<Contact> {
+  const res = await client.team.get<Contact>('contact', id, { select: COLLEAGUE_DETAIL_SELECT })
+  return res.data
+}
+
+/** Recent cases where this colleague is the primary contact (team tier). */
+export async function listColleagueCases(
+  client: DataverseClient,
+  contactId: string,
+): Promise<Case[]> {
+  const res = await client.team.list<Case>('case', {
+    select: CASE_SELECT,
+    filter: { field: 'primarycontactid', operator: 'eq', value: contactId },
+    orderBy: { field: 'createdon', direction: 'desc' },
+    top: 10,
+  })
+  return res.data
+}
 
 /** Columns the portal reads. Keep this list tight — the API only returns what you ask for. */
 const CONTACT_SELECT = [

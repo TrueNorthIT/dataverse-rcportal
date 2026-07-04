@@ -1,11 +1,12 @@
 import { useEffect } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import type { OrderBy } from '@truenorth-it/dataverse-client'
 import { useTierList } from '../hooks/useTierList'
 import { useListControls } from '../hooks/useListControls'
 import { SITE_SELECT, CONNECTIVITY_TYPES, siteConnectivity } from '../services/siteApi'
 import type { Site } from '../types/site'
 import { PageHeader } from '../components/common/PageHeader'
-import { Card } from '../components/common/Card'
+import { CardButton } from '../components/common/Card'
 import { TierToggle } from '../components/common/TierToggle'
 import { FilterPills } from '../components/common/FilterPills'
 import { SortMenu } from '../components/common/SortMenu'
@@ -23,6 +24,8 @@ const SITE_SORTS: { key: string; label: string; order: OrderBy }[] = [
 
 /** Sites list with My / Company toggle — the customer's locations/premises. */
 export function SitesPage() {
+  const navigate = useNavigate()
+  const location = useLocation()
   // Sites are company-level — default to the Company tier.
   const { filter: conn, setFilter: setConn, sort, setSort } = useListControls('all', 'name')
   const activeSort = SITE_SORTS.find((s) => s.key === sort) ?? SITE_SORTS[0]
@@ -75,7 +78,14 @@ export function SitesPage() {
           {visible.map((s) => {
             const link = siteConnectivity(s.name)
             return (
-              <Card key={s.customeraddressid} className="p-4">
+              <CardButton
+                key={s.customeraddressid}
+                onClick={() =>
+                  navigate(`/sites/${s.customeraddressid}`, {
+                    state: { ids: visible.map((i) => i.customeraddressid), from: location.pathname + location.search, tier },
+                  })
+                }
+              >
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
                     <div className="font-medium text-rc-navy">{s.name || 'Site'}</div>
@@ -98,7 +108,7 @@ export function SitesPage() {
                     {link.label}
                   </span>
                 </div>
-              </Card>
+              </CardButton>
             )
           })}
         </div>
