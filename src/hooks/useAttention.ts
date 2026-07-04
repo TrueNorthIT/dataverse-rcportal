@@ -2,6 +2,7 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import type { AggregateOptions } from '@truenorth-it/dataverse-client'
 import { useDataverseClient } from '../lib/client'
 import { useSelectedCompany } from '../context/SelectedCompanyContext'
+import { CasePrioritycode } from '../types/dataverse.generated'
 
 /** One "needs attention" highlight for the dashboard. */
 export interface AttentionItem {
@@ -55,7 +56,7 @@ export function useAttention(): { items: AttentionItem[]; loading: boolean } {
         agg('case', {
           aggregate: 'count',
           filter: [
-            { field: 'prioritycode', operator: 'eq', value: 1 },
+            { field: 'prioritycode', operator: 'eq', value: CasePrioritycode.High },
             { field: 'createdon', operator: 'le', value: weekAgo },
           ],
         }),

@@ -1,20 +1,9 @@
 /**
- * Portal feedback — the custom Dataverse table `new_portalfeedback`, exposed by
- * the `portalfeedback` route. Customers submit feedback about the portal itself.
+ * Portal feedback (custom `new_portalfeedback` table). Record shape from the
+ * generated schema types (`dataverse.generated.ts`), aliased to `Feedback`;
+ * create-input hand-declared.
  */
-export interface Feedback {
-  new_portalfeedbackid: string
-  /** Short summary (primary name). */
-  new_name?: string
-  new_message?: string
-  /** Choice value; `new_category_label` is the display text. */
-  new_category?: number
-  new_category_label?: string
-  /** 1–5 satisfaction rating. */
-  new_rating?: number
-  createdon?: string
-  modifiedon?: string
-}
+export type { Portalfeedback as Feedback } from './dataverse.generated'
 
 /** Fields the form supplies on create (contact + account auto-bound server-side). */
 export interface NewFeedback {

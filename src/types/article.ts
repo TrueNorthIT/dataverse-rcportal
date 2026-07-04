@@ -1,15 +1,6 @@
 /**
- * A published Knowledge Base article (Dataverse `knowledgearticle`), exposed
- * read-only on the public route. `content` is rich HTML.
+ * Knowledge base article (`knowledgearticle`). Record shape from the generated
+ * schema types (`dataverse.generated.ts`), aliased to `Article`. `content` is
+ * rich HTML — sanitise before rendering.
  */
-export interface Article {
-  knowledgearticleid: string
-  title?: string
-  description?: string
-  /** Rich HTML body — sanitise before rendering. */
-  content?: string
-  articlepublicnumber?: string
-  keywords?: string
-  createdon?: string
-  modifiedon?: string
-}
+export type { Knowledgearticle as Article } from './dataverse.generated'

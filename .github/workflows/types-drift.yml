@@ -1,0 +1,24 @@
+name: Schema types drift
+
+# Fails if the committed generated types (src/types/dataverse.generated.ts) have
+# drifted from the live API schema — i.e. someone changed a table/route but
+# didn't re-run `npm run generate:types`. The schema + choices endpoints are
+# public, so no secrets are needed. Kept separate from the app build so the
+# Vercel build never depends on the network.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Fail if the committed types drifted from the live schema
+        run: npm run types:check

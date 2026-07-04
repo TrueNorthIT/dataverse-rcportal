@@ -4,48 +4,105 @@
 // │ DO NOT EDIT — regenerate with the CLI when your schema changes.     │
 // └──────────────────────────────────────────────────────────────────────┘
 
-/** Fields for the `portalfeedback` table */
-export interface Portalfeedback {
+/** Fields for the `casenotes` table */
+export interface Casenotes {
+  /** Unique note identifier */
+  annotationid?: string;
   /** Date created */
   createdon?: string;
+  /** Has attachment */
+  isdocument?: boolean;
   /** Date last modified */
   modifiedon?: string;
-  /** Company */
-  new_accountid?: string;
-  /** GUID of the related account */
-  _new_accountid_value?: string;
-  /** Category (Bug/Idea/Praise/Question/Other) */
-  new_category?: number;
-  /** Display label for new_category */
-  new_category_label?: string;
-  /** Submitted by */
-  new_contactid?: string;
-  /** GUID of the related contact */
-  _new_contactid_value?: string;
-  /** Feedback message */
-  new_message?: string;
-  /** Summary */
-  new_name?: string;
-  /** Unique feedback identifier */
-  new_portalfeedbackid?: string;
-  /** Rating 1–5 */
-  new_rating?: number;
+  /** Note text */
+  notetext?: string;
+  /** Regarding case */
+  objectid?: string;
+  /** GUID of the related case */
+  _objectid_value?: string;
+  /** Regarding entity type */
+  objecttypecode?: string;
+  /** Note subject */
+  subject?: string;
 }
 
-/** Choice values for `portalfeedback.new_category` */
-export const PortalfeedbackNewCategory = {
-  /** Bug */
-  Bug: 100000000,
-  /** Idea */
-  Idea: 100000001,
-  /** Praise */
-  Praise: 100000002,
-  /** Question */
-  Question: 100000003,
-  /** Other */
-  Other: 100000004,
+/** Fields for the `account` table */
+export interface Account {
+  /** Unique account identifier */
+  accountid?: string;
+  /** City */
+  address1_city?: string;
+  /** Country */
+  address1_country?: string;
+  /** Address line 1 */
+  address1_line1?: string;
+  /** Postcode */
+  address1_postalcode?: string;
+  /** County */
+  address1_stateorprovince?: string;
+  /** Date created */
+  createdon?: string;
+  /** Primary email */
+  emailaddress1?: string;
+  /** Date last modified */
+  modifiedon?: string;
+  /** Company name */
+  name?: string;
+  /** Primary contact */
+  primarycontactid?: string;
+  /** GUID of the related contact */
+  _primarycontactid_value?: string;
+  /** Record status */
+  statecode?: number;
+  /** Display label for statecode */
+  statecode_label?: string;
+  /** Main phone */
+  telephone1?: string;
+  /** Website */
+  websiteurl?: string;
+}
+
+/** Choice values for `account.statecode` */
+export const AccountStatecode = {
+  /** Active */
+  Active: 0,
+  /** Inactive */
+  Inactive: 1,
 } as const;
-export type PortalfeedbackNewCategory = typeof PortalfeedbackNewCategory[keyof typeof PortalfeedbackNewCategory];
+export type AccountStatecode = typeof AccountStatecode[keyof typeof AccountStatecode];
+
+/** Fields for the `site` table */
+export interface Site {
+  /** Address type */
+  addresstypecode?: number;
+  /** Display label for addresstypecode */
+  addresstypecode_label?: string;
+  /** City */
+  city?: string;
+  /** Date created */
+  createdon?: string;
+  /** Unique site identifier */
+  customeraddressid?: string;
+  /** Address line 1 */
+  line1?: string;
+  /** Site name */
+  name?: string;
+  /** Postcode */
+  postalcode?: string;
+}
+
+/** Choice values for `site.addresstypecode` */
+export const SiteAddresstypecode = {
+  /** Bill To */
+  BillTo: 1,
+  /** Ship To */
+  ShipTo: 2,
+  /** Primary */
+  Primary: 3,
+  /** Other */
+  Other: 4,
+} as const;
+export type SiteAddresstypecode = typeof SiteAddresstypecode[keyof typeof SiteAddresstypecode];
 
 /** Fields for the `project` table */
 export interface Project {
@@ -111,6 +168,156 @@ export const ProjectStatuscode = {
 } as const;
 export type ProjectStatuscode = typeof ProjectStatuscode[keyof typeof ProjectStatuscode];
 
+/** Fields for the `opportunity` table */
+export interface Opportunity {
+  /** Date created */
+  createdon?: string;
+  /** Customer (account) */
+  customerid?: string;
+  /** GUID of the related record */
+  _customerid_value?: string;
+  /** Notes */
+  description?: string;
+  /** Estimated close date */
+  estimatedclosedate?: string;
+  /** Estimated value (£) */
+  estimatedvalue?: number;
+  /** Date last modified */
+  modifiedon?: string;
+  /** Opportunity name */
+  name?: string;
+  /** Unique opportunity identifier */
+  opportunityid?: string;
+  /** Account */
+  parentaccountid?: string;
+  /** GUID of the related account */
+  _parentaccountid_value?: string;
+  /** Primary contact */
+  parentcontactid?: string;
+  /** GUID of the related contact */
+  _parentcontactid_value?: string;
+  /** Status (Open/Won/Lost) */
+  statecode?: number;
+  /** Display label for statecode */
+  statecode_label?: string;
+  /** Status reason */
+  statuscode?: number;
+  /** Display label for statuscode */
+  statuscode_label?: string;
+}
+
+/** Choice values for `opportunity.statecode` */
+export const OpportunityStatecode = {
+  /** Open */
+  Open: 0,
+  /** Won */
+  Won: 1,
+  /** Lost */
+  Lost: 2,
+} as const;
+export type OpportunityStatecode = typeof OpportunityStatecode[keyof typeof OpportunityStatecode];
+
+/** Choice values for `opportunity.statuscode` */
+export const OpportunityStatuscode = {
+  /** In Progress */
+  InProgress: 1,
+  /** On Hold */
+  OnHold: 2,
+  /** Won */
+  Won: 3,
+  /** Canceled */
+  Canceled: 4,
+  /** Out-Sold */
+  OutSold: 5,
+} as const;
+export type OpportunityStatuscode = typeof OpportunityStatuscode[keyof typeof OpportunityStatuscode];
+
+/** Fields for the `portalfeedback` table */
+export interface Portalfeedback {
+  /** Date created */
+  createdon?: string;
+  /** Date last modified */
+  modifiedon?: string;
+  /** Company */
+  new_accountid?: string;
+  /** GUID of the related account */
+  _new_accountid_value?: string;
+  /** Category (Bug/Idea/Praise/Question/Other) */
+  new_category?: number;
+  /** Display label for new_category */
+  new_category_label?: string;
+  /** Submitted by */
+  new_contactid?: string;
+  /** GUID of the related contact */
+  _new_contactid_value?: string;
+  /** Feedback message */
+  new_message?: string;
+  /** Summary */
+  new_name?: string;
+  /** Unique feedback identifier */
+  new_portalfeedbackid?: string;
+  /** Rating 1–5 */
+  new_rating?: number;
+}
+
+/** Choice values for `portalfeedback.new_category` */
+export const PortalfeedbackNewCategory = {
+  /** Bug */
+  Bug: 100000000,
+  /** Idea */
+  Idea: 100000001,
+  /** Praise */
+  Praise: 100000002,
+  /** Question */
+  Question: 100000003,
+  /** Other */
+  Other: 100000004,
+} as const;
+export type PortalfeedbackNewCategory = typeof PortalfeedbackNewCategory[keyof typeof PortalfeedbackNewCategory];
+
+/** Fields for the `knowledgearticle` table */
+export interface Knowledgearticle {
+  /** Public article number */
+  articlepublicnumber?: string;
+  /** Article body (HTML) */
+  content?: string;
+  /** Date created */
+  createdon?: string;
+  /** Short summary */
+  description?: string;
+  /** Keywords */
+  keywords?: string;
+  /** Unique article identifier */
+  knowledgearticleid?: string;
+  /** Date last modified */
+  modifiedon?: string;
+  /** Status */
+  statecode?: number;
+  /** Display label for statecode */
+  statecode_label?: string;
+  /** Article title */
+  title?: string;
+}
+
+/** Choice values for `knowledgearticle.statecode` */
+export const KnowledgearticleStatecode = {
+  /** Draft */
+  Draft: 0,
+  /** Approved */
+  Approved: 1,
+  /** Scheduled */
+  Scheduled: 2,
+  /** Published */
+  Published: 3,
+  /** Expired */
+  Expired: 4,
+  /** Archived */
+  Archived: 5,
+  /** Discarded */
+  Discarded: 6,
+} as const;
+export type KnowledgearticleStatecode = typeof KnowledgearticleStatecode[keyof typeof KnowledgearticleStatecode];
+
 /** Fields for the `contact` table */
 export interface Contact {
   /** City */
@@ -157,148 +364,6 @@ export const ContactStatecode = {
   Inactive: 1,
 } as const;
 export type ContactStatecode = typeof ContactStatecode[keyof typeof ContactStatecode];
-
-/** Fields for the `site` table */
-export interface Site {
-  /** Address type */
-  addresstypecode?: number;
-  /** Display label for addresstypecode */
-  addresstypecode_label?: string;
-  /** City */
-  city?: string;
-  /** Date created */
-  createdon?: string;
-  /** Unique site identifier */
-  customeraddressid?: string;
-  /** Address line 1 */
-  line1?: string;
-  /** Site name */
-  name?: string;
-  /** Postcode */
-  postalcode?: string;
-}
-
-/** Choice values for `site.addresstypecode` */
-export const SiteAddresstypecode = {
-  /** Bill To */
-  BillTo: 1,
-  /** Ship To */
-  ShipTo: 2,
-  /** Primary */
-  Primary: 3,
-  /** Other */
-  Other: 4,
-} as const;
-export type SiteAddresstypecode = typeof SiteAddresstypecode[keyof typeof SiteAddresstypecode];
-
-/** Fields for the `knowledgearticle` table */
-export interface Knowledgearticle {
-  /** Public article number */
-  articlepublicnumber?: string;
-  /** Article body (HTML) */
-  content?: string;
-  /** Date created */
-  createdon?: string;
-  /** Short summary */
-  description?: string;
-  /** Keywords */
-  keywords?: string;
-  /** Unique article identifier */
-  knowledgearticleid?: string;
-  /** Date last modified */
-  modifiedon?: string;
-  /** Status */
-  statecode?: number;
-  /** Display label for statecode */
-  statecode_label?: string;
-  /** Article title */
-  title?: string;
-}
-
-/** Choice values for `knowledgearticle.statecode` */
-export const KnowledgearticleStatecode = {
-  /** Draft */
-  Draft: 0,
-  /** Approved */
-  Approved: 1,
-  /** Scheduled */
-  Scheduled: 2,
-  /** Published */
-  Published: 3,
-  /** Expired */
-  Expired: 4,
-  /** Archived */
-  Archived: 5,
-  /** Discarded */
-  Discarded: 6,
-} as const;
-export type KnowledgearticleStatecode = typeof KnowledgearticleStatecode[keyof typeof KnowledgearticleStatecode];
-
-/** Fields for the `quote` table */
-export interface Quote {
-  /** Date created */
-  createdon?: string;
-  /** Customer (account) */
-  customerid?: string;
-  /** GUID of the related record */
-  _customerid_value?: string;
-  /** Notes */
-  description?: string;
-  /** Date last modified */
-  modifiedon?: string;
-  /** Quote name */
-  name?: string;
-  /** Source opportunity */
-  opportunityid?: string;
-  /** GUID of the related opportunity */
-  _opportunityid_value?: string;
-  /** Unique quote identifier */
-  quoteid?: string;
-  /** Quote number */
-  quotenumber?: string;
-  /** Status (Draft/Active/Won/Closed) */
-  statecode?: number;
-  /** Display label for statecode */
-  statecode_label?: string;
-  /** Status reason */
-  statuscode?: number;
-  /** Display label for statuscode */
-  statuscode_label?: string;
-  /** Total amount (£) */
-  totalamount?: number;
-}
-
-/** Choice values for `quote.statecode` */
-export const QuoteStatecode = {
-  /** Draft */
-  Draft: 0,
-  /** Active */
-  Active: 1,
-  /** Won */
-  Won: 2,
-  /** Closed */
-  Closed: 3,
-} as const;
-export type QuoteStatecode = typeof QuoteStatecode[keyof typeof QuoteStatecode];
-
-/** Choice values for `quote.statuscode` */
-export const QuoteStatuscode = {
-  /** In Progress */
-  InProgress: 2,
-  /** Open */
-  Open: 3,
-  /** Won */
-  Won: 4,
-  /** Lost */
-  Lost: 5,
-  /** Canceled */
-  Canceled: 6,
-  /** Revised */
-  Revised: 7,
-  /** In Progress */
-  InProgress_1: 1,
-} as const;
-export type QuoteStatuscode = typeof QuoteStatuscode[keyof typeof QuoteStatuscode];
 
 /** Fields for the `case` table */
 export interface Case {
@@ -379,30 +444,8 @@ export const CaseStatuscode = {
 } as const;
 export type CaseStatuscode = typeof CaseStatuscode[keyof typeof CaseStatuscode];
 
-/** Fields for the `casenotes` table */
-export interface Casenotes {
-  /** Unique note identifier */
-  annotationid?: string;
-  /** Date created */
-  createdon?: string;
-  /** Has attachment */
-  isdocument?: boolean;
-  /** Date last modified */
-  modifiedon?: string;
-  /** Note text */
-  notetext?: string;
-  /** Regarding case */
-  objectid?: string;
-  /** GUID of the related case */
-  _objectid_value?: string;
-  /** Regarding entity type */
-  objecttypecode?: string;
-  /** Note subject */
-  subject?: string;
-}
-
-/** Fields for the `opportunity` table */
-export interface Opportunity {
+/** Fields for the `quote` table */
+export interface Quote {
   /** Date created */
   createdon?: string;
   /** Customer (account) */
@@ -411,25 +454,19 @@ export interface Opportunity {
   _customerid_value?: string;
   /** Notes */
   description?: string;
-  /** Estimated close date */
-  estimatedclosedate?: string;
-  /** Estimated value (£) */
-  estimatedvalue?: number;
   /** Date last modified */
   modifiedon?: string;
-  /** Opportunity name */
+  /** Quote name */
   name?: string;
-  /** Unique opportunity identifier */
+  /** Source opportunity */
   opportunityid?: string;
-  /** Account */
-  parentaccountid?: string;
-  /** GUID of the related account */
-  _parentaccountid_value?: string;
-  /** Primary contact */
-  parentcontactid?: string;
-  /** GUID of the related contact */
-  _parentcontactid_value?: string;
-  /** Status (Open/Won/Lost) */
+  /** GUID of the related opportunity */
+  _opportunityid_value?: string;
+  /** Unique quote identifier */
+  quoteid?: string;
+  /** Quote number */
+  quotenumber?: string;
+  /** Status (Draft/Active/Won/Closed) */
   statecode?: number;
   /** Display label for statecode */
   statecode_label?: string;
@@ -437,78 +474,41 @@ export interface Opportunity {
   statuscode?: number;
   /** Display label for statuscode */
   statuscode_label?: string;
+  /** Total amount (£) */
+  totalamount?: number;
 }
 
-/** Choice values for `opportunity.statecode` */
-export const OpportunityStatecode = {
-  /** Open */
-  Open: 0,
-  /** Won */
-  Won: 1,
-  /** Lost */
-  Lost: 2,
-} as const;
-export type OpportunityStatecode = typeof OpportunityStatecode[keyof typeof OpportunityStatecode];
-
-/** Choice values for `opportunity.statuscode` */
-export const OpportunityStatuscode = {
-  /** In Progress */
-  InProgress: 1,
-  /** On Hold */
-  OnHold: 2,
-  /** Won */
-  Won: 3,
-  /** Canceled */
-  Canceled: 4,
-  /** Out-Sold */
-  OutSold: 5,
-} as const;
-export type OpportunityStatuscode = typeof OpportunityStatuscode[keyof typeof OpportunityStatuscode];
-
-/** Fields for the `account` table */
-export interface Account {
-  /** Unique account identifier */
-  accountid?: string;
-  /** City */
-  address1_city?: string;
-  /** Country */
-  address1_country?: string;
-  /** Address line 1 */
-  address1_line1?: string;
-  /** Postcode */
-  address1_postalcode?: string;
-  /** County */
-  address1_stateorprovince?: string;
-  /** Date created */
-  createdon?: string;
-  /** Primary email */
-  emailaddress1?: string;
-  /** Date last modified */
-  modifiedon?: string;
-  /** Company name */
-  name?: string;
-  /** Primary contact */
-  primarycontactid?: string;
-  /** GUID of the related contact */
-  _primarycontactid_value?: string;
-  /** Record status */
-  statecode?: number;
-  /** Display label for statecode */
-  statecode_label?: string;
-  /** Main phone */
-  telephone1?: string;
-  /** Website */
-  websiteurl?: string;
-}
-
-/** Choice values for `account.statecode` */
-export const AccountStatecode = {
+/** Choice values for `quote.statecode` */
+export const QuoteStatecode = {
+  /** Draft */
+  Draft: 0,
   /** Active */
-  Active: 0,
-  /** Inactive */
-  Inactive: 1,
+  Active: 1,
+  /** Won */
+  Won: 2,
+  /** Closed */
+  Closed: 3,
 } as const;
-export type AccountStatecode = typeof AccountStatecode[keyof typeof AccountStatecode];
+export type QuoteStatecode = typeof QuoteStatecode[keyof typeof QuoteStatecode];
+
+/** Choice values for `quote.statuscode` */
+export const QuoteStatuscode = {
+  /** In Progress */
+  InProgress: 2,
+  /** Open */
+  Open: 3,
+  /** Won */
+  Won: 4,
+  /** Lost */
+  Lost: 5,
+  /** Canceled */
+  Canceled: 6,
+  /** Revised */
+  Revised: 7,
+  /** In Progress */
+  InProgress_1: 1,
+} as const;
+export type QuoteStatuscode = typeof QuoteStatuscode[keyof typeof QuoteStatuscode];
 
 /** All valid table names accepted by the API */
-export type TableName = "portalfeedback" | "project" | "contact" | "site" | "knowledgearticle" | "quote" | "case" | "casenotes" | "opportunity" | "account" | "feedback" | "projects" | "msdyn_projects" | "contacts" | "sites" | "locations" | "customeraddress" | "kb" | "knowledge" | "quotes" | "cases" | "incidents" | "tickets" | "casenote" | "notes" | "opportunities" | "opps";
+export type TableName = "casenotes" | "account" | "site" | "project" | "opportunity" | "portalfeedback" | "knowledgearticle" | "contact" | "case" | "quote" | "casenote" | "notes" | "sites" | "locations" | "customeraddress" | "projects" | "msdyn_projects" | "opportunities" | "opps" | "feedback" | "kb" | "knowledge" | "contacts" | "cases" | "incidents" | "tickets" | "quotes";
