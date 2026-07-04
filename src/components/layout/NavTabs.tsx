@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
+import { useFeedback } from '../common/FeedbackDialog'
 
 /** Core sections — the customer's own data (spec §6). */
 const CORE = [
@@ -12,11 +13,11 @@ const CORE = [
   { to: '/cases', label: 'Support' },
 ]
 
-/** Self-serve / help items, grouped under a "Help" menu to keep the bar tidy. */
+/** Self-serve / help links, grouped under a "Help" menu to keep the bar tidy.
+ * (Feedback isn't a route — it opens a dialog — so it's added separately.) */
 const HELP = [
   { to: '/knowledge', label: 'Knowledge base' },
   { to: '/ai', label: 'AI assistant' },
-  { to: '/feedback', label: 'Feedback' },
 ]
 
 const tabClass = ({ isActive }: { isActive: boolean }) =>
@@ -48,7 +49,10 @@ function HelpMenu() {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   const { pathname } = useLocation()
+  const feedback = useFeedback()
   const active = HELP.some((h) => pathname === h.to || pathname.startsWith(`${h.to}/`))
+  const menuItemClass =
+    'block w-full px-4 py-2.5 text-left text-sm text-rc-teal transition-colors hover:bg-rc-blue-light/30 hover:text-rc-navy'
 
   useEffect(() => {
     if (!open) return
@@ -108,6 +112,17 @@ function HelpMenu() {
               {h.label}
             </NavLink>
           ))}
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => {
+              setOpen(false)
+              feedback.open()
+            }}
+            className={menuItemClass}
+          >
+            Feedback
+          </button>
         </div>
       )}
     </div>
