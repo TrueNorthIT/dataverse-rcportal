@@ -25,7 +25,9 @@ export async function listCaseNotes(
 ): Promise<CaseNote[]> {
   const res = await client[mine ? 'me' : 'team'].list<CaseNote>('casenotes', {
     select: CASE_NOTE_SELECT,
-    filter: { field: '_objectid_value', operator: 'eq', value: caseId },
+    // Filter by the clean lookup name `objectid` — the API translates it to the
+    // OData `_objectid_value` internally; passing the raw `_value` name 400s.
+    filter: { field: 'objectid', operator: 'eq', value: caseId },
     orderBy: { field: 'createdon', direction: 'desc' },
     top: 50,
   })
