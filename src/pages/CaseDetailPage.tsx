@@ -42,7 +42,7 @@ export function CaseDetailPage() {
         ← Support
       </button>
 
-      {loading && <p className="text-sm text-white/80">Loading…</p>}
+      {loading && <CaseSkeleton />}
       {error && <p className="text-sm text-red-200">{error}</p>}
 
       {record && (
@@ -83,7 +83,7 @@ export function CaseDetailPage() {
         <div className="mt-6">
           <h2 className="mb-3 text-xl font-light tracking-tight text-white">Updates</h2>
           {notesQuery.isLoading ? (
-            <p className="text-sm text-white/80">Loading updates…</p>
+            <NotesSkeleton />
           ) : notes.length === 0 ? (
             <Card className="p-5">
               <p className="text-sm text-rc-teal">No updates on this ticket yet.</p>
@@ -109,6 +109,58 @@ export function CaseDetailPage() {
           )}
         </div>
       )}
+    </div>
+  )
+}
+
+/** Shimmer placeholder for the case card while it loads. */
+function CaseSkeleton() {
+  return (
+    <Card className="overflow-hidden" aria-busy="true" aria-label="Loading case">
+      <div className="rc-gradient h-1 w-full" />
+      <div className="p-6">
+        <div className="flex items-start justify-between gap-4">
+          <div className="rc-skeleton h-7 w-1/2 rounded" />
+          <div className="rc-skeleton h-6 w-20 rounded-full" />
+        </div>
+        <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} style={{ ['--rc-delay' as string]: `${i * 0.1}s` }} className="space-y-1.5">
+              <div className="rc-skeleton h-3 w-2/3 rounded" />
+              <div className="rc-skeleton h-4 w-4/5 rounded" />
+            </div>
+          ))}
+        </div>
+        <div className="mt-6 space-y-2">
+          <div className="rc-skeleton h-3 w-full rounded" />
+          <div className="rc-skeleton h-3 w-11/12 rounded" />
+          <div className="rc-skeleton h-3 w-3/4 rounded" />
+        </div>
+      </div>
+    </Card>
+  )
+}
+
+/** Shimmer placeholder timeline while the updates load — ripples down. */
+function NotesSkeleton() {
+  return (
+    <div className="space-y-3" aria-busy="true" aria-label="Loading updates">
+      {[0, 1, 2].map((i) => (
+        <div
+          key={i}
+          style={{ ['--rc-delay' as string]: `${i * 0.14}s` }}
+          className="rounded-2xl border border-rc-blue-light bg-white p-4"
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div className="rc-skeleton h-4 w-40 rounded" />
+            <div className="rc-skeleton h-3 w-16 rounded" />
+          </div>
+          <div className="mt-2 space-y-2">
+            <div className="rc-skeleton h-3 w-full rounded" />
+            <div className="rc-skeleton h-3 w-4/5 rounded" />
+          </div>
+        </div>
+      ))}
     </div>
   )
 }
