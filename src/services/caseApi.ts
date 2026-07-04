@@ -56,14 +56,21 @@ export async function getCase(client: DataverseClient, id: string): Promise<Case
  * Fetch a case for the detail view, tolerating company (team) tickets.
  *
  * `me` only resolves cases the caller raised, so opening a colleague's / the
- * company's ticket 404s there. Fall back to the `team` tier (read-only,
- * account-scoped) so the customer can still see its status and detail. `mine`
- * says whether it's the caller's own ticket, so the UI can note the difference.
+ * company's ticket 404s there. When the list tells us which tier it was showing
+ * (`preferTier`), we fetch straight from that tier — no failed `me` probe (and
+ * no 404 noise in the console). Without a hint (deep link / refresh) we try
+ * `me` then fall back to `team`. `mine` says whether it's the caller's own
+ * ticket, so the UI can note the difference.
  */
 export async function fetchCaseDetail(
   client: DataverseClient,
   id: string,
+  preferTier?: 'me' | 'team',
 ): Promise<{ record: Case; mine: boolean }> {
+  if (preferTier) {
+    const res = await client[preferTier].get<Case>('case', id, { select: CASE_SELECT })
+    return { record: res.data, mine: preferTier === 'me' }
+  }
   try {
     const res = await client.me.get<Case>('case', id, { select: CASE_SELECT })
     return { record: res.data, mine: true }
