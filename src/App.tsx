@@ -13,6 +13,9 @@ import { SitesPage } from './pages/SitesPage'
 import { CasesPage } from './pages/CasesPage'
 import { CaseDetailPage } from './pages/CaseDetailPage'
 import { AiPage } from './pages/AiPage'
+import { FeedbackPage } from './pages/FeedbackPage'
+import { KnowledgeBasePage } from './pages/KnowledgeBasePage'
+import { ArticleDetailPage } from './pages/ArticleDetailPage'
 import { BrandLoader } from './components/common/BrandLoader'
 import { ScrollManager } from './components/layout/ScrollManager'
 import { ScrollToTop } from './components/common/ScrollToTop'
@@ -55,6 +58,9 @@ function App() {
           <Route path="cases" element={<CasesPage />} />
           <Route path="cases/:id" element={<CaseDetailPage />} />
           <Route path="ai" element={<AiPage />} />
+          <Route path="knowledge" element={<KnowledgeBasePage />} />
+          <Route path="knowledge/:id" element={<ArticleDetailPage />} />
+          <Route path="feedback" element={<FeedbackPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

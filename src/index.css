@@ -193,3 +193,55 @@ h3 {
   border-color: var(--color-rc-blue);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-rc-blue) 25%, transparent);
 }
+
+/* Rendered rich-HTML from D365 knowledge articles. No Tailwind prose plugin, so
+ * style the common tags here for a clean, readable article. */
+.rc-article {
+  color: var(--color-rc-navy);
+  font-size: 0.95rem;
+  line-height: 1.65;
+}
+.rc-article h1,
+.rc-article h2,
+.rc-article h3 {
+  color: var(--color-rc-navy);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+.rc-article h2 { font-size: 1.25rem; margin: 1.5rem 0 0.5rem; }
+.rc-article h3 { font-size: 1.05rem; margin: 1.25rem 0 0.4rem; }
+.rc-article p { margin: 0.75rem 0; }
+.rc-article ul,
+.rc-article ol { margin: 0.75rem 0; padding-left: 1.5rem; }
+.rc-article ul { list-style: disc; }
+.rc-article ol { list-style: decimal; }
+.rc-article li { margin: 0.25rem 0; }
+.rc-article a {
+  color: var(--color-rc-blue);
+  text-decoration: underline;
+}
+.rc-article a:hover { color: var(--color-rc-navy); }
+.rc-article strong { font-weight: 600; }
+.rc-article blockquote {
+  margin: 1rem 0;
+  padding: 0.5rem 1rem;
+  border-left: 3px solid var(--color-rc-blue-light);
+  background: var(--color-rc-canvas);
+  border-radius: 0 0.5rem 0.5rem 0;
+  color: var(--color-rc-teal);
+}
+.rc-article table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.875rem;
+}
+.rc-article th,
+.rc-article td {
+  border: 1px solid var(--color-rc-blue-light);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+.rc-article th { background: var(--color-rc-canvas); font-weight: 600; }
+.rc-article img { max-width: 100%; height: auto; border-radius: 0.5rem; }

@@ -9,7 +9,9 @@ const NAV = [
   { to: '/projects', label: 'Projects' },
   { to: '/sites', label: 'Sites' },
   { to: '/cases', label: 'Support' },
+  { to: '/knowledge', label: 'Knowledge base' },
   { to: '/ai', label: 'AI assistant' },
+  { to: '/feedback', label: 'Feedback' },
 ]
 
 /** Horizontal, scrollable section nav shown under the shell header. */
