@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
-import type { FilterCondition } from '@truenorth-it/dataverse-client'
+import { useEffect } from 'react'
+import type { FilterCondition, OrderBy } from '@truenorth-it/dataverse-client'
 import { useTierList } from '../hooks/useTierList'
 import { usePillCounts } from '../hooks/usePillCounts'
-import { PROJECT_ORDER, PROJECT_SELECT, projectHealth } from '../services/projectApi'
+import { useListControls } from '../hooks/useListControls'
+import { PROJECT_SELECT, projectHealth } from '../services/projectApi'
 import type { Project } from '../types/project'
 import { cleanDescription, formatDate } from '../lib/format'
 import { PageHeader } from '../components/common/PageHeader'
@@ -10,6 +11,7 @@ import { Card } from '../components/common/Card'
 import { TierToggle } from '../components/common/TierToggle'
 import { StatusChip } from '../components/common/StatusChip'
 import { FilterPills } from '../components/common/FilterPills'
+import { SortMenu } from '../components/common/SortMenu'
 import { ListStates, LoadMore } from '../components/common/ListStates'
 
 interface ProjectPill {
@@ -17,6 +19,13 @@ interface ProjectPill {
   label: string
   filter?: FilterCondition | FilterCondition[]
 }
+
+// Default: by due date (soonest finish first) so overdue/at-risk float up.
+const PROJECT_SORTS: { key: string; label: string; order: OrderBy }[] = [
+  { key: 'due', label: 'Due date', order: { field: 'msdyn_finish', direction: 'asc' } },
+  { key: 'start', label: 'Start date', order: { field: 'msdyn_scheduledstart', direction: 'asc' } },
+  { key: 'added', label: 'Recently added', order: { field: 'createdon', direction: 'desc' } },
+]
 
 const isoOffset = (days: number) => {
   const d = new Date()
@@ -51,14 +60,15 @@ function buildProjectPills(): ProjectPill[] {
 export function ProjectsPage() {
   // Projects are company-level, so default to the Company tier (me-tier only
   // has rows for the account's primary contact).
-  const [rag, setRag] = useState('all')
+  const { filter: rag, setFilter: setRag, sort, setSort } = useListControls('all', 'due')
   const pills = buildProjectPills()
+  const activeSort = PROJECT_SORTS.find((s) => s.key === sort) ?? PROJECT_SORTS[0]
   const { tier, setTier, items, loading, error, hasMore, loadingMore, loadMore } =
     useTierList<Project>(
       'project',
       {
         select: PROJECT_SELECT,
-        orderBy: PROJECT_ORDER,
+        orderBy: activeSort.order,
         top: 25,
         filter: pills.find((p) => p.key === rag)?.filter,
       },
@@ -69,7 +79,7 @@ export function ProjectsPage() {
   const disabledKeys = new Set(pills.filter((p) => counts[p.key] === 0).map((p) => p.key))
   useEffect(() => {
     if (rag !== 'all' && counts[rag] === 0) setRag('all')
-  }, [counts, rag])
+  }, [counts, rag, setRag])
 
   return (
     <div>
@@ -79,13 +89,15 @@ export function ProjectsPage() {
         actions={<TierToggle tier={tier} onChange={setTier} />}
       />
 
-      <FilterPills
-        options={pills.map((p) => ({ key: p.key, label: p.label }))}
-        value={rag}
-        onChange={setRag}
-        disabledKeys={disabledKeys}
-        className="mb-4"
-      />
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <FilterPills
+          options={pills.map((p) => ({ key: p.key, label: p.label }))}
+          value={rag}
+          onChange={setRag}
+          disabledKeys={disabledKeys}
+        />
+        <SortMenu options={PROJECT_SORTS} value={activeSort.key} onChange={setSort} />
+      </div>
 
       <ListStates
         loading={loading}

@@ -2,7 +2,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useDataverseClient } from '../lib/client'
 import { useSelectedCompany } from '../context/SelectedCompanyContext'
-import { getCase } from '../services/caseApi'
+import { fetchCaseDetail } from '../services/caseApi'
 import { cleanDescription, formatDate } from '../lib/format'
 import { Card } from '../components/common/Card'
 import { StatusChip } from '../components/common/StatusChip'
@@ -16,10 +16,11 @@ export function CaseDetailPage() {
 
   const query = useQuery({
     queryKey: ['case', id, selectedContactId ?? 'default'],
-    queryFn: () => getCase(client, id!),
+    queryFn: () => fetchCaseDetail(client, id!),
     enabled: !!id,
   })
-  const record = query.data ?? null
+  const record = query.data?.record ?? null
+  const mine = query.data?.mine ?? true
   const loading = query.isLoading
   const error = query.error instanceof Error ? query.error.message : null
 
@@ -46,6 +47,12 @@ export function CaseDetailPage() {
               </h1>
               <StatusChip label={record.statuscode_label} />
             </div>
+            {!mine && (
+              <div className="mt-3 rounded-lg border border-rc-blue-light bg-rc-canvas px-3 py-2 text-xs text-rc-teal">
+                This is one of your company's tickets — raised by a colleague, so
+                it's shown read-only.
+              </div>
+            )}
             <dl className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
               <Meta label="Case number" value={record.ticketnumber || '—'} />
               <Meta label="Priority" value={record.prioritycode_label || '—'} />
