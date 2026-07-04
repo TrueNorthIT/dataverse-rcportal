@@ -53,7 +53,7 @@ export function SitesPage() {
         actions={<TierToggle tier={tier} onChange={setTier} />}
       />
 
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         <FilterPills
           options={SITE_PILLS}
           value={conn}

@@ -1,6 +1,7 @@
 /**
- * Compact sort dropdown for list views. A styled native <select> — accessible,
- * keyboard-friendly, and quiet enough to sit beside the filter pills.
+ * Sort control rendered as pills — same look as the filter pills (active pill
+ * wears the brand gradient), so the two controls feel of a piece. A light
+ * "Sort" label distinguishes it from the filter row on the gradient background.
  */
 export interface SortOption {
   key: string
@@ -17,29 +18,29 @@ export function SortMenu({
   onChange: (key: string) => void
 }) {
   return (
-    <label className="inline-flex shrink-0 items-center gap-2 text-sm text-rc-teal">
-      <span className="hidden sm:inline">Sort</span>
-      <div className="relative">
-        <select
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="appearance-none rounded-lg border border-rc-blue-light bg-white py-1.5 pl-3 pr-8 text-sm font-medium text-rc-navy transition-colors hover:border-rc-blue focus:border-rc-blue focus:outline-none"
-        >
-          {options.map((o) => (
-            <option key={o.key} value={o.key}>
+    <div className="flex flex-wrap items-center gap-2">
+      <span className="text-xs font-medium uppercase tracking-wide text-white/70">Sort</span>
+      <div className="flex flex-wrap gap-2" role="group" aria-label="Sort by">
+        {options.map((o) => {
+          const active = o.key === value
+          return (
+            <button
+              key={o.key}
+              type="button"
+              aria-pressed={active}
+              onClick={() => onChange(o.key)}
+              className={
+                'rounded-full px-3.5 py-1.5 text-sm font-medium transition-all duration-150 active:scale-95 ' +
+                (active
+                  ? 'rc-gradient text-white shadow-sm'
+                  : 'border border-rc-blue-light bg-white text-rc-teal hover:border-rc-blue hover:text-rc-navy')
+              }
+            >
               {o.label}
-            </option>
-          ))}
-        </select>
-        <svg
-          className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-rc-teal"
-          width="14" height="14" viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <path d="m6 9 6 6 6-6" />
-        </svg>
+            </button>
+          )
+        })}
       </div>
-    </label>
+    </div>
   )
 }
