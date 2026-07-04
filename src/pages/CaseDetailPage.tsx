@@ -1,11 +1,13 @@
+import { useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useDataverseClient } from '../lib/client'
 import { useSelectedCompany } from '../context/SelectedCompanyContext'
-import { fetchCaseDetail, listCaseNotes } from '../services/caseApi'
+import { addCaseNote, fetchCaseDetail, listCaseNotes, updateCase } from '../services/caseApi'
 import { cleanDescription, formatDate, relativeFromNow } from '../lib/format'
 import { Card } from '../components/common/Card'
 import { StatusChip } from '../components/common/StatusChip'
+import type { DataverseClient } from '@truenorth-it/dataverse-client'
 
 /** Navigation context passed from the list: ordered ids, origin, and the tier. */
 interface CaseNav {
@@ -20,6 +22,7 @@ export function CaseDetailPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const client = useDataverseClient()
+  const queryClient = useQueryClient()
   const { selectedContactId } = useSelectedCompany()
 
   // Prev/next context from the list (null on a deep link / refresh).
@@ -94,14 +97,21 @@ export function CaseDetailPage() {
               <Meta label="Raised" value={formatDate(record.createdon)} />
               <Meta label="Last updated" value={relativeFromNow(record.modifiedon)} />
             </dl>
-            {cleanDescription(record.description) && (
-              <div className="mt-6">
-                <dt className="text-xs font-medium text-rc-teal">Details</dt>
+            <div className="mt-6">
+              <dt className="text-xs font-medium text-rc-teal">Details</dt>
+              {mine ? (
+                <EditableDescription
+                  client={client}
+                  caseId={id!}
+                  initial={cleanDescription(record.description)}
+                  onSaved={() => queryClient.invalidateQueries({ queryKey: ['case', id] })}
+                />
+              ) : (
                 <p className="mt-1 whitespace-pre-wrap text-sm text-rc-navy">
-                  {cleanDescription(record.description)}
+                  {cleanDescription(record.description) || 'No description provided.'}
                 </p>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </Card>
       )}
@@ -109,6 +119,16 @@ export function CaseDetailPage() {
       {record && (
         <div className="mt-6">
           <h2 className="mb-3 text-xl font-light tracking-tight text-white">Updates</h2>
+          {mine && (
+            <AddNote
+              client={client}
+              caseId={id!}
+              onAdded={() => {
+                queryClient.invalidateQueries({ queryKey: ['casenotes', id] })
+                queryClient.invalidateQueries({ queryKey: ['case', id] })
+              }}
+            />
+          )}
           {notesQuery.isLoading ? (
             <NotesSkeleton />
           ) : notes.length === 0 ? (
@@ -137,6 +157,93 @@ export function CaseDetailPage() {
         </div>
       )}
     </div>
+  )
+}
+
+/** Inline-editable case description (own tickets only). */
+function EditableDescription({
+  client,
+  caseId,
+  initial,
+  onSaved,
+}: {
+  client: DataverseClient
+  caseId: string
+  initial: string
+  onSaved: () => void
+}) {
+  const [value, setValue] = useState(initial)
+  const save = useMutation({
+    mutationFn: () => updateCase(client, caseId, { description: value.trim() }),
+    onSuccess: onSaved,
+  })
+  const dirty = value.trim() !== initial.trim()
+
+  return (
+    <div className="mt-1">
+      <textarea
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        rows={4}
+        placeholder="Add more detail about the issue…"
+        className="rc-input w-full resize-y"
+      />
+      <div className="mt-2 flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => save.mutate()}
+          disabled={!dirty || save.isPending}
+          className="rounded-lg bg-rc-blue px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-rc-navy disabled:opacity-40"
+        >
+          {save.isPending ? 'Saving…' : 'Save changes'}
+        </button>
+        {save.isError && <span className="text-sm text-red-600">Couldn’t save — try again.</span>}
+        {save.isSuccess && !dirty && <span className="text-sm text-rc-green">Saved.</span>}
+      </div>
+    </div>
+  )
+}
+
+/** Compose box to post a note/update on your own case. */
+function AddNote({
+  client,
+  caseId,
+  onAdded,
+}: {
+  client: DataverseClient
+  caseId: string
+  onAdded: () => void
+}) {
+  const [text, setText] = useState('')
+  const add = useMutation({
+    mutationFn: () => addCaseNote(client, caseId, { notetext: text }),
+    onSuccess: () => {
+      setText('')
+      onAdded()
+    },
+  })
+
+  return (
+    <Card className="mb-3 p-4">
+      <textarea
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        rows={3}
+        placeholder="Add an update or reply…"
+        className="rc-input w-full resize-y"
+      />
+      <div className="mt-2 flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => add.mutate()}
+          disabled={!text.trim() || add.isPending}
+          className="rounded-lg bg-rc-blue px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-rc-navy disabled:opacity-40"
+        >
+          {add.isPending ? 'Posting…' : 'Post update'}
+        </button>
+        {add.isError && <span className="text-sm text-red-600">Couldn’t post — try again.</span>}
+      </div>
+    </Card>
   )
 }
 
