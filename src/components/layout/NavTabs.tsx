@@ -4,8 +4,8 @@ import { useFeedback } from '../common/FeedbackDialog'
 
 /** Core sections — the customer's own data (spec §6). */
 // "My profile" and "My company" are intentionally absent — they live in the
-// header's UserMenu. Dashboard is icon-only (a home glyph) so the whole row
-// fits a phone without sideways scrolling.
+// header's UserMenu. Dashboard collapses to a home glyph on mobile (words on
+// sm+) so the whole row fits a phone without sideways scrolling.
 const CORE = [
   { to: '/', label: 'Dashboard', end: true, icon: true },
   { to: '/quotes', label: 'Quotes' },
@@ -42,7 +42,14 @@ export function NavTabs() {
               aria-label={icon ? label : undefined}
               title={icon ? label : undefined}
             >
-              {icon ? <HomeIcon /> : label}
+              {icon ? (
+                <>
+                  <HomeIcon className="sm:hidden" />
+                  <span className="hidden sm:inline">{label}</span>
+                </>
+              ) : (
+                label
+              )}
             </NavLink>
           ))}
         </div>
@@ -52,26 +59,26 @@ export function NavTabs() {
   )
 }
 
-/** Home glyph for the icon-only Dashboard tab. */
-function HomeIcon() {
+/** Home glyph — the Dashboard tab's mobile face. */
+function HomeIcon({ className = '' }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
       strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
-      className="block"
+      className={'block ' + className}
     >
       <path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7h-6v7H4a1 1 0 0 1-1-1Z" />
     </svg>
   )
 }
 
-/** Circled question mark for the icon-only Help menu button. */
-function HelpIcon() {
+/** Circled question mark — the Help menu's mobile face. */
+function HelpIcon({ className = '' }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
       strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
-      className="block"
+      className={'block ' + className}
     >
       <circle cx="12" cy="12" r="9" />
       <path d="M9.3 9.2a2.8 2.8 0 1 1 3.9 2.9c-.8.3-1.2.9-1.2 1.7v.3" />
@@ -120,7 +127,8 @@ function HelpMenu() {
           (active ? 'border-rc-blue text-rc-navy' : 'border-transparent text-rc-teal hover:text-rc-navy')
         }
       >
-        <HelpIcon />
+        <HelpIcon className="sm:hidden" />
+        <span className="hidden sm:inline">Help</span>
         {/* Chevron is a desktop nicety — dropped on mobile to help the row fit. */}
         <svg
           className={`hidden transition-transform sm:block ${open ? 'rotate-180' : ''}`}
