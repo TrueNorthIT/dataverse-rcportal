@@ -5,6 +5,7 @@ import { createFeedback } from '../services/feedbackApi'
 import { PageHeader } from '../components/common/PageHeader'
 import { Card } from '../components/common/Card'
 import { StarRating } from '../components/common/StarRating'
+import { useToast } from '../components/common/Toast'
 
 /**
  * Portal feedback: a simple compose form (rating + message). Feedback is bound
@@ -12,6 +13,7 @@ import { StarRating } from '../components/common/StarRating'
  */
 export function FeedbackPage() {
   const client = useDataverseClient()
+  const toast = useToast()
   const [message, setMessage] = useState('')
   const [rating, setRating] = useState(0)
 
@@ -25,6 +27,7 @@ export function FeedbackPage() {
     onSuccess: () => {
       setMessage('')
       setRating(0)
+      toast.show('Thanks — your feedback was sent')
     },
   })
 
@@ -69,7 +72,6 @@ export function FeedbackPage() {
               {submit.isPending ? 'Sending…' : 'Send feedback'}
             </button>
             {submit.isError && <span className="text-sm text-red-600">Couldn’t send — please try again.</span>}
-            {submit.isSuccess && <span className="text-sm text-rc-green">Thanks — your feedback was sent.</span>}
           </div>
         </form>
       </Card>

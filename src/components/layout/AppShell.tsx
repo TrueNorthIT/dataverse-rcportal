@@ -33,7 +33,7 @@ export function AppShell() {
               className="h-7 w-auto"
             />
             <span className="relative top-[3px] hidden text-sm font-medium text-white/70 sm:inline">
-              Contact Portal
+              Customer Portal
             </span>
           </div>
           <div className="flex items-center gap-3">
