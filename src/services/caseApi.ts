@@ -34,6 +34,32 @@ export async function listCaseNotes(
   return res.data
 }
 
+/** Update fields on a case you own (me tier — the `case` route allows write). */
+export async function updateCase(
+  client: DataverseClient,
+  id: string,
+  input: Partial<Pick<Case, 'title' | 'description'>>,
+): Promise<void> {
+  await client.me.update('case', id, input as Record<string, unknown>)
+}
+
+/**
+ * Add a note (update) to a case you own. Sending `objectid` binds the note to
+ * the case via objectid_incident → /incidents(id); the API resolves the entity
+ * set from the casenotes route's lookup_table.
+ */
+export async function addCaseNote(
+  client: DataverseClient,
+  caseId: string,
+  input: { subject?: string; notetext: string },
+): Promise<void> {
+  await client.me.create('casenotes', {
+    subject: input.subject?.trim() || 'Update',
+    notetext: input.notetext.trim(),
+    objectid: caseId,
+  })
+}
+
 /** Columns the portal reads for support cases. */
 export const CASE_SELECT = [
   'incidentid',
