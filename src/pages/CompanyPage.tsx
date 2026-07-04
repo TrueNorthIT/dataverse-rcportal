@@ -1,9 +1,10 @@
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useMyCompany } from '../hooks/useMyCompany'
 import { useTierList } from '../hooks/useTierList'
 import { COLLEAGUE_SELECT } from '../services/accountApi'
 import type { Contact } from '../types/contact'
 import { PageHeader } from '../components/common/PageHeader'
-import { Card } from '../components/common/Card'
+import { Card, CardButton } from '../components/common/Card'
 import { ListStates, LoadMore } from '../components/common/ListStates'
 
 /**
@@ -11,6 +12,8 @@ import { ListStates, LoadMore } from '../components/common/ListStates'
  * (contacts on the same account, always the `team` tier).
  */
 export function CompanyPage() {
+  const navigate = useNavigate()
+  const location = useLocation()
   const { account, loading: accountLoading, error: accountError } = useMyCompany()
   const {
     items: colleagues,
@@ -71,7 +74,18 @@ export function CompanyPage() {
         >
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 rc-land-list">
             {colleagues.map((c) => (
-              <Card key={c.contactid} className="p-4">
+              <CardButton
+                key={c.contactid}
+                onClick={() =>
+                  navigate(`/company/${c.contactid}`, {
+                    state: {
+                      ids: colleagues.map((i) => i.contactid),
+                      from: location.pathname + location.search,
+                      tier: 'team',
+                    },
+                  })
+                }
+              >
                 <div className="flex items-start justify-between gap-2">
                   <div className="font-medium text-rc-navy">{c.fullname || '—'}</div>
                   {c.donotbulkemail && <MarketingOptOut />}
@@ -87,7 +101,7 @@ export function CompanyPage() {
                     {[c.telephone1, c.mobilephone].filter(Boolean).join(' · ')}
                   </div>
                 )}
-              </Card>
+              </CardButton>
             ))}
           </div>
           <LoadMore hasMore={hasMore} loading={loadingMore} onClick={loadMore} />

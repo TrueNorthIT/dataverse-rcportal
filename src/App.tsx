@@ -8,10 +8,14 @@ import { DashboardPage } from './pages/DashboardPage'
 import { ProfilePage } from './pages/ProfilePage'
 import { CompanyPage } from './pages/CompanyPage'
 import { QuotesPage } from './pages/QuotesPage'
+import { QuoteDetailPage } from './pages/QuoteDetailPage'
 import { ProjectsPage } from './pages/ProjectsPage'
+import { ProjectDetailPage } from './pages/ProjectDetailPage'
 import { SitesPage } from './pages/SitesPage'
+import { SiteDetailPage } from './pages/SiteDetailPage'
 import { CasesPage } from './pages/CasesPage'
 import { CaseDetailPage } from './pages/CaseDetailPage'
+import { ColleagueDetailPage } from './pages/ColleagueDetailPage'
 import { AiPage } from './pages/AiPage'
 import { KnowledgeBasePage } from './pages/KnowledgeBasePage'
 import { ArticleDetailPage } from './pages/ArticleDetailPage'
@@ -55,9 +59,13 @@ function App() {
           <Route index element={<DashboardPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="company" element={<CompanyPage />} />
+          <Route path="company/:id" element={<ColleagueDetailPage />} />
           <Route path="quotes" element={<QuotesPage />} />
+          <Route path="quotes/:id" element={<QuoteDetailPage />} />
           <Route path="projects" element={<ProjectsPage />} />
+          <Route path="projects/:id" element={<ProjectDetailPage />} />
           <Route path="sites" element={<SitesPage />} />
+          <Route path="sites/:id" element={<SiteDetailPage />} />
           <Route path="cases" element={<CasesPage />} />
           <Route path="cases/:id" element={<CaseDetailPage />} />
           <Route path="ai" element={<AiPage />} />

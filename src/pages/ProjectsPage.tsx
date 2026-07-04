@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import type { FilterCondition, OrderBy } from '@truenorth-it/dataverse-client'
 import { useTierList } from '../hooks/useTierList'
 import { usePillCounts } from '../hooks/usePillCounts'
@@ -7,7 +8,7 @@ import { PROJECT_SELECT, projectHealth } from '../services/projectApi'
 import type { Project } from '../types/project'
 import { cleanDescription, formatDate } from '../lib/format'
 import { PageHeader } from '../components/common/PageHeader'
-import { Card } from '../components/common/Card'
+import { CardButton } from '../components/common/Card'
 import { TierToggle } from '../components/common/TierToggle'
 import { StatusChip } from '../components/common/StatusChip'
 import { FilterPills } from '../components/common/FilterPills'
@@ -58,6 +59,8 @@ function buildProjectPills(): ProjectPill[] {
 
 /** Projects list with My / Company toggle; subject, status, and schedule dates. */
 export function ProjectsPage() {
+  const navigate = useNavigate()
+  const location = useLocation()
   // Projects are company-level, so default to the Company tier (me-tier only
   // has rows for the account's primary contact).
   const { filter: rag, setFilter: setRag, sort, setSort } = useListControls('all', 'due')
@@ -109,7 +112,14 @@ export function ProjectsPage() {
           {items.map((p) => {
             const health = projectHealth(p)
             return (
-              <Card key={p.msdyn_projectid} className="p-4">
+              <CardButton
+                key={p.msdyn_projectid}
+                onClick={() =>
+                  navigate(`/projects/${p.msdyn_projectid}`, {
+                    state: { ids: items.map((i) => i.msdyn_projectid), from: location.pathname + location.search, tier },
+                  })
+                }
+              >
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <div className="font-medium text-rc-navy">
@@ -135,7 +145,7 @@ export function ProjectsPage() {
                     <StatusChip label={p.statuscode_label} />
                   </div>
                 </div>
-              </Card>
+              </CardButton>
             )
           })}
         </div>

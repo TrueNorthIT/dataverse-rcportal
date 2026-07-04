@@ -1,7 +1,7 @@
 import type { DataverseClient } from '@truenorth-it/dataverse-client'
-import type { Quote } from '../types/quote'
+import type { Quote, QuoteLine } from '../types/quote'
 
-/** Columns the portal reads for quotes. */
+/** Columns the portal reads for quotes (list). */
 export const QUOTE_SELECT = [
   'quoteid',
   'name',
@@ -13,6 +13,28 @@ export const QUOTE_SELECT = [
   'createdon',
 ]
 
+/** Richer column set for the quote detail view. */
+export const QUOTE_DETAIL_SELECT = [
+  ...QUOTE_SELECT,
+  'effectivefrom',
+  'effectiveto',
+  'discountamount',
+  'totaltax',
+  'freightamount',
+  'opportunityid',
+  'modifiedon',
+]
+
+/** Columns read for a quote's line items. */
+export const QUOTE_LINE_SELECT = [
+  'quotedetailid',
+  'productdescription',
+  'priceperunit',
+  'quantity',
+  'extendedamount',
+  'createdon',
+]
+
 /** List quotes tied to a single opportunity (both tiers support the filter). */
 export async function listQuotesForOpportunity(
   client: DataverseClient,
@@ -21,6 +43,44 @@ export async function listQuotesForOpportunity(
   const res = await client.me.list<Quote>('quote', {
     select: QUOTE_SELECT,
     filter: { field: '_opportunityid_value', operator: 'eq', value: opportunityId },
+    top: 50,
+  })
+  return res.data
+}
+
+/**
+ * Fetch a single quote for the detail view, tolerating company (team) quotes.
+ * Mirrors the case pattern: with a tier hint from the list we fetch straight
+ * from that tier; on a deep link we try `me` then fall back to `team`.
+ */
+export async function fetchQuoteDetail(
+  client: DataverseClient,
+  id: string,
+  preferTier?: 'me' | 'team',
+): Promise<{ record: Quote; mine: boolean }> {
+  if (preferTier) {
+    const res = await client[preferTier].get<Quote>('quote', id, { select: QUOTE_DETAIL_SELECT })
+    return { record: res.data, mine: preferTier === 'me' }
+  }
+  try {
+    const res = await client.me.get<Quote>('quote', id, { select: QUOTE_DETAIL_SELECT })
+    return { record: res.data, mine: true }
+  } catch {
+    const res = await client.team.get<Quote>('quote', id, { select: QUOTE_DETAIL_SELECT })
+    return { record: res.data, mine: false }
+  }
+}
+
+/** List the line items on a quote (scoped to the same tier the quote resolved at). */
+export async function listQuoteLines(
+  client: DataverseClient,
+  quoteId: string,
+  mine: boolean,
+): Promise<QuoteLine[]> {
+  const res = await client[mine ? 'me' : 'team'].list<QuoteLine>('quotedetail', {
+    select: QUOTE_LINE_SELECT,
+    filter: { field: 'quoteid', operator: 'eq', value: quoteId },
+    orderBy: { field: 'createdon', direction: 'asc' },
     top: 50,
   })
   return res.data

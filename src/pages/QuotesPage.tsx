@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import type { FilterCondition, OrderBy } from '@truenorth-it/dataverse-client'
 import { useTierList } from '../hooks/useTierList'
 import { usePillCounts } from '../hooks/usePillCounts'
@@ -7,7 +8,7 @@ import { QUOTE_SELECT } from '../services/quoteApi'
 import type { Quote } from '../types/quote'
 import { cleanDescription, formatCurrency, formatDate } from '../lib/format'
 import { PageHeader } from '../components/common/PageHeader'
-import { Card } from '../components/common/Card'
+import { CardButton } from '../components/common/Card'
 import { TierToggle } from '../components/common/TierToggle'
 import { StatusChip } from '../components/common/StatusChip'
 import { FilterPills } from '../components/common/FilterPills'
@@ -35,6 +36,8 @@ const QUOTE_SORTS: { key: string; label: string; order: OrderBy }[] = [
 
 /** Quotes list with My / Company toggle; number, total, status. */
 export function QuotesPage() {
+  const navigate = useNavigate()
+  const location = useLocation()
   // Default to the Company view (all the company's quotes); toggle to "My" to
   // filter to the signed-in contact's own.
   const { filter: status, setFilter: setStatus, sort, setSort } = useListControls('all', 'newest')
@@ -84,7 +87,14 @@ export function QuotesPage() {
       >
         <div className="space-y-3 rc-land-list">
           {items.map((q) => (
-            <Card key={q.quoteid} className="p-4">
+            <CardButton
+              key={q.quoteid}
+              onClick={() =>
+                navigate(`/quotes/${q.quoteid}`, {
+                  state: { ids: items.map((i) => i.quoteid), from: location.pathname + location.search, tier },
+                })
+              }
+            >
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <div className="font-medium text-rc-navy">
@@ -107,7 +117,7 @@ export function QuotesPage() {
                   <StatusChip label={q.statuscode_label} />
                 </div>
               </div>
-            </Card>
+            </CardButton>
           ))}
         </div>
         <LoadMore hasMore={hasMore} loading={loadingMore} onClick={loadMore} />
