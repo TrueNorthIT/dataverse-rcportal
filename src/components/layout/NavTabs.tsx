@@ -27,8 +27,10 @@ const tabClass = ({ isActive }: { isActive: boolean }) =>
 export function NavTabs() {
   return (
     <nav className="border-b border-rc-blue-light bg-white">
-      <div className="mx-auto flex max-w-5xl items-center justify-between gap-1 px-4">
-        <div className="flex gap-1 overflow-x-auto">
+      <div className="mx-auto flex max-w-5xl items-center gap-1 px-4">
+        {/* min-w-0 lets this shrink so its own overflow-x scrolls on mobile,
+            instead of pushing the Help menu off-screen. */}
+        <div className="flex min-w-0 flex-1 gap-1 overflow-x-auto rc-noscrollbar">
           {CORE.map(({ to, label, end }) => (
             <NavLink key={to} to={to} end={end} className={tabClass}>
               {label}
