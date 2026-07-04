@@ -194,6 +194,16 @@ h3 {
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-rc-blue) 25%, transparent);
 }
 
+/* Horizontally-scrollable rows (e.g. the mobile nav tabs) without a visible
+ * scrollbar — the row still scrolls by touch/trackpad. */
+.rc-noscrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.rc-noscrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* Rendered rich-HTML from D365 knowledge articles. No Tailwind prose plugin, so
  * style the common tags here for a clean, readable article. */
 .rc-article {
