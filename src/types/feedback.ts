@@ -20,6 +20,5 @@ export interface Feedback {
 export interface NewFeedback {
   new_name: string
   new_message: string
-  new_category?: number
   new_rating?: number
 }
