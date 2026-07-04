@@ -17,7 +17,7 @@ export function LoginScreen() {
           alt="Redcentric"
           className="mx-auto h-10 w-auto"
         />
-        <h1 className="mt-10 text-4xl font-light tracking-tight text-white">Contact Portal</h1>
+        <h1 className="mt-10 text-4xl font-light tracking-tight text-white">Customer Portal</h1>
         <p className="mx-auto mt-3 max-w-sm text-sm text-white/80">
           Sign in to view and manage your contact details, quotes, projects and
           support — all in one place.

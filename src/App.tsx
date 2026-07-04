@@ -19,6 +19,7 @@ import { ArticleDetailPage } from './pages/ArticleDetailPage'
 import { BrandLoader } from './components/common/BrandLoader'
 import { ScrollManager } from './components/layout/ScrollManager'
 import { ScrollToTop } from './components/common/ScrollToTop'
+import { ToastProvider } from './components/common/Toast'
 
 /**
  * Auth gate + routing. While MSAL is mid-interaction we show a loading state;
@@ -44,6 +45,7 @@ function App() {
 
   return (
     <SelectedCompanyProvider>
+      <ToastProvider>
       <BrowserRouter>
         <ScrollManager />
         <ScrollToTop />
@@ -65,6 +67,7 @@ function App() {
         </Route>
       </Routes>
       </BrowserRouter>
+      </ToastProvider>
     </SelectedCompanyProvider>
   )
 }
