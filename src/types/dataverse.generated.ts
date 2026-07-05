@@ -677,6 +677,49 @@ export const ProjectStatuscode = {
 } as const;
 export type ProjectStatuscode = typeof ProjectStatuscode[keyof typeof ProjectStatuscode];
 
+/** Fields for the `projectnotes` table */
+export interface Projectnotes {
+  /** Unique note identifier */
+  annotationid?: string;
+  /** Date created */
+  createdon?: string;
+  /** Date last modified */
+  modifiedon?: string;
+  /** Note text */
+  notetext?: string;
+  /** Regarding project */
+  objectid?: string;
+  /** GUID of the related project */
+  _objectid_value?: string;
+  /** Regarding entity type */
+  objecttypecode?: string;
+  /** Note subject */
+  subject?: string;
+}
+
+/** Field names for the `projectnotes` table (for typed select/filter/orderBy). */
+export type ProjectnotesField = "annotationid" | "createdon" | "modifiedon" | "notetext" | "objectid" | "objecttypecode" | "subject";
+
+/** Writable fields for creating a `projectnotes` record. */
+export interface ProjectnotesCreateInput {
+  /** Note text */
+  notetext?: string;
+  /** Regarding project */
+  objectid?: string;
+  /** Note subject */
+  subject?: string;
+}
+
+/** Writable fields for updating a `projectnotes` record. */
+export interface ProjectnotesUpdateInput {
+  /** Note text */
+  notetext?: string;
+  /** Regarding project */
+  objectid?: string;
+  /** Note subject */
+  subject?: string;
+}
+
 /** Fields for the `quote` table */
 export interface Quote {
   /** Date created */
@@ -912,4 +955,4 @@ export const SiteAddresstypecode = {
 export type SiteAddresstypecode = typeof SiteAddresstypecode[keyof typeof SiteAddresstypecode];
 
 /** All valid table names accepted by the API */
-export type TableName = "account" | "case" | "casenote" | "casenotes" | "cases" | "contact" | "contacts" | "customeraddress" | "feedback" | "incidents" | "kb" | "knowledge" | "knowledgearticle" | "locations" | "msdyn_projects" | "notes" | "opportunities" | "opportunity" | "opps" | "portalfeedback" | "project" | "projects" | "quote" | "quotedetail" | "quotedetails" | "quoteline" | "quotelines" | "quotes" | "site" | "sites" | "tickets";
+export type TableName = "account" | "case" | "casenote" | "casenotes" | "cases" | "contact" | "contacts" | "customeraddress" | "feedback" | "incidents" | "kb" | "knowledge" | "knowledgearticle" | "locations" | "msdyn_projects" | "notes" | "opportunities" | "opportunity" | "opps" | "portalfeedback" | "project" | "projectnote" | "projectnotes" | "projects" | "quote" | "quotedetail" | "quotedetails" | "quoteline" | "quotelines" | "quotes" | "site" | "sites" | "tickets";

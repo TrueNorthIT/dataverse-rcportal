@@ -1,6 +1,7 @@
 import type { DataverseClient } from '@truenorth-it/dataverse-client'
 import type { Project } from '../types/project'
-import { humanDuration } from '../lib/format'
+import type { Projectnotes } from '../types/dataverse.generated'
+import { humanDuration, cleanDescription } from '../lib/format'
 
 /** Columns the portal reads for projects (Dataverse `msdyn_project`). */
 export const PROJECT_SELECT = [
@@ -286,4 +287,44 @@ export function projectHealth(p: Project): ProjectHealth {
     dot: 'bg-rc-green',
     chip: 'bg-rc-green-light text-rc-green-dark',
   }
+}
+
+// ── Real project notes (annotations) → diary entries ─────────────────────────
+
+/** Columns read for a project's notes. */
+export const PROJECT_NOTE_SELECT = ['annotationid', 'subject', 'notetext', 'createdon']
+
+function kindFromSubject(subject: string | undefined): DiaryKind {
+  const t = (subject ?? '').toLowerCase()
+  if (t.includes('milestone')) return 'milestone'
+  if (t.includes('risk')) return 'risk'
+  if (t.includes('status') || t.includes('workstream') || t.includes('update')) return 'update'
+  return 'note'
+}
+
+/**
+ * List the real delivery notes on a project (newest first), scoped to the tier
+ * the project resolved at, and map them to the diary shape. Notes are stored as
+ * annotations regarding the project (see the projectnotes route). `createdon`
+ * carries the backdated date (seeded via overriddencreatedon).
+ */
+export async function listProjectNotes(
+  client: DataverseClient,
+  projectId: string,
+  mine: boolean,
+): Promise<DiaryEntry[]> {
+  const res = await client[mine ? 'me' : 'team'].list<Projectnotes>('projectnotes', {
+    select: PROJECT_NOTE_SELECT,
+    filter: { field: 'objectid', operator: 'eq', value: projectId },
+    orderBy: { field: 'createdon', direction: 'desc' },
+    top: 50,
+  })
+  return res.data.map((n, i) => ({
+    key: n.annotationid ?? `note-${i}`,
+    date: n.createdon ?? '',
+    title: n.subject || 'Update',
+    detail: cleanDescription(n.notetext),
+    author: '',
+    kind: kindFromSubject(n.subject),
+  }))
 }

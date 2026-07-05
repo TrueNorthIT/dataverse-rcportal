@@ -298,12 +298,11 @@ export function ProjectDiary({ entries }: { entries: DiaryEntry[] }) {
                 <span className="shrink-0 text-xs font-medium text-rc-teal">{formatDate(d.date)}</span>
               </div>
               <p className="mt-0.5 text-sm text-rc-teal">{d.detail}</p>
-              <p className="mt-1 text-xs text-rc-teal/70">{d.author}</p>
+              {d.author && <p className="mt-1 text-xs text-rc-teal/70">{d.author}</p>}
             </li>
           )
         })}
       </ol>
-      <p className="mt-4 text-[11px] text-rc-teal/70">Illustrative delivery diary derived from the schedule.</p>
     </div>
   )
 }
