@@ -8,7 +8,7 @@ export type IconName =
   | 'mapPin' | 'phone' | 'mail' | 'globe' | 'building' | 'user' | 'users'
   | 'briefcase' | 'layers' | 'fileText' | 'link' | 'activity' | 'checkCircle'
   | 'chevronRight' | 'chevronDown' | 'flag' | 'truck' | 'receipt' | 'maximize' | 'x' | 'gantt'
-  | 'lock' | 'server'
+  | 'lock' | 'server' | 'download'
 
 /** Path/element markup per icon (inside a 24×24 stroked <svg>). */
 const PATHS: Record<IconName, React.ReactNode> = {
@@ -40,6 +40,7 @@ const PATHS: Record<IconName, React.ReactNode> = {
   x: (<path d="M18 6 6 18M6 6l12 12" />),
   gantt: (<path d="M3 4h10M3 9h14M3 14h8M3 19h12M3 3v18" />),
   lock: (<><rect x="4" y="11" width="16" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></>),
+  download: (<path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />),
   server: (<><rect x="3" y="4" width="18" height="7" rx="1.5" /><rect x="3" y="13" width="18" height="7" rx="1.5" /><path d="M7 7.5h.01M7 16.5h.01" /></>),
 }
 
