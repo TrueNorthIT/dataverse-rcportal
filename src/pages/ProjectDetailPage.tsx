@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useLocation, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useDataverseClient } from '../lib/client'
 import { useSelectedCompany } from '../context/SelectedCompanyContext'
@@ -22,8 +21,16 @@ import {
 export function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>()
   const client = useDataverseClient()
+  const location = useLocation()
+  const navigate = useNavigate()
   const { selectedContactId } = useSelectedCompany()
   const { tier, prevId, nextId, goPrev, goNext, goBack } = useListNav('/projects', id)
+
+  // The plan modal's open state lives in the URL hash (#plan) so it's
+  // shareable/deep-linkable and survives a refresh.
+  const planOpen = location.hash.startsWith('#plan')
+  const openPlan = () => navigate(`${location.pathname}${location.search}#plan`)
+  const closePlan = () => navigate(`${location.pathname}${location.search}`, { replace: true })
 
   const query = useQuery({
     queryKey: ['project', id, tier ?? 'auto', selectedContactId ?? 'default'],
@@ -34,7 +41,6 @@ export function ProjectDetailPage() {
   const mine = query.data?.mine ?? false
   const error = query.error instanceof Error ? query.error.message : null
   const health = record ? projectHealth(record) : null
-  const [planOpen, setPlanOpen] = useState(false)
 
   // Real plan items (new_projecttask rows) → Gantt phases + milestones.
   const tasksQuery = useQuery({
@@ -101,7 +107,7 @@ export function ProjectDetailPage() {
       {record && (phases.length > 0 || milestones.length > 0) && (
         <div className="mt-6">
           <SectionTitle icon="gantt">Delivery plan</SectionTitle>
-          <ProjectPlanCard project={record} milestones={milestones} onOpen={() => setPlanOpen(true)} />
+          <ProjectPlanCard project={record} milestones={milestones} onOpen={openPlan} />
         </div>
       )}
 
@@ -111,7 +117,7 @@ export function ProjectDetailPage() {
           phases={phases}
           milestones={milestones}
           diary={diary}
-          onClose={() => setPlanOpen(false)}
+          onClose={closePlan}
         />
       )}
     </div>
