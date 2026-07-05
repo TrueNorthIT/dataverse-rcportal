@@ -41,6 +41,13 @@ export function QuoteDetailPage() {
   })
   const lines = linesQuery.data ?? []
 
+  // Money model: quotes store the ex-VAT value (totalamount == sum of lines).
+  // VAT isn't reliably populated in Dataverse, so derive it for display at the
+  // standard UK 20% — always correct and never a confusing £0.
+  const subtotal = lines.reduce((s, l) => s + (Number(l.extendedamount) || 0), 0) || Number(record?.totalamount) || 0
+  const vat = subtotal * 0.2
+  const gross = subtotal + vat
+
   const oppId = record?._opportunityid_value
   const oppQuery = useQuery({
     queryKey: ['quote-opp', oppId, mine],
@@ -64,10 +71,7 @@ export function QuoteDetailPage() {
         >
           <MetaGrid>
             <MetaItem icon="hash" label="Quote number" value={record.quotenumber} />
-            <MetaItem icon="pound" label="Total" value={formatCurrency(record.totalamount)} />
-            <MetaItem icon="receipt" label="Tax" value={formatCurrency(record.totaltax)} />
-            <MetaItem icon="tag" label="Discount" value={formatCurrency(record.discountamount)} />
-            <MetaItem icon="truck" label="Delivery/setup" value={formatCurrency(record.freightamount)} />
+            <MetaItem icon="pound" label="Value (ex VAT)" value={formatCurrency(record.totalamount)} />
             <MetaItem icon="calendar" label="Valid from" value={formatDate(record.effectivefrom)} />
             <MetaItem icon="calendar" label="Valid until" value={formatDate(record.effectiveto)} />
             <MetaItem icon="clock" label="Created" value={formatDate(record.createdon)} />
@@ -123,9 +127,19 @@ export function QuoteDetailPage() {
                     </div>
                   </div>
                 ))}
-                <div className="flex items-center justify-between gap-4 bg-rc-canvas px-4 py-3">
-                  <div className="text-sm font-medium text-rc-teal">Total</div>
-                  <div className="text-sm font-bold text-rc-navy">{formatCurrency(record.totalamount)}</div>
+                <div className="space-y-1.5 bg-rc-canvas px-4 py-3">
+                  <div className="flex items-center justify-between gap-4 text-sm text-rc-teal">
+                    <span>Subtotal</span>
+                    <span>{formatCurrency(subtotal)}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-4 text-sm text-rc-teal">
+                    <span>VAT (20%)</span>
+                    <span>{formatCurrency(vat)}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-4 border-t border-rc-blue-light pt-1.5 text-sm font-bold text-rc-navy">
+                    <span>Total (inc VAT)</span>
+                    <span>{formatCurrency(gross)}</span>
+                  </div>
                 </div>
               </div>
             </Card>
