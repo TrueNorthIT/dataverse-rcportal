@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import type { OrderBy } from '@truenorth-it/dataverse-client'
 import { useTierList } from '../hooks/useTierList'
 import { useListControls } from '../hooks/useListControls'
-import { SITE_SELECT, CONNECTIVITY_LABELS } from '../services/siteApi'
+import { SITE_SELECT, CONNECTIVITY_LABELS, buildSitePills } from '../services/siteApi'
 import type { Site } from '../types/site'
 import { PageHeader } from '../components/common/PageHeader'
 import { CardButton } from '../components/common/Card'
@@ -13,10 +13,7 @@ import { SortMenu } from '../components/common/SortMenu'
 import { ListStates, LoadMore } from '../components/common/ListStates'
 import { Icon } from '../components/common/Icon'
 
-const SITE_PILLS = [
-  { key: 'all', label: 'All' },
-  ...CONNECTIVITY_LABELS.map((l) => ({ key: l, label: l })),
-]
+const SITE_PILLS = buildSitePills()
 
 const SITE_SORTS: { key: string; label: string; order: OrderBy }[] = [
   { key: 'name', label: 'Name (A–Z)', order: { field: 'name', direction: 'asc' } },
@@ -58,7 +55,7 @@ export function SitesPage() {
 
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         <FilterPills
-          options={SITE_PILLS}
+          options={SITE_PILLS.map((p) => ({ key: p.key, label: p.label }))}
           value={conn}
           onChange={setConn}
           disabledKeys={disabledKeys}

@@ -7,7 +7,7 @@ export type IconName =
   | 'calendar' | 'clock' | 'tag' | 'hash' | 'pound' | 'percent'
   | 'mapPin' | 'phone' | 'mail' | 'globe' | 'building' | 'user' | 'users'
   | 'briefcase' | 'layers' | 'fileText' | 'link' | 'activity' | 'checkCircle'
-  | 'chevronRight' | 'flag' | 'truck' | 'receipt' | 'maximize' | 'x' | 'gantt'
+  | 'chevronRight' | 'chevronDown' | 'flag' | 'truck' | 'receipt' | 'maximize' | 'x' | 'gantt'
 
 /** Path/element markup per icon (inside a 24×24 stroked <svg>). */
 const PATHS: Record<IconName, React.ReactNode> = {
@@ -31,6 +31,7 @@ const PATHS: Record<IconName, React.ReactNode> = {
   activity: (<path d="M22 12h-4l-3 9L9 3l-3 9H2" />),
   checkCircle: (<><circle cx="12" cy="12" r="9" /><path d="m8.5 12 2.5 2.5 4.5-5" /></>),
   chevronRight: (<path d="m9 18 6-6-6-6" />),
+  chevronDown: (<path d="m6 9 6 6 6-6" />),
   flag: (<path d="M4 22V4s1-1 4-1 5 2 8 2 4-1 4-1v10s-1 1-4 1-5-2-8-2-4 1-4 1" />),
   truck: (<><path d="M1 3h15v13H1zM16 8h4l3 3v5h-7" /><circle cx="5.5" cy="18.5" r="2" /><circle cx="18.5" cy="18.5" r="2" /></>),
   receipt: (<path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1ZM8 7h8M8 11h8M8 15h5" />),

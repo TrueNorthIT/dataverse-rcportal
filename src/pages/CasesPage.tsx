@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useTierList } from '../hooks/useTierList'
 import { useListControls } from '../hooks/useListControls'
 import { useDataverseClient } from '../lib/client'
-import { CASE_SELECT, createCase } from '../services/caseApi'
+import { CASE_SELECT, CASE_PILLS, createCase } from '../services/caseApi'
 import type { Case } from '../types/case'
 import { cleanDescription, formatDate, relativeFromNow } from '../lib/format'
 import { PageHeader } from '../components/common/PageHeader'
@@ -14,21 +14,7 @@ import { FilterPills } from '../components/common/FilterPills'
 import { SortMenu } from '../components/common/SortMenu'
 import { usePillCounts } from '../hooks/usePillCounts'
 import { ListStates, LoadMore } from '../components/common/ListStates'
-import type { FilterCondition, OrderBy } from '@truenorth-it/dataverse-client'
-import { CasePrioritycode } from '../types/dataverse.generated'
-
-interface Pill {
-  key: string
-  label: string
-  filter?: FilterCondition | FilterCondition[]
-}
-
-const CASE_PILLS: Pill[] = [
-  { key: 'all', label: 'All' },
-  { key: 'high', label: 'High', filter: { field: 'prioritycode', operator: 'eq', value: CasePrioritycode.High } },
-  { key: 'normal', label: 'Normal', filter: { field: 'prioritycode', operator: 'eq', value: CasePrioritycode.Normal } },
-  { key: 'low', label: 'Low', filter: { field: 'prioritycode', operator: 'eq', value: CasePrioritycode.Low } },
-]
+import type { OrderBy } from '@truenorth-it/dataverse-client'
 
 const CASE_SORTS: { key: string; label: string; order: OrderBy }[] = [
   { key: 'newest', label: 'Newest', order: { field: 'createdon', direction: 'desc' } },

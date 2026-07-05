@@ -1,10 +1,10 @@
 import { useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import type { FilterCondition, OrderBy } from '@truenorth-it/dataverse-client'
+import type { OrderBy } from '@truenorth-it/dataverse-client'
 import { useTierList } from '../hooks/useTierList'
 import { usePillCounts } from '../hooks/usePillCounts'
 import { useListControls } from '../hooks/useListControls'
-import { PROJECT_SELECT, projectHealth } from '../services/projectApi'
+import { PROJECT_SELECT, projectHealth, buildProjectPills } from '../services/projectApi'
 import type { Project } from '../types/project'
 import { cleanDescription, formatDate } from '../lib/format'
 import { PageHeader } from '../components/common/PageHeader'
@@ -14,51 +14,12 @@ import { FilterPills } from '../components/common/FilterPills'
 import { SortMenu } from '../components/common/SortMenu'
 import { ListStates, LoadMore } from '../components/common/ListStates'
 
-interface ProjectPill {
-  key: string
-  label: string
-  filter?: FilterCondition | FilterCondition[]
-}
-
 // Default: by due date (soonest finish first) so overdue/at-risk float up.
 const PROJECT_SORTS: { key: string; label: string; order: OrderBy }[] = [
   { key: 'due', label: 'Due date', order: { field: 'msdyn_finish', direction: 'asc' } },
   { key: 'start', label: 'Start date', order: { field: 'msdyn_scheduledstart', direction: 'asc' } },
   { key: 'added', label: 'Recently added', order: { field: 'createdon', direction: 'desc' } },
 ]
-
-const isoOffset = (days: number) => {
-  const d = new Date()
-  d.setDate(d.getDate() + days)
-  return d.toISOString().slice(0, 10)
-}
-
-/**
- * RAG pills mirroring projectHealth(). A delivered project (msdyn_actualend set)
- * is Complete — never overdue/on-track — so the in-flight pills exclude it via
- * `msdyn_actualend eq null`. (Datetime fields accept a bare `null` in filters.)
- * Array conditions are AND-ed by default.
- */
-function buildProjectPills(): ProjectPill[] {
-  const today = isoOffset(0)
-  const in30 = isoOffset(30)
-  const notDelivered: FilterCondition = { field: 'msdyn_actualend', operator: 'eq', value: 'null' }
-  return [
-    { key: 'all', label: 'All' },
-    { key: 'ontrack', label: 'On track', filter: [{ field: 'msdyn_finish', operator: 'gt', value: in30 }, notDelivered] },
-    {
-      key: 'duesoon',
-      label: 'Due soon',
-      filter: [
-        { field: 'msdyn_finish', operator: 'ge', value: today },
-        { field: 'msdyn_finish', operator: 'le', value: in30 },
-        notDelivered,
-      ],
-    },
-    { key: 'overdue', label: 'Overdue', filter: [{ field: 'msdyn_finish', operator: 'lt', value: today }, notDelivered] },
-    { key: 'complete', label: 'Complete', filter: { field: 'msdyn_actualend', operator: 'ne', value: 'null' } },
-  ]
-}
 
 /** Projects list with My / Company toggle; subject, status, and schedule dates. */
 export function ProjectsPage() {

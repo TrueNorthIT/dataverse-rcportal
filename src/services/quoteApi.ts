@@ -1,5 +1,17 @@
 import type { DataverseClient } from '@truenorth-it/dataverse-client'
 import type { Quote, QuoteLine } from '../types/quote'
+import type { Pill } from './pills'
+import { QuoteStatecode } from '../types/dataverse.generated'
+
+/**
+ * Filter pills for quotes — by state. Keys match the list `?f=` values; shared
+ * with the dashboard's Quotes-by-state chart.
+ */
+export const QUOTE_PILLS: Pill[] = [
+  { key: 'all', label: 'All' },
+  { key: 'active', label: 'Active', filter: { field: 'statecode', operator: 'eq', value: QuoteStatecode.Active } },
+  { key: 'draft', label: 'Draft', filter: { field: 'statecode', operator: 'eq', value: QuoteStatecode.Draft } },
+]
 
 /** Columns the portal reads for quotes (list). */
 export const QUOTE_SELECT = [

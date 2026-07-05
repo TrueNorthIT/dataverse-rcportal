@@ -154,6 +154,27 @@ h3 {
   animation: rc-fade-up 0.32s ease-out both;
 }
 
+/* Dashboard charts "unfold" as they scroll into view — a fade + rise with a
+ * slight vertical unfurl from the top. `--rc-delay` staggers the grid. */
+@keyframes rc-unfold {
+  from { opacity: 0; transform: translateY(16px) scaleY(0.96); }
+  to { opacity: 1; transform: none; }
+}
+.rc-unfold {
+  transform-origin: top center;
+  animation: rc-unfold 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--rc-delay, 0s);
+}
+
+/* Gentle down-bounce for the "more insights below" scroll hint. */
+@keyframes rc-bounce-down {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(5px); }
+}
+.rc-bounce {
+  animation: rc-bounce-down 1.6s ease-in-out infinite;
+}
+
 /* Living blue→teal→green hero background (login), echoing the redcentric.com
  * hero — the gradient slowly drifts across. */
 @keyframes rc-hero-shift {
@@ -174,6 +195,8 @@ h3 {
   .rc-bar,
   .rc-fade-up,
   .rc-land-list > *,
+  .rc-unfold,
+  .rc-bounce,
   .rc-hero {
     animation: none;
   }
