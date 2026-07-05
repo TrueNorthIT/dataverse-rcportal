@@ -72,13 +72,15 @@ function buildTrend(rows: Project[], now: number): TrendPoint[] {
  * small list read, binned client-side. Keyed on the selected company so it
  * refetches on switch.
  */
-export function useDeliveryTrend(): { data: TrendPoint[]; loading: boolean } {
+export function useDeliveryTrend(enabled = true): { data: TrendPoint[]; loading: boolean } {
   const client = useDataverseClient()
   const companyClients = useCompanyClients()
   const { selectedContactId, allCompanies } = useSelectedCompany()
 
   const query = useQuery({
     queryKey: ['delivery-trend', allCompanies ? 'all' : selectedContactId ?? 'default'],
+    enabled,
+    staleTime: 60_000,
     queryFn: async () => {
       // client.team scopes to the selected company; we only need the two dates.
       // "All companies" fetches each company's projects and concatenates them.

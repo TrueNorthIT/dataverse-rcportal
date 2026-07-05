@@ -13,25 +13,30 @@ export interface CountablePill {
   filter?: FilterCondition | FilterCondition[]
 }
 
+interface Opts {
+  /** Roll counts up across all companies when "All companies" is selected. */
+  fanOut?: boolean
+  /** Skip fetching until true — used to defer dashboard charts until scrolled
+   * into view, so they don't starve the visible tiles of connections. */
+  enabled?: boolean
+}
+
 /**
  * Count rows for each filter pill (at the given tier / selected company) so the
  * UI can grey out pills that would return nothing, and so the dashboard charts
  * can size their segments. One count aggregate per pill with a filter; the "all"
- * pill is skipped. Errors resolve to `null` (unknown) so a failed count never
- * wrongly disables a pill.
+ * pill is skipped. Errors resolve to `null` (unknown).
  *
- * `fanOut` (dashboard charts only): when the caller has picked "All companies",
- * each pill is counted across every company and summed. List pages leave it
- * false, so they always reflect the single selected company.
- *
- * Returns a map of pill key → count | null, keyed on scope so it refetches when
- * the company / all-mode changes.
+ * `fanOut` (dashboard charts): with "All companies" selected, each pill is
+ * counted across every company and summed. List pages leave it off.
+ * `enabled`: gate fetching (charts fetch only once in view). Results are cached
+ * for a minute so toggling scope back and forth is instant.
  */
 export function usePillCounts(
   table: string,
   tier: Tier,
   pills: CountablePill[],
-  fanOut = false,
+  { fanOut = false, enabled = true }: Opts = {},
 ): Record<string, number | null> {
   const client = useDataverseClient()
   const companyClients = useCompanyClients()
@@ -51,6 +56,8 @@ export function usePillCounts(
       )
       return Object.fromEntries(entries) as Record<string, number | null>
     },
+    enabled,
+    staleTime: 60_000,
     placeholderData: keepPreviousData,
   })
 

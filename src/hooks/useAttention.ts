@@ -54,6 +54,7 @@ export function useAttention(): { items: AttentionItem[]; loading: boolean } {
       ])
       return { overdue: overdue ?? 0, staleHigh: staleHigh ?? 0, recentQuotes: recentQuotes ?? 0 }
     },
+    staleTime: 60_000,
     placeholderData: keepPreviousData,
   })
 
