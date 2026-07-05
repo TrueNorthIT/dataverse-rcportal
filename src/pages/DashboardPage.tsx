@@ -32,11 +32,12 @@ export function DashboardPage() {
 
   return (
     <div>
-      {/* The scope toggle stays pinned to the top as you scroll (the app
-          header/nav hides on scroll-down and slides back over this on
-          scroll-up, hence the lower z-index). */}
+      {/* The scope toggle stays pinned to the top as you scroll. It sits ABOVE
+          the header (z-50 > z-40) so the header can never overlap it and eat a
+          tap — the earlier z-30 let the header cover it in some scroll
+          positions, which is why this toggle needed a second press. */}
       {hasMultiple && (
-        <div className="sticky top-2 z-30 mb-3 flex items-center gap-3">
+        <div className="sticky top-2 z-50 mb-3 flex items-center gap-3">
           <CompanyScopeToggle />
           <SyncIndicator active={syncing} />
         </div>
