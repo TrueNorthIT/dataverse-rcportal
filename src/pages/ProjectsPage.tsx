@@ -35,25 +35,29 @@ const isoOffset = (days: number) => {
 }
 
 /**
- * RAG pills with msdyn_finish date filters — mirrors projectHealth(): overdue =
- * finish before today; due soon = finish within 30 days; on track = finish more
- * than 30 days out. (Array conditions are AND-ed by default.)
+ * RAG pills mirroring projectHealth(). A delivered project (msdyn_actualend set)
+ * is Complete — never overdue/on-track — so the in-flight pills exclude it via
+ * `msdyn_actualend eq null`. (Datetime fields accept a bare `null` in filters.)
+ * Array conditions are AND-ed by default.
  */
 function buildProjectPills(): ProjectPill[] {
   const today = isoOffset(0)
   const in30 = isoOffset(30)
+  const notDelivered: FilterCondition = { field: 'msdyn_actualend', operator: 'eq', value: 'null' }
   return [
     { key: 'all', label: 'All' },
-    { key: 'ontrack', label: 'On track', filter: { field: 'msdyn_finish', operator: 'gt', value: in30 } },
+    { key: 'ontrack', label: 'On track', filter: [{ field: 'msdyn_finish', operator: 'gt', value: in30 }, notDelivered] },
     {
       key: 'duesoon',
       label: 'Due soon',
       filter: [
         { field: 'msdyn_finish', operator: 'ge', value: today },
         { field: 'msdyn_finish', operator: 'le', value: in30 },
+        notDelivered,
       ],
     },
-    { key: 'overdue', label: 'Overdue', filter: { field: 'msdyn_finish', operator: 'lt', value: today } },
+    { key: 'overdue', label: 'Overdue', filter: [{ field: 'msdyn_finish', operator: 'lt', value: today }, notDelivered] },
+    { key: 'complete', label: 'Complete', filter: { field: 'msdyn_actualend', operator: 'ne', value: 'null' } },
   ]
 }
 
