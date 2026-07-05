@@ -60,11 +60,14 @@ export function ArchitectureNote() {
           <div className="mt-5 flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
             <Node icon="globe" title="React portal" sub="browser app" />
             <Arrow />
-            <Node icon="link" title="Contact Portal API" sub="Docker, stateless proxy" />
+            <Node icon="link" title="Contact Portal API" sub="Docker service" />
             <Arrow />
             <Node icon="server" title="Dataverse" sub="your data" />
           </div>
-          <div className="mt-3 flex justify-center">
+          <div className="mt-3 flex flex-col items-center gap-2">
+            <span className="inline-flex items-center rounded-full border border-rc-blue-light bg-white px-3.5 py-1 text-xs font-semibold uppercase tracking-wide text-rc-teal">
+              Generic · stateless · secure
+            </span>
             <span className="inline-flex items-center gap-1.5 rounded-full bg-rc-blue-light px-3 py-1 text-xs font-medium text-rc-navy">
               <Icon name="lock" className="h-3.5 w-3.5" />
               Secured end to end by Entra External ID
@@ -72,6 +75,7 @@ export function ArchitectureNote() {
           </div>
 
           <div className="mt-6 grid gap-2 text-sm text-rc-navy sm:grid-cols-2">
+            <Point>There is no middleware to build. You write only the React client.</Point>
             <Point>Projects, sites and quotes are scoped to the signed-in contact or their company.</Point>
             <Point>Knowledge base articles are public, so no permission check runs.</Point>
             <Point>You can view every quote, site and project across your company.</Point>
