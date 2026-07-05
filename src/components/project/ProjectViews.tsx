@@ -195,7 +195,7 @@ function ProjectGantt({ project, phases, milestones }: { project: Project; phase
         : 'bg-rc-blue-light'
 
   return (
-    <div className="overflow-hidden">
+    <div className="overflow-x-clip">
       {/* month axis */}
       <div className="flex">
         <div className={LABEL_COL} />
@@ -240,7 +240,7 @@ function ProjectGantt({ project, phases, milestones }: { project: Project; phase
                 <div className={`${LABEL_COL} truncate text-sm text-rc-navy`} title={ph.label}>
                   {ph.label}
                 </div>
-                <div className="relative h-7 flex-1">
+                <div className="relative h-7 flex-1 hover:z-30">
                   <div className="group absolute top-1/2 h-5 -translate-y-1/2" style={{ left: `${left}%`, width: `${width}%` }}>
                     <div className={`flex h-full items-center overflow-hidden rounded-md ${barTone(ph.status)}`}>
                       {ph.status === 'active' && (
