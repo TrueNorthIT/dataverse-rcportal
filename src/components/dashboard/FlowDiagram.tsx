@@ -33,7 +33,7 @@ const BOX_Y = 6
 const MID_Y = BOX_Y + BOX_H / 2
 const NODES = [
   { x: 6, icon: 'globe', title: 'React portal', sub: 'browser app' },
-  { x: 338, icon: 'link', title: 'Contact Portal API', sub: 'Docker service' },
+  { x: 338, icon: 'link', title: 'Contact Portal API', sub: 'authorises + security-trims' },
   { x: 670, icon: 'server', title: 'Dataverse', sub: 'your data' },
 ]
 const GAPS = [290, 622] // left edge of each connector gap (48 wide)
@@ -124,13 +124,13 @@ export function FlowDiagram({ svgRef }: { svgRef: RefObject<SVGSVGElement | null
           <text x={480} y={93} textAnchor="middle" fontSize={11} fontWeight={700} letterSpacing={1.2} fill={TEAL}>
             GENERIC · STATELESS · SECURE
           </text>
-          <rect x={334} y={108} width={292} height={22} rx={11} fill={BLUELIGHT} />
-          <g transform="translate(348, 113) scale(0.62)" fill="none" stroke={NAVY} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+          <rect x={356} y={108} width={248} height={22} rx={11} fill={BLUELIGHT} />
+          <g transform="translate(370, 113) scale(0.62)" fill="none" stroke={NAVY} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
             <rect x="4" y="11" width="16" height="10" rx="2" />
             <path d="M8 11V7a4 4 0 0 1 8 0v4" />
           </g>
-          <text x={372} y={123} fontSize={11} fontWeight={600} fill={NAVY}>
-            Secured end to end by Entra External ID
+          <text x={394} y={123} fontSize={11} fontWeight={600} fill={NAVY}>
+            Authenticated by Entra External ID
           </text>
         </g>
       </svg>
