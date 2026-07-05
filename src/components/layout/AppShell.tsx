@@ -25,9 +25,13 @@ export function AppShell() {
 
   return (
     <div className="rc-hero min-h-screen">
+      {/* No transform when visible — `translate-y-0` still applies
+          `transform: translateY(0)`, which creates a compositing/stacking layer
+          that made the in-header dropdowns flaky to tap. Only transform while
+          animating out. */}
       <header
         className={`sticky top-0 z-40 bg-rc-navy shadow-sm transition-transform duration-300 ${
-          navHidden ? '-translate-y-full' : 'translate-y-0'
+          navHidden ? '-translate-y-full' : ''
         }`}
       >
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-5">
