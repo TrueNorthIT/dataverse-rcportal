@@ -5,7 +5,8 @@
  * axis with a Today line + milestone markers) and a dated Diary. All fed by real
  * Dataverse rows (projectApi's listProjectTasks / listProjectNotes).
  */
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import type { Project } from '../../types/project'
 import type { DiaryEntry, DiaryKind, Milestone, Phase } from '../../services/projectApi'
 import { formatDate } from '../../lib/format'
@@ -90,7 +91,13 @@ export function ProjectPlanModal({
   diary: DiaryEntry[]
   onClose: () => void
 }) {
-  const [tab, setTab] = useState<'gantt' | 'diary'>('gantt')
+  // Tab lives in the hash too (#plan = Gantt, #plan-diary = Diary) so a shared
+  // link can open a specific tab.
+  const location = useLocation()
+  const navigate = useNavigate()
+  const tab: 'gantt' | 'diary' = location.hash === '#plan-diary' ? 'diary' : 'gantt'
+  const setTab = (k: 'gantt' | 'diary') =>
+    navigate(`${location.pathname}${location.search}#plan${k === 'diary' ? '-diary' : ''}`, { replace: true })
   useEffect(() => {
     const onKey = (ev: KeyboardEvent) => ev.key === 'Escape' && onClose()
     document.addEventListener('keydown', onKey)
@@ -248,7 +255,7 @@ function ProjectGantt({ project, phases, milestones }: { project: Project; phase
                       )}
                     </div>
                     {/* hover detail card */}
-                    <div className="pointer-events-none absolute bottom-full left-0 z-20 mb-2 hidden w-56 rounded-lg border border-rc-blue-light bg-white p-3 text-left shadow-lg group-hover:block">
+                    <div className="pointer-events-none absolute bottom-full left-0 z-50 mb-2 hidden w-56 rounded-lg border border-rc-blue-light bg-white p-3 text-left shadow-lg group-hover:block">
                       <div className="text-sm font-medium text-rc-navy">{ph.label}</div>
                       <div className="mt-1 flex items-center gap-1.5 text-xs text-rc-teal">
                         <Icon name="calendar" className="h-3 w-3" />
