@@ -2,8 +2,8 @@
  * Customer-facing project plan views. On the detail page a compact ProjectPlanCard
  * summarises progress + next milestone and opens ProjectPlanModal — a full-screen
  * plan the customer can actually read: a proper Gantt (phase bars across a month
- * axis with a Today line + milestone markers) and a dated Diary. All demo dressing
- * derived from the schedule (projectApi's derivePhases / deriveMilestones / deriveDiary).
+ * axis with a Today line + milestone markers) and a dated Diary. All fed by real
+ * Dataverse rows (projectApi's listProjectTasks / listProjectNotes).
  */
 import { useEffect, useState } from 'react'
 import type { Project } from '../../types/project'
@@ -242,14 +242,24 @@ function ProjectGantt({ project, phases, milestones }: { project: Project; phase
                   {ph.label}
                 </div>
                 <div className="relative h-7 flex-1">
-                  <div
-                    className={`absolute top-1/2 flex h-5 -translate-y-1/2 items-center overflow-hidden rounded-md ${barTone(ph.status)}`}
-                    style={{ left: `${left}%`, width: `${width}%` }}
-                    title={`${ph.label} · ${formatDate(ph.start)} – ${formatDate(ph.end)}`}
-                  >
-                    {ph.status === 'active' && (
-                      <div className="h-full rounded-md rc-gradient" style={{ width: `${ph.pct * 100}%` }} />
-                    )}
+                  <div className="group absolute top-1/2 h-5 -translate-y-1/2" style={{ left: `${left}%`, width: `${width}%` }}>
+                    <div className={`flex h-full items-center overflow-hidden rounded-md ${barTone(ph.status)}`}>
+                      {ph.status === 'active' && (
+                        <div className="h-full rounded-md rc-gradient" style={{ width: `${ph.pct * 100}%` }} />
+                      )}
+                    </div>
+                    {/* hover detail card */}
+                    <div className="pointer-events-none absolute bottom-full left-0 z-20 mb-2 hidden w-56 rounded-lg border border-rc-blue-light bg-white p-3 text-left shadow-lg group-hover:block">
+                      <div className="text-sm font-medium text-rc-navy">{ph.label}</div>
+                      <div className="mt-1 flex items-center gap-1.5 text-xs text-rc-teal">
+                        <Icon name="calendar" className="h-3 w-3" />
+                        {formatDate(ph.start)} – {formatDate(ph.end)}
+                      </div>
+                      <div className="mt-1 flex items-center gap-1.5 text-xs text-rc-teal">
+                        <Icon name="percent" className="h-3 w-3" />
+                        {statusLabel(ph.status)} · {Math.round(ph.pct * 100)}%
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -263,10 +273,13 @@ function ProjectGantt({ project, phases, milestones }: { project: Project; phase
           <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-4 rounded bg-rc-blue-light/60 border border-rc-blue-light" /> Upcoming</span>
           <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rotate-45 rounded-[2px] bg-rc-blue" /> Milestone</span>
         </div>
-        <p className="mt-3 text-[11px] text-rc-teal/70">Illustrative delivery plan derived from the project schedule.</p>
       </div>
     </div>
   )
+}
+
+function statusLabel(s: Phase['status']): string {
+  return s === 'done' ? 'Complete' : s === 'active' ? 'In progress' : 'Upcoming'
 }
 
 // ── Diary ────────────────────────────────────────────────────────────────────

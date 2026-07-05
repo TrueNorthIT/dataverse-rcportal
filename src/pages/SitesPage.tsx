@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import type { OrderBy } from '@truenorth-it/dataverse-client'
 import { useTierList } from '../hooks/useTierList'
 import { useListControls } from '../hooks/useListControls'
-import { SITE_SELECT, CONNECTIVITY_TYPES, siteConnectivity } from '../services/siteApi'
+import { SITE_SELECT, CONNECTIVITY_LABELS } from '../services/siteApi'
 import type { Site } from '../types/site'
 import { PageHeader } from '../components/common/PageHeader'
 import { CardButton } from '../components/common/Card'
@@ -11,10 +11,11 @@ import { TierToggle } from '../components/common/TierToggle'
 import { FilterPills } from '../components/common/FilterPills'
 import { SortMenu } from '../components/common/SortMenu'
 import { ListStates, LoadMore } from '../components/common/ListStates'
+import { Icon } from '../components/common/Icon'
 
 const SITE_PILLS = [
   { key: 'all', label: 'All' },
-  ...CONNECTIVITY_TYPES.map((c) => ({ key: c.key, label: c.label })),
+  ...CONNECTIVITY_LABELS.map((l) => ({ key: l, label: l })),
 ]
 
 const SITE_SORTS: { key: string; label: string; order: OrderBy }[] = [
@@ -32,16 +33,15 @@ export function SitesPage() {
   const { tier, setTier, items, loading, error, hasMore, loadingMore, loadMore } =
     useTierList<Site>('site', { select: SITE_SELECT, orderBy: activeSort.order, top: 25 }, 'team')
 
-  // Connectivity type is derived from the site name (demo dressing), so filter
-  // client-side over the loaded rows rather than server-side.
+  // Filter client-side by the real connectivity label over the loaded rows.
   const visible =
-    conn === 'all' ? items : items.filter((s) => siteConnectivity(s.name).key === conn)
+    conn === 'all' ? items : items.filter((s) => s.new_connectivitytype_label === conn)
 
-  // Connectivity is derived, so grey out pills with no matching loaded rows.
-  const present = new Set(items.map((s) => siteConnectivity(s.name).key))
+  // Grey out pills with no matching loaded rows.
+  const present = new Set(items.map((s) => s.new_connectivitytype_label).filter(Boolean))
   const disabledKeys =
     items.length > 0
-      ? new Set(CONNECTIVITY_TYPES.filter((c) => !present.has(c.key)).map((c) => c.key))
+      ? new Set(CONNECTIVITY_LABELS.filter((l) => !present.has(l)))
       : new Set<string>()
   useEffect(() => {
     if (conn !== 'all' && items.length > 0 && !present.has(conn)) setConn('all')
@@ -76,7 +76,6 @@ export function SitesPage() {
       >
         <div className="space-y-3 rc-land-list">
           {visible.map((s) => {
-            const link = siteConnectivity(s.name)
             return (
               <CardButton
                 key={s.customeraddressid}
@@ -98,15 +97,12 @@ export function SitesPage() {
                       </div>
                     )}
                   </div>
-                  <span
-                    title={link.full}
-                    className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-rc-blue-light px-2.5 py-0.5 text-xs font-medium text-rc-navy"
-                  >
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                      <path d="M2 20h.01M7 20v-4M12 20v-8M17 20V8M22 4v16" />
-                    </svg>
-                    {link.label}
-                  </span>
+                  {s.new_connectivitytype_label && (
+                    <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-rc-blue-light px-2.5 py-0.5 text-xs font-medium text-rc-navy">
+                      <Icon name="activity" className="h-3 w-3" />
+                      {s.new_connectivitytype_label}
+                    </span>
+                  )}
                 </div>
               </CardButton>
             )

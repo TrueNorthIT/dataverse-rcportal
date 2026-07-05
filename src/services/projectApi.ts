@@ -1,6 +1,6 @@
 import type { DataverseClient } from '@truenorth-it/dataverse-client'
 import type { Project } from '../types/project'
-import type { Projectnotes } from '../types/dataverse.generated'
+import type { Projectnotes, Projecttask } from '../types/dataverse.generated'
 import { humanDuration, cleanDescription } from '../lib/format'
 
 /** Columns the portal reads for projects (Dataverse `msdyn_project`). */
@@ -26,6 +26,8 @@ export const PROJECT_DETAIL_SELECT = [
 /** Default list ordering — soonest to start first. */
 export const PROJECT_ORDER = { field: 'msdyn_scheduledstart', direction: 'asc' } as const
 
+const clamp01 = (n: number) => Math.max(0, Math.min(1, n))
+
 /**
  * Fetch a single project for the detail view. Projects are company-level, so
  * `team` is the reliable tier; with a hint we honour it, else team then me.
@@ -48,106 +50,114 @@ export async function fetchProjectDetail(
   }
 }
 
-/** A single milestone on a project timeline. */
+// ── Plan items (real new_projecttask rows) ───────────────────────────────────
+
+/** A milestone on the plan (a `new_projecttask` with new_ismilestone = true). */
 export interface Milestone {
   key: string
   label: string
-  /** ISO date this milestone is planned/actual for. */
+  /** ISO date of the milestone. */
   date: string
-  /** true once the date is in the past (derived). */
   done: boolean
 }
 
-const MILESTONE_STAGES = ['Kick-off', 'Discovery complete', 'Build', 'Testing & UAT', 'Go-live', 'Handover & close']
-
-/**
- * DEMO NOTE: msdyn_project's real task/milestone table (msdyn_projecttask) needs
- * the Project scheduling engine to populate, so — like the site connectivity
- * dressing — we derive a plausible milestone timeline deterministically from the
- * project's own schedule. Stable across reloads (keyed on the project id/dates).
- */
-export function deriveMilestones(p: Project): Milestone[] {
-  const start = p.msdyn_actualstart || p.msdyn_scheduledstart
-  const end = p.msdyn_finish
-  if (!start || !end) return []
-  const s = new Date(start).getTime()
-  const e = new Date(end).getTime()
-  if (Number.isNaN(s) || Number.isNaN(e) || e <= s) return []
-  const now = Date.now()
-  const span = e - s
-  return MILESTONE_STAGES.map((label, i) => {
-    const date = new Date(s + (span * i) / (MILESTONE_STAGES.length - 1)).toISOString()
-    return { key: `${p.msdyn_projectid}-${i}`, label, date, done: new Date(date).getTime() <= now }
-  })
-}
-
-// ── Phases (Gantt bars) ──────────────────────────────────────────────────────
-
-const PHASE_STAGES = [
-  'Discovery & design',
-  'Build & configure',
-  'Migration',
-  'Testing & UAT',
-  'Go-live & handover',
-]
-
-const clamp01 = (n: number) => Math.max(0, Math.min(1, n))
-
-/** A project phase as a dated bar for the Gantt view. */
+/** A phase bar on the Gantt (a `new_projecttask` with new_ismilestone = false). */
 export interface Phase {
   key: string
   label: string
   start: string
   end: string
   status: 'done' | 'active' | 'upcoming'
-  /** 0–1 completion (1 done, 0 upcoming, partial while active). */
+  /** 0–1 completion (from new_percentcomplete). */
   pct: number
 }
 
+export const PROJECT_TASK_SELECT = [
+  'new_projecttaskid',
+  'new_name',
+  'new_startdate',
+  'new_enddate',
+  'new_ismilestone',
+  'new_percentcomplete',
+  'new_sequence',
+]
+
 /**
- * DEMO NOTE: no real project schedule/tasks are exposed, so we split the
- * project's overall span into sequential delivery phases for the Gantt —
- * deterministic (schedule-driven) and stable across reloads.
+ * List a project's real plan items (`new_projecttask`), scoped to the tier the
+ * project resolved at, split into Gantt phase bars + milestones. All real DV
+ * rows — visible in Dataverse.
  */
-export function derivePhases(p: Project): Phase[] {
-  const startStr = p.msdyn_actualstart || p.msdyn_scheduledstart
-  const endStr = p.msdyn_finish
-  if (!startStr || !endStr) return []
-  const s = new Date(startStr).getTime()
-  const e = new Date(endStr).getTime()
-  if (Number.isNaN(s) || Number.isNaN(e) || e <= s) return []
-  const now = Date.now()
-  const span = e - s
-  const n = PHASE_STAGES.length
-  return PHASE_STAGES.map((label, i) => {
-    const ps = s + (span * i) / n
-    const pe = s + (span * (i + 1)) / n
-    const status = pe <= now ? 'done' : ps >= now ? 'upcoming' : 'active'
-    const pct = status === 'done' ? 1 : status === 'upcoming' ? 0 : clamp01((now - ps) / (pe - ps))
-    return { key: `${p.msdyn_projectid}-ph-${i}`, label, start: new Date(ps).toISOString(), end: new Date(pe).toISOString(), status, pct }
+export async function listProjectTasks(
+  client: DataverseClient,
+  projectId: string,
+  mine: boolean,
+): Promise<{ phases: Phase[]; milestones: Milestone[] }> {
+  const res = await client[mine ? 'me' : 'team'].list<Projecttask>('projecttask', {
+    select: PROJECT_TASK_SELECT,
+    filter: { field: 'new_projectid', operator: 'eq', value: projectId },
+    orderBy: { field: 'new_sequence', direction: 'asc' },
+    top: 100,
   })
+  const now = Date.now()
+  const phases: Phase[] = []
+  const milestones: Milestone[] = []
+  res.data.forEach((t, i) => {
+    const pct = t.new_percentcomplete ?? 0
+    if (t.new_ismilestone) {
+      const date = t.new_startdate ?? ''
+      const ts = date ? Date.parse(date) : NaN
+      milestones.push({
+        key: t.new_projecttaskid ?? `m-${i}`,
+        label: t.new_name || 'Milestone',
+        date,
+        done: pct >= 100 || (!Number.isNaN(ts) && ts <= now),
+      })
+    } else {
+      const start = t.new_startdate ?? ''
+      const end = t.new_enddate ?? start
+      const s = Date.parse(start)
+      const e = Date.parse(end)
+      const status = !Number.isNaN(e) && e <= now ? 'done' : !Number.isNaN(s) && s > now ? 'upcoming' : 'active'
+      phases.push({ key: t.new_projecttaskid ?? `p-${i}`, label: t.new_name || 'Phase', start, end, status, pct: clamp01(pct / 100) })
+    }
+  })
+  return { phases, milestones }
 }
 
-// ── Diary (activity feed) ────────────────────────────────────────────────────
+// ── Project health (RAG) — derived from real schedule/state ──────────────────
 
-const DAY = 86_400_000
-function hashStr(s: string): number {
-  let h = 2166136261
-  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) }
-  return h >>> 0
+/** A schedule-health (RAG) verdict for a project tile. */
+export interface ProjectHealth {
+  key: 'green' | 'amber' | 'red' | 'done'
+  label: string
+  detail: string
+  dot: string
+  chip: string
 }
-function mulberry32(a: number) {
-  return function () {
-    a |= 0; a = (a + 0x6d2b79f5) | 0
-    let t = Math.imul(a ^ (a >>> 15), 1 | a)
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+
+/**
+ * RAG status derived from the project's real state + finish date: completed →
+ * done; past finish → red; within 30 days → amber; else green.
+ */
+export function projectHealth(p: Project): ProjectHealth {
+  const state = `${p.statuscode_label ?? ''} ${p.statecode_label ?? ''}`.toLowerCase()
+  if (/complete|closed|finished|delivered|inactive/.test(state)) {
+    return { key: 'done', label: 'Complete', detail: 'Delivered', dot: 'bg-rc-teal', chip: 'bg-rc-blue-light text-rc-teal' }
   }
+  if (p.msdyn_finish) {
+    const days = Math.round((new Date(p.msdyn_finish).getTime() - Date.now()) / 86_400_000)
+    if (days < 0) return { key: 'red', label: 'Overdue', detail: `Overdue by ${humanDuration(days)}`, dot: 'bg-red-500', chip: 'bg-red-50 text-red-700' }
+    if (days <= 30) return { key: 'amber', label: 'Due soon', detail: `Due in ${humanDuration(days)}`, dot: 'bg-amber-500', chip: 'bg-amber-50 text-amber-700' }
+    return { key: 'green', label: 'On track', detail: `${humanDuration(days)} remaining`, dot: 'bg-rc-green', chip: 'bg-rc-green-light text-rc-green-dark' }
+  }
+  return { key: 'green', label: 'On track', detail: 'Scheduled', dot: 'bg-rc-green', chip: 'bg-rc-green-light text-rc-green-dark' }
 }
+
+// ── Real project notes (annotations) → diary entries ─────────────────────────
 
 export type DiaryKind = 'milestone' | 'update' | 'risk' | 'note'
 
-/** A dated entry in the project diary/activity feed. */
+/** A dated entry in the project diary/activity feed (a real annotation). */
 export interface DiaryEntry {
   key: string
   date: string
@@ -156,140 +166,6 @@ export interface DiaryEntry {
   author: string
   kind: DiaryKind
 }
-
-const DIARY_AUTHORS = [
-  'Priya Shah · Project Manager',
-  'Tom Fletcher · Delivery Lead',
-  'Rachel Owen · Lead Engineer',
-  'Sam Doyle · Solution Architect',
-]
-
-const DIARY_EVENTS: { kind: DiaryKind; title: string; detail: string }[] = [
-  { kind: 'update', title: 'Weekly status', detail: 'Progressing to plan — no blockers this week.' },
-  { kind: 'update', title: 'Weekly status', detail: 'Minor slippage on one workstream; recovery plan agreed.' },
-  { kind: 'note', title: 'Steering call', detail: 'Fortnightly steering call held with the customer.' },
-  { kind: 'risk', title: 'Risk logged', detail: 'Third-party circuit lead time flagged; mitigation in progress.' },
-  { kind: 'risk', title: 'Risk closed', detail: 'Previously raised risk resolved and closed off.' },
-  { kind: 'note', title: 'Change request', detail: 'Small scope change agreed and baselined.' },
-  { kind: 'update', title: 'Workstream update', detail: 'Configuration complete; moving into testing.' },
-]
-
-/**
- * DEMO NOTE: there's no project activity log exposed, so we synthesise a
- * plausible diary from the schedule — milestone reached events plus periodic
- * status/risk/notes — deterministically per project (stable across reloads).
- * Only past-dated entries are returned; newest first, like the case timeline.
- */
-export function deriveDiary(p: Project): DiaryEntry[] {
-  const start = p.msdyn_actualstart || p.msdyn_scheduledstart
-  if (!start) return []
-  const s = new Date(start).getTime()
-  if (Number.isNaN(s)) return []
-  const now = Date.now()
-  const e = p.msdyn_finish ? new Date(p.msdyn_finish).getTime() : now
-  const rng = mulberry32(hashStr(p.msdyn_projectid || 'project'))
-  const entries: DiaryEntry[] = []
-
-  // Milestone-reached events (past only).
-  for (const m of deriveMilestones(p)) {
-    if (new Date(m.date).getTime() <= now) {
-      entries.push({ key: `m-${m.key}`, date: m.date, title: m.label, detail: 'Milestone reached.', author: DIARY_AUTHORS[0], kind: 'milestone' })
-    }
-  }
-
-  // Periodic updates roughly every 1–2 weeks up to today (or finish).
-  const last = Math.min(now, e)
-  let t = s + 4 * DAY
-  let i = 0
-  while (t <= last && i < 40) {
-    const ev = DIARY_EVENTS[Math.floor(rng() * DIARY_EVENTS.length)]
-    entries.push({
-      key: `u-${p.msdyn_projectid}-${i}`,
-      date: new Date(t).toISOString(),
-      title: ev.title,
-      detail: ev.detail,
-      author: DIARY_AUTHORS[Math.floor(rng() * DIARY_AUTHORS.length)],
-      kind: ev.kind,
-    })
-    t += (8 + Math.floor(rng() * 7)) * DAY
-    i++
-  }
-
-  return entries.sort((a, b) => Date.parse(b.date) - Date.parse(a.date))
-}
-
-/** A schedule-health (RAG) verdict for a project tile. */
-export interface ProjectHealth {
-  key: 'green' | 'amber' | 'red' | 'done'
-  /** Short chip label, e.g. "On track". */
-  label: string
-  /** Supporting detail, e.g. "4 months remaining" / "Overdue by 12 days". */
-  detail: string
-  /** Tailwind classes for the status dot. */
-  dot: string
-  /** Tailwind classes for the chip. */
-  chip: string
-}
-
-/**
- * Derive a RAG status for a project.
- *
- * msdyn_project has no native health/RAG or %-complete field exposed by the
- * API, so we infer it from the schedule + state: completed → done; past its
- * finish → red; finishing within 30 days → amber; otherwise green. This is a
- * reasonable at-a-glance signal for a customer portfolio view.
- */
-export function projectHealth(p: Project): ProjectHealth {
-  const state = `${p.statuscode_label ?? ''} ${p.statecode_label ?? ''}`.toLowerCase()
-  if (/complete|closed|finished|delivered|inactive/.test(state)) {
-    return {
-      key: 'done',
-      label: 'Complete',
-      detail: 'Delivered',
-      dot: 'bg-rc-teal',
-      chip: 'bg-rc-blue-light text-rc-teal',
-    }
-  }
-
-  if (p.msdyn_finish) {
-    const days = Math.round((new Date(p.msdyn_finish).getTime() - Date.now()) / 86_400_000)
-    if (days < 0) {
-      return {
-        key: 'red',
-        label: 'Overdue',
-        detail: `Overdue by ${humanDuration(days)}`,
-        dot: 'bg-red-500',
-        chip: 'bg-red-50 text-red-700',
-      }
-    }
-    if (days <= 30) {
-      return {
-        key: 'amber',
-        label: 'Due soon',
-        detail: `Due in ${humanDuration(days)}`,
-        dot: 'bg-amber-500',
-        chip: 'bg-amber-50 text-amber-700',
-      }
-    }
-    return {
-      key: 'green',
-      label: 'On track',
-      detail: `${humanDuration(days)} remaining`,
-      dot: 'bg-rc-green',
-      chip: 'bg-rc-green-light text-rc-green-dark',
-    }
-  }
-
-  return {
-    key: 'green',
-    label: 'On track',
-    detail: 'Scheduled',
-    dot: 'bg-rc-green',
-    chip: 'bg-rc-green-light text-rc-green-dark',
-  }
-}
-
-// ── Real project notes (annotations) → diary entries ─────────────────────────
 
 /** Columns read for a project's notes. */
 export const PROJECT_NOTE_SELECT = ['annotationid', 'subject', 'notetext', 'createdon']
@@ -304,9 +180,9 @@ function kindFromSubject(subject: string | undefined): DiaryKind {
 
 /**
  * List the real delivery notes on a project (newest first), scoped to the tier
- * the project resolved at, and map them to the diary shape. Notes are stored as
- * annotations regarding the project (see the projectnotes route). `createdon`
- * carries the backdated date (seeded via overriddencreatedon).
+ * the project resolved at, mapped to the diary shape. Notes are annotations
+ * regarding the project (see the projectnotes route); `createdon` carries the
+ * backdated date.
  */
 export async function listProjectNotes(
   client: DataverseClient,

@@ -720,6 +720,65 @@ export interface ProjectnotesUpdateInput {
   subject?: string;
 }
 
+/** Fields for the `projecttask` table */
+export interface Projecttask {
+  /** Date created */
+  createdon?: string;
+  /** End date */
+  new_enddate?: string;
+  /** Is milestone */
+  new_ismilestone?: boolean;
+  /** Task */
+  new_name?: string;
+  /** Percent complete */
+  new_percentcomplete?: number;
+  /** Project */
+  new_projectid?: string;
+  /** GUID of the related project */
+  _new_projectid_value?: string;
+  /** Unique task identifier */
+  new_projecttaskid?: string;
+  /** Sequence */
+  new_sequence?: number;
+  /** Start date */
+  new_startdate?: string;
+}
+
+/** Field names for the `projecttask` table (for typed select/filter/orderBy). */
+export type ProjecttaskField = "createdon" | "new_enddate" | "new_ismilestone" | "new_name" | "new_percentcomplete" | "new_projectid" | "new_projecttaskid" | "new_sequence" | "new_startdate";
+
+/** Writable fields for creating a `projecttask` record. */
+export interface ProjecttaskCreateInput {
+  /** End date */
+  new_enddate?: string;
+  /** Is milestone */
+  new_ismilestone?: boolean;
+  /** Task */
+  new_name?: string;
+  /** Percent complete */
+  new_percentcomplete?: number;
+  /** Sequence */
+  new_sequence?: number;
+  /** Start date */
+  new_startdate?: string;
+}
+
+/** Writable fields for updating a `projecttask` record. */
+export interface ProjecttaskUpdateInput {
+  /** End date */
+  new_enddate?: string;
+  /** Is milestone */
+  new_ismilestone?: boolean;
+  /** Task */
+  new_name?: string;
+  /** Percent complete */
+  new_percentcomplete?: number;
+  /** Sequence */
+  new_sequence?: number;
+  /** Start date */
+  new_startdate?: string;
+}
+
 /** Fields for the `quote` table */
 export interface Quote {
   /** Date created */
@@ -886,6 +945,10 @@ export interface Site {
   longitude?: number;
   /** Site name */
   name?: string;
+  /** Connectivity type Allowed values: {@link SiteNewConnectivitytype}. */
+  new_connectivitytype?: number;
+  /** Display label for new_connectivitytype */
+  new_connectivitytype_label?: string;
   /** Postcode */
   postalcode?: string;
   /** County */
@@ -895,7 +958,7 @@ export interface Site {
 }
 
 /** Field names for the `site` table (for typed select/filter/orderBy). */
-export type SiteField = "addresstypecode" | "city" | "country" | "createdon" | "customeraddressid" | "latitude" | "line1" | "line2" | "longitude" | "name" | "postalcode" | "stateorprovince" | "telephone1";
+export type SiteField = "addresstypecode" | "city" | "country" | "createdon" | "customeraddressid" | "latitude" | "line1" | "line2" | "longitude" | "name" | "new_connectivitytype" | "postalcode" | "stateorprovince" | "telephone1";
 
 /** Writable fields for creating a `site` record. */
 export interface SiteCreateInput {
@@ -911,6 +974,8 @@ export interface SiteCreateInput {
   line2?: string;
   /** Site name */
   name?: string;
+  /** Connectivity type */
+  new_connectivitytype?: number;
   /** Postcode */
   postalcode?: string;
   /** County */
@@ -933,6 +998,8 @@ export interface SiteUpdateInput {
   line2?: string;
   /** Site name */
   name?: string;
+  /** Connectivity type */
+  new_connectivitytype?: number;
   /** Postcode */
   postalcode?: string;
   /** County */
@@ -954,5 +1021,20 @@ export const SiteAddresstypecode = {
 } as const;
 export type SiteAddresstypecode = typeof SiteAddresstypecode[keyof typeof SiteAddresstypecode];
 
+/** Choice values for `site.new_connectivitytype` */
+export const SiteNewConnectivitytype = {
+  /** FTTP */
+  FTTP: 100000000,
+  /** FTTC */
+  FTTC: 100000001,
+  /** Leased Line */
+  LeasedLine: 100000002,
+  /** Dark Fibre */
+  DarkFibre: 100000003,
+  /** EFM */
+  EFM: 100000004,
+} as const;
+export type SiteNewConnectivitytype = typeof SiteNewConnectivitytype[keyof typeof SiteNewConnectivitytype];
+
 /** All valid table names accepted by the API */
-export type TableName = "account" | "case" | "casenote" | "casenotes" | "cases" | "contact" | "contacts" | "customeraddress" | "feedback" | "incidents" | "kb" | "knowledge" | "knowledgearticle" | "locations" | "msdyn_projects" | "notes" | "opportunities" | "opportunity" | "opps" | "portalfeedback" | "project" | "projectnote" | "projectnotes" | "projects" | "quote" | "quotedetail" | "quotedetails" | "quoteline" | "quotelines" | "quotes" | "site" | "sites" | "tickets";
+export type TableName = "account" | "case" | "casenote" | "casenotes" | "cases" | "contact" | "contacts" | "customeraddress" | "feedback" | "incidents" | "kb" | "knowledge" | "knowledgearticle" | "locations" | "msdyn_projects" | "notes" | "opportunities" | "opportunity" | "opps" | "planitems" | "portalfeedback" | "project" | "projectnote" | "projectnotes" | "projects" | "projecttask" | "projecttasks" | "quote" | "quotedetail" | "quotedetails" | "quoteline" | "quotelines" | "quotes" | "site" | "sites" | "tickets";

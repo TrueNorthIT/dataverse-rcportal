@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useDataverseClient } from '../lib/client'
 import { useSelectedCompany } from '../context/SelectedCompanyContext'
 import { useListNav } from '../hooks/useListNav'
-import { fetchProjectDetail, projectHealth, deriveMilestones, deriveDiary, derivePhases, listProjectNotes } from '../services/projectApi'
+import { fetchProjectDetail, projectHealth, listProjectTasks, listProjectNotes } from '../services/projectApi'
 import { cleanDescription, formatDate } from '../lib/format'
 import { StatusChip } from '../components/common/StatusChip'
 import { Icon } from '../components/common/Icon'
@@ -34,20 +34,24 @@ export function ProjectDetailPage() {
   const mine = query.data?.mine ?? false
   const error = query.error instanceof Error ? query.error.message : null
   const health = record ? projectHealth(record) : null
-  const milestones = record ? deriveMilestones(record) : []
-  const phases = record ? derivePhases(record) : []
   const [planOpen, setPlanOpen] = useState(false)
 
-  // Real delivery notes (annotations regarding the project). Fall back to a
-  // synthetic diary only if a project has none yet, so the view never looks empty.
+  // Real plan items (new_projecttask rows) → Gantt phases + milestones.
+  const tasksQuery = useQuery({
+    queryKey: ['projecttasks', id, mine, selectedContactId ?? 'default'],
+    queryFn: () => listProjectTasks(client, id!, mine),
+    enabled: !!id && !!record,
+  })
+  const phases = tasksQuery.data?.phases ?? []
+  const milestones = tasksQuery.data?.milestones ?? []
+
+  // Real delivery notes (annotations regarding the project).
   const notesQuery = useQuery({
     queryKey: ['projectnotes', id, mine, selectedContactId ?? 'default'],
     queryFn: () => listProjectNotes(client, id!, mine),
     enabled: !!id && !!record,
   })
-  const diary = notesQuery.data && notesQuery.data.length > 0
-    ? notesQuery.data
-    : record ? deriveDiary(record) : []
+  const diary = notesQuery.data ?? []
 
   return (
     <div>
@@ -94,7 +98,7 @@ export function ProjectDetailPage() {
         </DetailHeader>
       )}
 
-      {record && phases.length > 0 && (
+      {record && (phases.length > 0 || milestones.length > 0) && (
         <div className="mt-6">
           <SectionTitle icon="gantt">Delivery plan</SectionTitle>
           <ProjectPlanCard project={record} milestones={milestones} onOpen={() => setPlanOpen(true)} />
