@@ -80,6 +80,53 @@ export function deriveMilestones(p: Project): Milestone[] {
   })
 }
 
+// ── Phases (Gantt bars) ──────────────────────────────────────────────────────
+
+const PHASE_STAGES = [
+  'Discovery & design',
+  'Build & configure',
+  'Migration',
+  'Testing & UAT',
+  'Go-live & handover',
+]
+
+const clamp01 = (n: number) => Math.max(0, Math.min(1, n))
+
+/** A project phase as a dated bar for the Gantt view. */
+export interface Phase {
+  key: string
+  label: string
+  start: string
+  end: string
+  status: 'done' | 'active' | 'upcoming'
+  /** 0–1 completion (1 done, 0 upcoming, partial while active). */
+  pct: number
+}
+
+/**
+ * DEMO NOTE: no real project schedule/tasks are exposed, so we split the
+ * project's overall span into sequential delivery phases for the Gantt —
+ * deterministic (schedule-driven) and stable across reloads.
+ */
+export function derivePhases(p: Project): Phase[] {
+  const startStr = p.msdyn_actualstart || p.msdyn_scheduledstart
+  const endStr = p.msdyn_finish
+  if (!startStr || !endStr) return []
+  const s = new Date(startStr).getTime()
+  const e = new Date(endStr).getTime()
+  if (Number.isNaN(s) || Number.isNaN(e) || e <= s) return []
+  const now = Date.now()
+  const span = e - s
+  const n = PHASE_STAGES.length
+  return PHASE_STAGES.map((label, i) => {
+    const ps = s + (span * i) / n
+    const pe = s + (span * (i + 1)) / n
+    const status = pe <= now ? 'done' : ps >= now ? 'upcoming' : 'active'
+    const pct = status === 'done' ? 1 : status === 'upcoming' ? 0 : clamp01((now - ps) / (pe - ps))
+    return { key: `${p.msdyn_projectid}-ph-${i}`, label, start: new Date(ps).toISOString(), end: new Date(pe).toISOString(), status, pct }
+  })
+}
+
 // ── Diary (activity feed) ────────────────────────────────────────────────────
 
 const DAY = 86_400_000
