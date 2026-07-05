@@ -49,12 +49,20 @@ export function humanDuration(days: number): string {
   return 'less than a day'
 }
 
-/** ISO date → human relative phrase, e.g. "12 days ago" / "in 3 months" / "today". */
+/** Only phrase dates relatively within this window; beyond it, show the date. */
+const RELATIVE_HORIZON_DAYS = 90
+
+/**
+ * ISO date → human relative phrase when it's near (within ~3 months), e.g.
+ * "today" / "in 3 days" / "2 weeks ago". Beyond that horizon a relative phrase
+ * ("in 8 months") is more noise than signal, so fall back to the actual date.
+ */
 export function relativeFromNow(value: string | null | undefined): string {
   if (!value) return '—'
   const d = new Date(value)
   if (Number.isNaN(d.getTime())) return '—'
   const diffDays = Math.round((d.getTime() - Date.now()) / 86_400_000)
   if (diffDays === 0) return 'today'
+  if (Math.abs(diffDays) > RELATIVE_HORIZON_DAYS) return formatDate(value)
   return diffDays < 0 ? `${humanDuration(diffDays)} ago` : `in ${humanDuration(diffDays)}`
 }

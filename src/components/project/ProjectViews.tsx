@@ -72,7 +72,7 @@ export function ProjectTimeline({ project, milestones }: { project: Project; mil
             </span>
             <div className="flex items-center justify-between gap-3">
               <span className={`text-sm ${m.done ? 'font-medium text-rc-navy' : 'text-rc-teal'}`}>{m.label}</span>
-              <span className="shrink-0 text-xs text-rc-teal">{formatDate(m.date)}</span>
+              <span className="shrink-0 text-xs text-rc-teal" title={formatDate(m.date)}>{relativeFromNow(m.date)}</span>
             </div>
           </li>
         ))}
