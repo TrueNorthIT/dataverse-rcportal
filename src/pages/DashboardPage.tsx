@@ -146,8 +146,16 @@ function ScrollHint() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
   if (!show) return null
-  const toCharts = () =>
-    document.getElementById('insights')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  // Scroll so the "At a glance" heading sits just below the (sticky) header,
+  // rather than under it — offset by the header's real height so it never
+  // overshoots. scrollIntoView + a fixed scroll-margin couldn't know the height.
+  const toCharts = () => {
+    const el = document.getElementById('insights')
+    if (!el) return
+    const headerH = document.querySelector('header')?.offsetHeight ?? 0
+    const top = el.getBoundingClientRect().top + window.scrollY - headerH - 12
+    window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' })
+  }
   return (
     <div className="mt-6 flex justify-center">
       <button
