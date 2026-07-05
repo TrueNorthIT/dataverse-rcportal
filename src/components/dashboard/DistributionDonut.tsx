@@ -26,7 +26,8 @@ interface Props {
  */
 export function DistributionDonut({ title, icon, table, area, pills, colors }: Props) {
   const navigate = useNavigate()
-  const counts = usePillCounts(table, 'team', pills)
+  // fanOut=true → rolls up across all companies when "All companies" is on.
+  const counts = usePillCounts(table, 'team', pills, true)
   const loaded = Object.keys(counts).length > 0
 
   const segments = pills

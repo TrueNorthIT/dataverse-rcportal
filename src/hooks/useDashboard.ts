@@ -1,7 +1,8 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
-import type { AggregateOptions } from '@truenorth-it/dataverse-client'
 import { useDataverseClient } from '../lib/client'
 import { useSelectedCompany } from '../context/SelectedCompanyContext'
+import { useCompanyClients } from './useCompanyClients'
+import { fanCount } from '../lib/aggregate'
 
 export interface DashboardStats {
   cases: number | null
@@ -10,40 +11,27 @@ export interface DashboardStats {
   sites: number | null
 }
 
-/** Pull the first numeric value out of an aggregate row, whatever it's keyed as. */
-function firstNumber(row: Record<string, unknown> | undefined): number | null {
-  if (!row) return null
-  const n = Object.values(row).find((v) => typeof v === 'number')
-  return typeof n === 'number' ? n : null
-}
-
 /**
  * Dashboard tiles: the caller's company at a glance — quotes, projects, and
- * sites, counted at the `team` tier (company-level assets, so every user sees
- * real numbers, not just the account's primary contact). Keyed on the selected
- * company; keeps prior numbers while refetching and refreshes on window focus.
- * Each aggregate is failure-tolerant — a table that errors just shows "—".
+ * sites, counted at the `team` tier. When "All companies" is selected the
+ * counts fan out across every company the caller belongs to and sum (each call
+ * stays security-trimmed to its own company). Keyed on the scope; keeps prior
+ * numbers while refetching. A table that errors everywhere just shows "—".
  */
 export function useDashboard(): { stats: DashboardStats; loading: boolean } {
   const client = useDataverseClient()
-  const { selectedContactId } = useSelectedCompany()
+  const companyClients = useCompanyClients()
+  const { selectedContactId, allCompanies } = useSelectedCompany()
 
   const query = useQuery({
-    queryKey: ['dashboard', selectedContactId ?? 'default'],
+    queryKey: ['dashboard', allCompanies ? 'all' : selectedContactId ?? 'default'],
     queryFn: async (): Promise<DashboardStats> => {
-      const agg = async (table: string, options: AggregateOptions) => {
-        try {
-          const res = await client.team.aggregate(table, options)
-          return firstNumber(res.data[0] as Record<string, unknown> | undefined)
-        } catch {
-          return null
-        }
-      }
+      const targets = allCompanies ? companyClients.map((c) => c.client) : [client]
       const [cases, quotes, projects, sites] = await Promise.all([
-        agg('case', { aggregate: 'count' }),
-        agg('quote', { aggregate: 'count' }),
-        agg('project', { aggregate: 'count' }),
-        agg('site', { aggregate: 'count' }),
+        fanCount(targets, 'team', 'case', { aggregate: 'count' }),
+        fanCount(targets, 'team', 'quote', { aggregate: 'count' }),
+        fanCount(targets, 'team', 'project', { aggregate: 'count' }),
+        fanCount(targets, 'team', 'site', { aggregate: 'count' }),
       ])
       return { cases, quotes, projects, sites }
     },
