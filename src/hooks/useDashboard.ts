@@ -18,7 +18,7 @@ export interface DashboardStats {
  * stays security-trimmed to its own company). Keyed on the scope; keeps prior
  * numbers while refetching. A table that errors everywhere just shows "—".
  */
-export function useDashboard(): { stats: DashboardStats; loading: boolean } {
+export function useDashboard(): { stats: DashboardStats; loading: boolean; stale: boolean } {
   const client = useDataverseClient()
   const companyClients = useCompanyClients()
   const { selectedContactId, allCompanies } = useSelectedCompany()
@@ -42,5 +42,8 @@ export function useDashboard(): { stats: DashboardStats; loading: boolean } {
   return {
     stats: query.data ?? { cases: null, quotes: null, projects: null, sites: null },
     loading: query.isFetching,
+    // True while showing the previous scope's data as the new scope loads —
+    // drives the skeleton on a scope switch.
+    stale: query.isPlaceholderData,
   }
 }
