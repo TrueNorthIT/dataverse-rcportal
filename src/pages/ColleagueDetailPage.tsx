@@ -11,7 +11,7 @@ import { Icon } from '../components/common/Icon'
 import {
   DetailHeader,
   DetailNav,
-  DetailSkeleton,
+  DetailStates,
   MetaGrid,
   MetaItem,
   SectionTitle,
@@ -47,61 +47,60 @@ export function ColleagueDetailPage() {
     <div>
       <DetailNav label="My company" prevId={prevId} nextId={nextId} onPrev={goPrev} onNext={goNext} onBack={goBack} />
 
-      {query.isLoading && <DetailSkeleton />}
-      {error && <p className="text-sm text-red-200">{error}</p>}
+      <DetailStates loading={query.isLoading} error={error}>
+        {c && (
+          <DetailHeader
+            icon="user"
+            title={c.fullname || 'Colleague'}
+            trailing={
+              c.donotbulkemail ? (
+                <span
+                  title="Opted out of marketing email"
+                  className="inline-flex shrink-0 items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700"
+                >
+                  <Icon name="mail" className="h-3 w-3" /> No marketing
+                </span>
+              ) : undefined
+            }
+          >
+            <MetaGrid>
+              <MetaItem icon="briefcase" label="Job title" value={c.jobtitle} />
+              <MetaItem icon="users" label="Department" value={c.department} />
+              <MetaItem icon="mail" label="Email" value={c.emailaddress1} />
+              <MetaItem icon="phone" label="Phone" value={c.telephone1} />
+              <MetaItem icon="phone" label="Mobile" value={c.mobilephone} />
+              <MetaItem icon="mapPin" label="Address" value={address} />
+            </MetaGrid>
+          </DetailHeader>
+        )}
 
-      {c && (
-        <DetailHeader
-          icon="user"
-          title={c.fullname || 'Colleague'}
-          trailing={
-            c.donotbulkemail ? (
-              <span
-                title="Opted out of marketing email"
-                className="inline-flex shrink-0 items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700"
-              >
-                <Icon name="mail" className="h-3 w-3" /> No marketing
-              </span>
-            ) : undefined
-          }
-        >
-          <MetaGrid>
-            <MetaItem icon="briefcase" label="Job title" value={c.jobtitle} />
-            <MetaItem icon="users" label="Department" value={c.department} />
-            <MetaItem icon="mail" label="Email" value={c.emailaddress1} />
-            <MetaItem icon="phone" label="Phone" value={c.telephone1} />
-            <MetaItem icon="phone" label="Mobile" value={c.mobilephone} />
-            <MetaItem icon="mapPin" label="Address" value={address} />
-          </MetaGrid>
-        </DetailHeader>
-      )}
-
-      {c && (
-        <div className="mt-6">
-          <SectionTitle icon="fileText" count={cases.length}>Recent cases</SectionTitle>
-          {casesQuery.isLoading ? (
-            <Card className="p-5"><p className="text-sm text-rc-teal">Loading cases…</p></Card>
-          ) : cases.length === 0 ? (
-            <Card className="p-5"><p className="text-sm text-rc-teal">No support cases raised by this colleague.</p></Card>
-          ) : (
-            <Card className="overflow-hidden">
-              <div className="divide-y divide-rc-blue-light">
-                {cases.map((k) => (
-                  <div key={k.incidentid} className="flex items-center justify-between gap-4 px-4 py-3">
-                    <div className="min-w-0">
-                      <div className="truncate text-sm font-medium text-rc-navy">{k.title || 'Untitled'}</div>
-                      <div className="text-xs text-rc-teal">
-                        {k.ticketnumber ? `${k.ticketnumber} · ` : ''}Raised {formatDate(k.createdon)}
+        {c && (
+          <div className="mt-6">
+            <SectionTitle icon="fileText" count={cases.length}>Recent cases</SectionTitle>
+            {casesQuery.isLoading ? (
+              <Card className="p-5"><p className="text-sm text-rc-teal">Loading cases…</p></Card>
+            ) : cases.length === 0 ? (
+              <Card className="p-5"><p className="text-sm text-rc-teal">No support cases raised by this colleague.</p></Card>
+            ) : (
+              <Card className="overflow-hidden">
+                <div className="divide-y divide-rc-blue-light">
+                  {cases.map((k) => (
+                    <div key={k.incidentid} className="flex items-center justify-between gap-4 px-4 py-3">
+                      <div className="min-w-0">
+                        <div className="truncate text-sm font-medium text-rc-navy">{k.title || 'Untitled'}</div>
+                        <div className="text-xs text-rc-teal">
+                          {k.ticketnumber ? `${k.ticketnumber} · ` : ''}Raised {formatDate(k.createdon)}
+                        </div>
                       </div>
+                      <StatusChip label={k.statuscode_label} />
                     </div>
-                    <StatusChip label={k.statuscode_label} />
-                  </div>
-                ))}
-              </div>
-            </Card>
-          )}
-        </div>
-      )}
+                  ))}
+                </div>
+              </Card>
+            )}
+          </div>
+        )}
+      </DetailStates>
     </div>
   )
 }

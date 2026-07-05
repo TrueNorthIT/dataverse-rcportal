@@ -9,7 +9,7 @@ import { Icon } from '../components/common/Icon'
 import {
   DetailHeader,
   DetailNav,
-  DetailSkeleton,
+  DetailStates,
   MetaGrid,
   MetaItem,
 } from '../components/detail/DetailChrome'
@@ -38,10 +38,8 @@ export function SiteDetailPage() {
     <div>
       <DetailNav label="Sites" prevId={prevId} nextId={nextId} onPrev={goPrev} onNext={goNext} onBack={goBack} />
 
-      {query.isLoading && <DetailSkeleton />}
-      {error && <p className="text-sm text-red-200">{error}</p>}
-
-      {record && (
+      <DetailStates loading={query.isLoading} error={error}>
+        {record && (
         <DetailHeader
           icon="mapPin"
           title={record.name || 'Site'}
@@ -66,7 +64,8 @@ export function SiteDetailPage() {
             <MetaItem icon="clock" label="Added" value={formatDate(record.createdon)} />
           </MetaGrid>
         </DetailHeader>
-      )}
+        )}
+      </DetailStates>
     </div>
   )
 }
