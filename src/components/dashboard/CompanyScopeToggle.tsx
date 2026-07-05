@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useSelectedCompany } from '../../context/SelectedCompanyContext'
 import { SegmentedToggle } from '../common/SegmentedToggle'
 
@@ -11,13 +12,16 @@ type Scope = 'one' | 'all'
  * which company lists/detail act as; this only changes the dashboard roll-up.
  */
 export function CompanyScopeToggle() {
-  const { hasMultiple, allCompanies, selectAllCompanies, selectCompany, selectedContactId } =
-    useSelectedCompany()
+  const { hasMultiple } = useSelectedCompany()
+  // DIAGNOSTIC: visual-only state — the filter/data trigger is disconnected so
+  // we can test whether the button itself keeps up with fast taps, independent
+  // of the roll-up loading. (Not for merge — this does not change scope.)
+  const [scope, setScope] = useState<Scope>('one')
   if (!hasMultiple) return null
   return (
     <SegmentedToggle<Scope>
-      value={allCompanies ? 'all' : 'one'}
-      onChange={(v) => (v === 'all' ? selectAllCompanies() : selectCompany(selectedContactId))}
+      value={scope}
+      onChange={setScope}
       ariaLabel="Dashboard scope"
       className="shadow-sm"
       options={[
