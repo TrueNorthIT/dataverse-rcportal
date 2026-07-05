@@ -195,11 +195,10 @@ function ProjectGantt({ project, phases, milestones }: { project: Project; phase
         : 'bg-rc-blue-light'
 
   return (
-    <div className="overflow-x-auto">
-      <div className="min-w-[560px]">
-        {/* month axis */}
-        <div className="flex">
-          <div className={LABEL_COL} />
+    <div className="overflow-hidden">
+      {/* month axis */}
+      <div className="flex">
+        <div className={LABEL_COL} />
           <div className="relative h-6 flex-1">
             {ticks.map((t) => (
               <span key={t.label + t.frac} className="absolute top-1 -translate-x-1/2 text-[11px] text-rc-teal" style={{ left: `${t.frac * 100}%` }}>
@@ -273,7 +272,6 @@ function ProjectGantt({ project, phases, milestones }: { project: Project; phase
           <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-4 rounded bg-rc-blue-light/60 border border-rc-blue-light" /> Upcoming</span>
           <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rotate-45 rounded-[2px] bg-rc-blue" /> Milestone</span>
         </div>
-      </div>
     </div>
   )
 }
