@@ -30,7 +30,7 @@ function Reveal({ index, children }: { index: number; children: ReactNode }) {
 export default function DashboardCharts() {
   return (
     <section id="insights" className="mt-8 scroll-mt-6">
-      <h2 className="mb-3 text-base font-normal tracking-tight text-rc-navy">At a glance</h2>
+      <h2 className="mb-3 text-base font-normal tracking-tight text-white">At a glance</h2>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Reveal index={0}>
           <DistributionDonut
