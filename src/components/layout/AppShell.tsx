@@ -3,6 +3,7 @@ import { useMsal } from '@azure/msal-react'
 import { accountToUser } from '../../config/entra'
 import { DATAVERSE_URL } from '../../env'
 import { useMyCompany } from '../../hooks/useMyCompany'
+import { useHideOnScroll } from '../../hooks/useHideOnScroll'
 import { NavTabs } from './NavTabs'
 import { CompanySwitcher } from './CompanySwitcher'
 import { UserMenu } from './UserMenu'
@@ -18,10 +19,17 @@ export function AppShell() {
   // The Dataverse deep link is a demo/operator aid — only surface it for the
   // operator account, never for other demo logins or real customers.
   const isOperator = user?.email?.toLowerCase() === 'steve@drakey.co.uk'
+  // Collapse the brand bar + nav when scrolling down (reveal on scroll up) so
+  // content gets the full screen — reads much better on mobile.
+  const navHidden = useHideOnScroll()
 
   return (
     <div className="rc-hero min-h-screen">
-      <header className="sticky top-0 z-40 bg-rc-navy shadow-sm">
+      <header
+        className={`sticky top-0 z-40 bg-rc-navy shadow-sm transition-transform duration-300 ${
+          navHidden ? '-translate-y-full' : 'translate-y-0'
+        }`}
+      >
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-5">
           <div className="flex items-center gap-3">
             <img

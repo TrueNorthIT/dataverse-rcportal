@@ -153,11 +153,15 @@ function ScrollHint() {
       <button
         type="button"
         onClick={toCharts}
-        className="group flex flex-col items-center gap-1 text-rc-teal transition-colors hover:text-rc-blue"
+        className="group flex flex-col items-center gap-1"
         aria-label="Scroll to insights"
       >
-        <span className="text-xs font-medium">More insights</span>
-        <span className="rc-bounce flex h-8 w-8 items-center justify-center rounded-full border border-rc-blue-light bg-white shadow-sm transition-colors group-hover:border-rc-blue">
+        {/* On the blue rc-hero page background, so use light text + a white chip
+            with a blue chevron for contrast. */}
+        <span className="text-xs font-medium text-white/90 transition-colors group-hover:text-white">
+          More insights
+        </span>
+        <span className="rc-bounce flex h-8 w-8 items-center justify-center rounded-full border border-white/40 bg-white text-rc-blue shadow-sm transition-colors group-hover:border-white">
           <Icon name="chevronDown" className="h-4 w-4" />
         </span>
       </button>
