@@ -10,7 +10,7 @@ import { ProjectPlanCard, ProjectPlanModal } from '../components/project/Project
 import {
   DetailHeader,
   DetailNav,
-  DetailSkeleton,
+  DetailStates,
   MetaGrid,
   MetaItem,
   SectionTitle,
@@ -62,11 +62,9 @@ export function ProjectDetailPage() {
     <div>
       <DetailNav label="Projects" prevId={prevId} nextId={nextId} onPrev={goPrev} onNext={goNext} onBack={goBack} />
 
-      {query.isLoading && <DetailSkeleton />}
-      {error && <p className="text-sm text-red-200">{error}</p>}
-
-      {record && (
-        <DetailHeader
+      <DetailStates loading={query.isLoading} error={error}>
+        {record && (
+          <DetailHeader
           icon="layers"
           title={record.msdyn_subject || 'Project'}
           trailing={
@@ -122,6 +120,7 @@ export function ProjectDetailPage() {
           onClose={closePlan}
         />
       )}
+      </DetailStates>
     </div>
   )
 }

@@ -148,6 +148,29 @@ export function SectionTitle({
   )
 }
 
+/**
+ * Loading / error / content for a detail page — the detail-page sibling of
+ * `<ListStates>`. Shows a skeleton while the record loads, the error message on
+ * failure, otherwise the resolved content. Keeps the same triad out of every
+ * detail page.
+ */
+export function DetailStates({
+  loading,
+  error,
+  skeleton,
+  children,
+}: {
+  loading: boolean
+  error: string | null
+  /** Placeholder while loading; defaults to <DetailSkeleton>. */
+  skeleton?: React.ReactNode
+  children: React.ReactNode
+}) {
+  if (loading) return <>{skeleton ?? <DetailSkeleton />}</>
+  if (error) return <p className="text-sm text-red-200">{error}</p>
+  return <>{children}</>
+}
+
 /** Shimmer placeholder for a detail card while it loads. */
 export function DetailSkeleton() {
   return (

@@ -134,8 +134,8 @@ describe('CaseDetailPage', () => {
   it('does not render prev/next arrows without list nav context', async () => {
     renderPage()
     await screen.findByRole('heading', { name: 'Printer offline' })
-    expect(screen.queryByRole('button', { name: 'Previous case' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Next case' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Previous' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Next' })).not.toBeInTheDocument()
   })
 
   it('enables next but disables prev on the first case, and steps to the next', async () => {
@@ -144,8 +144,8 @@ describe('CaseDetailPage', () => {
     renderPage({ ids: ['c1', 'c2', 'c3'], from: '/cases', tier: 'me' })
     await screen.findByRole('heading', { name: 'Printer offline' })
 
-    const prev = screen.getByRole('button', { name: 'Previous case' })
-    const next = screen.getByRole('button', { name: 'Next case' })
+    const prev = screen.getByRole('button', { name: 'Previous' })
+    const next = screen.getByRole('button', { name: 'Next' })
     expect(prev).toBeDisabled()
     expect(next).toBeEnabled()
 
@@ -160,9 +160,9 @@ describe('CaseDetailPage', () => {
     renderPage({ ids: ['c0', 'c1'], from: '/cases', tier: 'me' }, '/cases/c1')
     await screen.findByRole('heading', { name: 'Printer offline' })
 
-    const prev = screen.getByRole('button', { name: 'Previous case' })
+    const prev = screen.getByRole('button', { name: 'Previous' })
     expect(prev).toBeEnabled()
-    expect(screen.getByRole('button', { name: 'Next case' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled()
 
     client.me.get.mockResolvedValue(single(makeCase({ title: 'Earlier case' })))
     await user.click(prev)
