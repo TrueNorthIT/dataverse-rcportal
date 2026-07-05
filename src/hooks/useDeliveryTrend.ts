@@ -1,6 +1,7 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { useDataverseClient } from '../lib/client'
 import { useSelectedCompany } from '../context/SelectedCompanyContext'
+import { useCompanyClients } from './useCompanyClients'
 import type { Project } from '../types/project'
 
 /** One month on the delivery trend. `delivered` (solid) is the cumulative count
@@ -73,17 +74,24 @@ function buildTrend(rows: Project[], now: number): TrendPoint[] {
  */
 export function useDeliveryTrend(): { data: TrendPoint[]; loading: boolean } {
   const client = useDataverseClient()
-  const { selectedContactId } = useSelectedCompany()
+  const companyClients = useCompanyClients()
+  const { selectedContactId, allCompanies } = useSelectedCompany()
 
   const query = useQuery({
-    queryKey: ['delivery-trend', selectedContactId ?? 'default'],
+    queryKey: ['delivery-trend', allCompanies ? 'all' : selectedContactId ?? 'default'],
     queryFn: async () => {
       // client.team scopes to the selected company; we only need the two dates.
-      const res = await client.team.list<Project>('project', {
-        select: ['msdyn_finish', 'msdyn_actualend'],
-        top: 200,
-      })
-      return res.data
+      // "All companies" fetches each company's projects and concatenates them.
+      const targets = allCompanies ? companyClients.map((c) => c.client) : [client]
+      const lists = await Promise.all(
+        targets.map((c) =>
+          c.team
+            .list<Project>('project', { select: ['msdyn_finish', 'msdyn_actualend'], top: 200 })
+            .then((r) => r.data)
+            .catch(() => [] as Project[]),
+        ),
+      )
+      return lists.flat()
     },
     placeholderData: keepPreviousData,
   })

@@ -1,7 +1,8 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
-import type { AggregateOptions } from '@truenorth-it/dataverse-client'
 import { useDataverseClient } from '../lib/client'
 import { useSelectedCompany } from '../context/SelectedCompanyContext'
+import { useCompanyClients } from './useCompanyClients'
+import { fanCount } from '../lib/aggregate'
 import { CasePrioritycode } from '../types/dataverse.generated'
 
 /** One "needs attention" highlight for the dashboard. */
@@ -11,12 +12,6 @@ export interface AttentionItem {
   count: number
   to: string
   tone: 'red' | 'amber' | 'blue'
-}
-
-function firstNumber(row: Record<string, unknown> | undefined): number {
-  if (!row) return 0
-  const n = Object.values(row).find((v) => typeof v === 'number')
-  return typeof n === 'number' ? n : 0
 }
 
 const isoOffset = (days: number) => {
@@ -35,34 +30,29 @@ const plural = (n: number, one: string, many: string) => (n === 1 ? one : many)
  */
 export function useAttention(): { items: AttentionItem[]; loading: boolean } {
   const client = useDataverseClient()
-  const { selectedContactId } = useSelectedCompany()
+  const companyClients = useCompanyClients()
+  const { selectedContactId, allCompanies } = useSelectedCompany()
 
   const query = useQuery({
-    queryKey: ['attention', selectedContactId ?? 'default'],
+    queryKey: ['attention', allCompanies ? 'all' : selectedContactId ?? 'default'],
     queryFn: async () => {
       const today = isoOffset(0)
       const weekAgo = isoOffset(-7)
       const monthAgo = isoOffset(-30)
-      const agg = async (table: string, options: AggregateOptions) => {
-        try {
-          const res = await client.team.aggregate(table, options)
-          return firstNumber(res.data[0] as Record<string, unknown> | undefined)
-        } catch {
-          return 0
-        }
-      }
+      // "All companies" fans out and sums; otherwise a single company client.
+      const targets = allCompanies ? companyClients.map((c) => c.client) : [client]
       const [overdue, staleHigh, recentQuotes] = await Promise.all([
-        agg('project', { aggregate: 'count', filter: { field: 'msdyn_finish', operator: 'lt', value: today } }),
-        agg('case', {
+        fanCount(targets, 'team', 'project', { aggregate: 'count', filter: { field: 'msdyn_finish', operator: 'lt', value: today } }),
+        fanCount(targets, 'team', 'case', {
           aggregate: 'count',
           filter: [
             { field: 'prioritycode', operator: 'eq', value: CasePrioritycode.High },
             { field: 'createdon', operator: 'le', value: weekAgo },
           ],
         }),
-        agg('quote', { aggregate: 'count', filter: { field: 'createdon', operator: 'ge', value: monthAgo } }),
+        fanCount(targets, 'team', 'quote', { aggregate: 'count', filter: { field: 'createdon', operator: 'ge', value: monthAgo } }),
       ])
-      return { overdue, staleHigh, recentQuotes }
+      return { overdue: overdue ?? 0, staleHigh: staleHigh ?? 0, recentQuotes: recentQuotes ?? 0 }
     },
     placeholderData: keepPreviousData,
   })

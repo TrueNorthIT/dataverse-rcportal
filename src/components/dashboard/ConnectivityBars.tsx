@@ -13,7 +13,7 @@ import { CONNECTIVITY_COLORS, reducedMotion } from './palette'
 export function ConnectivityBars() {
   const navigate = useNavigate()
   const pills = buildSitePills()
-  const counts = usePillCounts('site', 'team', pills)
+  const counts = usePillCounts('site', 'team', pills, true)
   const loaded = Object.keys(counts).length > 0
 
   const data = pills

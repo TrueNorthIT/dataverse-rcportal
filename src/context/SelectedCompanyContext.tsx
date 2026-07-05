@@ -30,11 +30,19 @@ interface SelectedCompanyValue {
   selectedContactId: string | undefined
   /** The company the app is currently acting as, if resolved. */
   currentCompany: Company | undefined
+  /** True when the dashboard should roll up across every company (aggregates
+   * only — lists/detail still act as the selected company). */
+  allCompanies: boolean
   /** Switch to a company (pass its contactid), or undefined to use the default. */
   selectCompany: (contactId: string | undefined) => void
+  /** Roll the dashboard up across all of the caller's companies. */
+  selectAllCompanies: () => void
   /** True while the company list is still loading. */
   loading: boolean
 }
+
+/** Sentinel persisted in localStorage for the all-companies roll-up. */
+const ALL = 'ALL'
 
 const SelectedCompanyContext = createContext<SelectedCompanyValue | undefined>(undefined)
 
@@ -50,13 +58,17 @@ export function SelectedCompanyProvider({ children }: { children: ReactNode }) {
 
   const [companies, setCompanies] = useState<Company[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedContactId, setSelectedContactId] = useState<string | undefined>(() => {
+  const stored = (() => {
     try {
       return localStorage.getItem(storageKey(accountId)) ?? undefined
     } catch {
       return undefined
     }
-  })
+  })()
+  const [allCompanies, setAllCompanies] = useState<boolean>(stored === ALL)
+  const [selectedContactId, setSelectedContactId] = useState<string | undefined>(
+    stored && stored !== ALL ? stored : undefined,
+  )
 
   // A base client (no contact override) is enough to list companies — the
   // endpoint keys off the token email, not X-Contact-Id.
@@ -92,6 +104,7 @@ export function SelectedCompanyProvider({ children }: { children: ReactNode }) {
 
   const selectCompany = useMemo(
     () => (contactId: string | undefined) => {
+      setAllCompanies(false)
       setSelectedContactId(contactId)
       try {
         const key = storageKey(accountId)
@@ -99,6 +112,21 @@ export function SelectedCompanyProvider({ children }: { children: ReactNode }) {
         else localStorage.removeItem(key)
       } catch {
         // Persistence is best-effort — ignore storage failures.
+      }
+    },
+    [accountId],
+  )
+
+  // Roll the dashboard up across all companies. Leaves selectedContactId as-is
+  // so lists/detail still act as the last-picked company; only the dashboard
+  // reads `allCompanies` and fans out.
+  const selectAllCompanies = useMemo(
+    () => () => {
+      setAllCompanies(true)
+      try {
+        localStorage.setItem(storageKey(accountId), ALL)
+      } catch {
+        // best-effort
       }
     },
     [accountId],
@@ -114,10 +142,12 @@ export function SelectedCompanyProvider({ children }: { children: ReactNode }) {
       hasMultiple: companies.length > 1,
       selectedContactId,
       currentCompany,
+      allCompanies,
       selectCompany,
+      selectAllCompanies,
       loading,
     }
-  }, [companies, selectedContactId, selectCompany, loading])
+  }, [companies, selectedContactId, allCompanies, selectCompany, selectAllCompanies, loading])
 
   return (
     <SelectedCompanyContext.Provider value={value}>

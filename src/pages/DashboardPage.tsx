@@ -3,10 +3,12 @@ import { Link } from 'react-router-dom'
 import { useDashboard } from '../hooks/useDashboard'
 import { useAttention } from '../hooks/useAttention'
 import { useMyCompany } from '../hooks/useMyCompany'
+import { useSelectedCompany } from '../context/SelectedCompanyContext'
 import { PageHeader } from '../components/common/PageHeader'
 import { Card } from '../components/common/Card'
 import { Icon } from '../components/common/Icon'
 import { ArchitectureNote } from '../components/dashboard/ArchitectureNote'
+import { CompanyScopeToggle } from '../components/dashboard/CompanyScopeToggle'
 
 // recharts is heavy — split the whole charts section into its own lazy chunk.
 const DashboardCharts = lazy(() => import('../components/dashboard/DashboardCharts'))
@@ -15,6 +17,7 @@ const DashboardCharts = lazy(() => import('../components/dashboard/DashboardChar
 export function DashboardPage() {
   const { stats, loading } = useDashboard()
   const { account } = useMyCompany()
+  const { allCompanies } = useSelectedCompany()
 
   const fmtCount = (n: number | null) => (n == null ? '—' : n.toLocaleString('en-GB'))
 
@@ -22,7 +25,14 @@ export function DashboardPage() {
     <div>
       <PageHeader
         title="Dashboard"
-        subtitle={account?.name ? `Welcome — ${account.name}` : 'Welcome'}
+        subtitle={
+          allCompanies
+            ? 'Across all your companies'
+            : account?.name
+              ? `Welcome — ${account.name}`
+              : 'Welcome'
+        }
+        actions={<CompanyScopeToggle />}
       />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
