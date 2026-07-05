@@ -83,10 +83,10 @@ export function ArchitectureNote() {
           </div>
 
           <p className="mt-2 max-w-3xl text-sm leading-relaxed text-rc-teal">
-            Everything on this page is real Dataverse data. The React portal never talks to Dataverse
-            directly. It goes through the TrueNorth Contact Portal API, a stateless proxy that
-            authenticates every request with Entra External ID and enforces what each person is allowed
-            to see.
+            Everything on this page is real Dataverse data. Entra External ID handles sign-in. The
+            TrueNorth Contact Portal API does the rest: it authorises each request and trims the data to
+            what you are allowed to see, so you never write permission code. To expose a new table you
+            point the API at it and set how it is scoped.
           </p>
 
           <div className="mt-4">
@@ -94,14 +94,15 @@ export function ArchitectureNote() {
           </div>
 
           <div className="mt-5 grid gap-2 text-sm text-rc-navy sm:grid-cols-2">
-            <Point>There is no middleware to build. You write only the React client.</Point>
-            <Point>Projects, sites and quotes are scoped to the signed-in contact or their company.</Point>
+            <Point>Entra External ID authenticates the user. The Contact Portal API authorises the request and filters the data.</Point>
+            <Point>Security trimming is built in, so you don&rsquo;t write it yourself.</Point>
+            <Point>Expose quotes, orders or tickets through configuration, not a new backend.</Point>
+            <Point>Anything linked to an account or contact is scoped to the signed-in person or their company.</Point>
             <Point>Knowledge base articles are public, so no permission check runs.</Point>
-            <Point>You can view every quote, site and project across your company.</Point>
             <Point>You can edit your own profile, but not a colleague&rsquo;s.</Point>
           </div>
           <p className="mt-4 text-xs text-rc-teal">
-            We choose what to expose and how to secure it through configuration, not code.
+            You build the client. Entra handles identity, and the API handles authorisation and trimming.
           </p>
         </div>
       </Card>
