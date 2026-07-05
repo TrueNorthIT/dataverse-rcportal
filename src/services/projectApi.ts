@@ -137,16 +137,25 @@ export interface ProjectHealth {
 }
 
 /**
- * RAG status derived from the project's real state + finish date: completed →
- * done; past finish → red; within 30 days → amber; else green.
+ * RAG status derived from the project's real schedule: delivered → done; past
+ * finish → red; within 30 days → amber; else green.
+ *
+ * "Complete" keys off `msdyn_actualend` ONLY — the exact signal the Complete
+ * pill filters on (`msdyn_actualend ne null`) — so the chip and the pill can
+ * never disagree in the list. (The project route filters `statecode eq 0`, so
+ * closed/inactive projects never reach the portal anyway.)
  */
 export function projectHealth(p: Project): ProjectHealth {
-  const state = `${p.statuscode_label ?? ''} ${p.statecode_label ?? ''}`.toLowerCase()
   // Delivered — an actual end date means it finished (even if late); it's not
   // "overdue" any more.
-  if (p.msdyn_actualend || /complete|closed|finished|delivered|inactive/.test(state)) {
-    const detail = p.msdyn_actualend ? `Delivered ${formatDate(p.msdyn_actualend)}` : 'Delivered'
-    return { key: 'done', label: 'Complete', detail, dot: 'bg-rc-teal', chip: 'bg-rc-blue-light text-rc-teal' }
+  if (p.msdyn_actualend) {
+    return {
+      key: 'done',
+      label: 'Complete',
+      detail: `Delivered ${formatDate(p.msdyn_actualend)}`,
+      dot: 'bg-rc-teal',
+      chip: 'bg-rc-blue-light text-rc-teal',
+    }
   }
   if (p.msdyn_finish) {
     const days = Math.round((new Date(p.msdyn_finish).getTime() - Date.now()) / 86_400_000)

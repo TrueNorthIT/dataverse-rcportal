@@ -10,7 +10,6 @@ import { cleanDescription, formatDate } from '../lib/format'
 import { PageHeader } from '../components/common/PageHeader'
 import { CardButton } from '../components/common/Card'
 import { TierToggle } from '../components/common/TierToggle'
-import { StatusChip } from '../components/common/StatusChip'
 import { FilterPills } from '../components/common/FilterPills'
 import { SortMenu } from '../components/common/SortMenu'
 import { ListStates, LoadMore } from '../components/common/ListStates'
@@ -140,13 +139,18 @@ export function ProjectsPage() {
                     <div className="mt-0.5 text-xs text-rc-teal">{health.detail}</div>
                   </div>
                   <div className="flex shrink-0 flex-col items-end gap-1.5">
+                    {/* Single RAG chip, derived from the same signal as the
+                        filter pills (finish date + msdyn_actualend), so the
+                        chip and the active pill always agree. We deliberately
+                        don't also show statuscode here — every demo project is
+                        "Active", so it carries no information and would clash
+                        with a "Complete" RAG chip on delivered projects. */}
                     <span
                       className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${health.chip}`}
                     >
                       <span className={`h-1.5 w-1.5 rounded-full ${health.dot}`} />
                       {health.label}
                     </span>
-                    <StatusChip label={p.statuscode_label} />
                   </div>
                 </div>
               </CardButton>

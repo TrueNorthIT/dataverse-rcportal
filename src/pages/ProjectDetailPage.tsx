@@ -5,7 +5,6 @@ import { useSelectedCompany } from '../context/SelectedCompanyContext'
 import { useListNav } from '../hooks/useListNav'
 import { fetchProjectDetail, projectHealth, listProjectTasks, listProjectNotes } from '../services/projectApi'
 import { cleanDescription, formatDate } from '../lib/format'
-import { StatusChip } from '../components/common/StatusChip'
 import { Icon } from '../components/common/Icon'
 import { ProjectPlanCard, ProjectPlanModal } from '../components/project/ProjectViews'
 import {
@@ -72,13 +71,16 @@ export function ProjectDetailPage() {
           title={record.msdyn_subject || 'Project'}
           trailing={
             <div className="flex shrink-0 flex-col items-end gap-1.5">
+              {/* Only the derived RAG chip — the same signal as the Projects
+                  list pills. statuscode is a constant "Active" for every demo
+                  project and would clash with a "Complete" chip, so we let the
+                  "Actual finish" meta field below tell the delivery story. */}
               {health && (
                 <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${health.chip}`}>
                   <span className={`h-1.5 w-1.5 rounded-full ${health.dot}`} />
                   {health.label}
                 </span>
               )}
-              <StatusChip label={record.statuscode_label} />
             </div>
           }
         >
