@@ -17,14 +17,17 @@ export function CompanySwitcher() {
 
   useEffect(() => {
     if (!open) return
-    const onDown = (e: MouseEvent) => {
+    // pointerdown (not mousedown): on touch, mousedown is synthesized late in
+    // the gesture, which made the first press flaky. pointerdown fires reliably
+    // at the start of any press, mouse or touch.
+    const onDown = (e: PointerEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
     }
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false)
-    document.addEventListener('mousedown', onDown)
+    document.addEventListener('pointerdown', onDown)
     document.addEventListener('keydown', onKey)
     return () => {
-      document.removeEventListener('mousedown', onDown)
+      document.removeEventListener('pointerdown', onDown)
       document.removeEventListener('keydown', onKey)
     }
   }, [open])
