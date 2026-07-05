@@ -1,13 +1,14 @@
+import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useDataverseClient } from '../lib/client'
 import { useSelectedCompany } from '../context/SelectedCompanyContext'
 import { useListNav } from '../hooks/useListNav'
-import { fetchProjectDetail, projectHealth, deriveMilestones } from '../services/projectApi'
+import { fetchProjectDetail, projectHealth, deriveMilestones, deriveDiary } from '../services/projectApi'
 import { cleanDescription, formatDate } from '../lib/format'
-import { Card } from '../components/common/Card'
 import { StatusChip } from '../components/common/StatusChip'
 import { Icon } from '../components/common/Icon'
+import { ProjectTimeline, ProjectDiary } from '../components/project/ProjectViews'
 import {
   DetailHeader,
   DetailNav,
@@ -33,6 +34,8 @@ export function ProjectDetailPage() {
   const error = query.error instanceof Error ? query.error.message : null
   const health = record ? projectHealth(record) : null
   const milestones = record ? deriveMilestones(record) : []
+  const diary = record ? deriveDiary(record) : []
+  const [view, setView] = useState<'timeline' | 'diary'>('timeline')
 
   return (
     <div>
@@ -79,33 +82,51 @@ export function ProjectDetailPage() {
         </DetailHeader>
       )}
 
-      {record && milestones.length > 0 && (
+      {record && (milestones.length > 0 || diary.length > 0) && (
         <div className="mt-6">
-          <SectionTitle icon="activity">Milestones</SectionTitle>
-          <Card className="p-5">
-            <ol className="relative ml-1 space-y-4 border-l border-rc-blue-light pl-5">
-              {milestones.map((m) => (
-                <li key={m.key} className="relative">
-                  <span
-                    className={`absolute -left-[27px] flex h-4 w-4 items-center justify-center rounded-full ring-4 ring-white ${
-                      m.done ? 'bg-rc-green text-white' : 'border-2 border-rc-blue-light bg-white'
-                    }`}
-                  >
-                    {m.done && <Icon name="checkCircle" className="h-3 w-3" />}
-                  </span>
-                  <div className="flex items-center justify-between gap-3">
-                    <span className={`text-sm ${m.done ? 'font-medium text-rc-navy' : 'text-rc-teal'}`}>
-                      {m.label}
-                    </span>
-                    <span className="shrink-0 text-xs text-rc-teal">{formatDate(m.date)}</span>
-                  </div>
-                </li>
-              ))}
-            </ol>
-            <p className="mt-4 text-[11px] text-rc-teal/70">Illustrative delivery milestones derived from the schedule.</p>
-          </Card>
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <SectionTitle icon="activity">Delivery</SectionTitle>
+            <ViewToggle view={view} onChange={setView} />
+          </div>
+          {view === 'timeline' ? (
+            <ProjectTimeline project={record} milestones={milestones} />
+          ) : (
+            <ProjectDiary entries={diary} />
+          )}
         </div>
       )}
+    </div>
+  )
+}
+
+/** Segmented Timeline / Diary switch, styled light for the gradient page. */
+function ViewToggle({
+  view,
+  onChange,
+}: {
+  view: 'timeline' | 'diary'
+  onChange: (v: 'timeline' | 'diary') => void
+}) {
+  const opts: { key: 'timeline' | 'diary'; label: string; icon: 'activity' | 'fileText' }[] = [
+    { key: 'timeline', label: 'Timeline', icon: 'activity' },
+    { key: 'diary', label: 'Diary', icon: 'fileText' },
+  ]
+  return (
+    <div className="inline-flex rounded-lg border border-white/30 p-0.5">
+      {opts.map((o) => (
+        <button
+          key={o.key}
+          type="button"
+          onClick={() => onChange(o.key)}
+          className={
+            'inline-flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium transition-colors ' +
+            (view === o.key ? 'bg-white text-rc-navy' : 'text-white/90 hover:bg-white/10')
+          }
+        >
+          <Icon name={o.icon} className="h-3.5 w-3.5" />
+          {o.label}
+        </button>
+      ))}
     </div>
   )
 }
