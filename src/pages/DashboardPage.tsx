@@ -17,12 +17,20 @@ const DashboardCharts = lazy(() => import('../components/dashboard/DashboardChar
 export function DashboardPage() {
   const { stats, loading } = useDashboard()
   const { account } = useMyCompany()
-  const { allCompanies } = useSelectedCompany()
+  const { allCompanies, hasMultiple } = useSelectedCompany()
 
   const fmtCount = (n: number | null) => (n == null ? '—' : n.toLocaleString('en-GB'))
 
   return (
     <div>
+      {/* The scope toggle stays pinned to the top as you scroll (the app
+          header/nav hides on scroll-down and slides back over this on
+          scroll-up, hence the lower z-index). */}
+      {hasMultiple && (
+        <div className="sticky top-2 z-30 mb-3">
+          <CompanyScopeToggle />
+        </div>
+      )}
       <PageHeader
         title="Dashboard"
         subtitle={
@@ -32,7 +40,6 @@ export function DashboardPage() {
               ? `Welcome — ${account.name}`
               : 'Welcome'
         }
-        actions={<CompanyScopeToggle />}
       />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
