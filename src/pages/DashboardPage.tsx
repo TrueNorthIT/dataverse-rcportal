@@ -6,6 +6,7 @@ import { useMyCompany } from '../hooks/useMyCompany'
 import { PageHeader } from '../components/common/PageHeader'
 import { Card } from '../components/common/Card'
 import { Icon } from '../components/common/Icon'
+import { ArchitectureNote } from '../components/dashboard/ArchitectureNote'
 
 // recharts is heavy — split the whole charts section into its own lazy chunk.
 const DashboardCharts = lazy(() => import('../components/dashboard/DashboardCharts'))
@@ -45,6 +46,10 @@ export function DashboardPage() {
         <Shortcut to="/cases" title="Raise a ticket" body="Log a new support case with our team." />
         <Shortcut to="/profile" title="My profile" body="View and edit your contact details." />
         <Shortcut to="/company" title="My company" body="Company details and your colleagues." />
+      </div>
+
+      <div className="mt-8">
+        <ArchitectureNote />
       </div>
     </div>
   )
