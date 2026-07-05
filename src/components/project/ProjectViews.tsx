@@ -5,7 +5,8 @@
  * axis with a Today line + milestone markers) and a dated Diary. All fed by real
  * Dataverse rows (projectApi's listProjectTasks / listProjectNotes).
  */
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useLocation, useNavigate } from 'react-router-dom'
 import type { Project } from '../../types/project'
 import type { DiaryEntry, DiaryKind, Milestone, Phase } from '../../services/projectApi'
@@ -185,6 +186,9 @@ function monthTicks(s: number, e: number): { frac: number; label: string }[] {
 }
 
 function ProjectGantt({ project, phases, milestones }: { project: Project; phases: Phase[]; milestones: Milestone[] }) {
+  // Tooltip rendered via a body portal (position:fixed) so it can never be
+  // trapped under a bar by an ancestor's stacking context.
+  const [hover, setHover] = useState<{ ph: Phase; x: number; y: number } | null>(null)
   const { s, e, valid } = bounds(project)
   if (!valid || phases.length === 0) {
     return <p className="text-sm text-rc-teal">This project has no schedule to plot yet.</p>
@@ -247,25 +251,19 @@ function ProjectGantt({ project, phases, milestones }: { project: Project; phase
                 <div className={`${LABEL_COL} truncate text-sm text-rc-navy`} title={ph.label}>
                   {ph.label}
                 </div>
-                <div className="relative h-7 flex-1 hover:z-30">
-                  <div className="group absolute top-1 h-5" style={{ left: `${left}%`, width: `${width}%` }}>
-                    <div className={`flex h-full items-center overflow-hidden rounded-md ${barTone(ph.status)}`}>
-                      {ph.status === 'active' && (
-                        <div className="h-full rounded-md rc-gradient" style={{ width: `${ph.pct * 100}%` }} />
-                      )}
-                    </div>
-                    {/* hover detail card */}
-                    <div className="pointer-events-none absolute bottom-full left-0 z-50 mb-2 hidden w-56 rounded-lg border border-rc-blue-light bg-white p-3 text-left shadow-lg group-hover:block">
-                      <div className="text-sm font-medium text-rc-navy">{ph.label}</div>
-                      <div className="mt-1 flex items-center gap-1.5 text-xs text-rc-teal">
-                        <Icon name="calendar" className="h-3 w-3" />
-                        {formatDate(ph.start)} – {formatDate(ph.end)}
-                      </div>
-                      <div className="mt-1 flex items-center gap-1.5 text-xs text-rc-teal">
-                        <Icon name="percent" className="h-3 w-3" />
-                        {statusLabel(ph.status)} · {Math.round(ph.pct * 100)}%
-                      </div>
-                    </div>
+                <div className="relative h-7 flex-1">
+                  <div
+                    className={`absolute top-1 flex h-5 items-center overflow-hidden rounded-md ${barTone(ph.status)}`}
+                    style={{ left: `${left}%`, width: `${width}%` }}
+                    onMouseEnter={(ev) => {
+                      const r = ev.currentTarget.getBoundingClientRect()
+                      setHover({ ph, x: r.left, y: r.top })
+                    }}
+                    onMouseLeave={() => setHover(null)}
+                  >
+                    {ph.status === 'active' && (
+                      <div className="h-full rounded-md rc-gradient" style={{ width: `${ph.pct * 100}%` }} />
+                    )}
                   </div>
                 </div>
               </div>
@@ -279,6 +277,25 @@ function ProjectGantt({ project, phases, milestones }: { project: Project; phase
           <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-4 rounded bg-rc-blue-light/60 border border-rc-blue-light" /> Upcoming</span>
           <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rotate-45 rounded-[2px] bg-rc-blue" /> Milestone</span>
         </div>
+
+      {hover &&
+        createPortal(
+          <div
+            className="pointer-events-none fixed z-[80] w-56 -translate-y-full rounded-lg border border-rc-blue-light bg-white p-3 text-left shadow-xl"
+            style={{ left: Math.min(hover.x, window.innerWidth - 236), top: hover.y - 8 }}
+          >
+            <div className="text-sm font-medium text-rc-navy">{hover.ph.label}</div>
+            <div className="mt-1 flex items-center gap-1.5 text-xs text-rc-teal">
+              <Icon name="calendar" className="h-3 w-3" />
+              {formatDate(hover.ph.start)} – {formatDate(hover.ph.end)}
+            </div>
+            <div className="mt-1 flex items-center gap-1.5 text-xs text-rc-teal">
+              <Icon name="percent" className="h-3 w-3" />
+              {statusLabel(hover.ph.status)} · {Math.round(hover.ph.pct * 100)}%
+            </div>
+          </div>,
+          document.body,
+        )}
     </div>
   )
 }
