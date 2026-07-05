@@ -22,10 +22,7 @@ const DASH_KEYS = new Set(['dashboard', 'attention', 'pillcounts', 'delivery-tre
 export function DashboardPage() {
   const { stats, loading, stale } = useDashboard()
   const { account } = useMyCompany()
-  const { allCompanies, hasMultiple, selectedContactId } = useSelectedCompany()
-  // Changes when the scope changes — re-keys the tiles/charts so their entrance
-  // animation replays on a switch (skeleton while loading, then unfold in).
-  const scopeKey = allCompanies ? 'all' : selectedContactId ?? 'default'
+  const { allCompanies, hasMultiple } = useSelectedCompany()
   // Any dashboard query in flight → the roll-up is (re)loading. Tapping the
   // toggle again just switches the scope; React Query tracks the latest, so the
   // last tap always wins.
@@ -70,8 +67,10 @@ export function DashboardPage() {
       <Suspense
         fallback={<div className="rc-skeleton mt-8 h-64 w-full rounded-2xl" aria-label="Loading insights" />}
       >
-        {/* Re-key on scope change so the charts re-defer + re-unfold on a switch. */}
-        <DashboardCharts key={scopeKey} />
+        {/* No re-key: on a scope switch the charts stay mounted and update in
+            place (their query keys already flip all↔current), so switching
+            works even while they're scrolled into view. */}
+        <DashboardCharts />
       </Suspense>
 
       <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
