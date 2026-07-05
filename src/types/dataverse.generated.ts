@@ -945,7 +945,7 @@ export interface Site {
   longitude?: number;
   /** Site name */
   name?: string;
-  /** Connectivity type */
+  /** Connectivity type Allowed values: {@link SiteNewConnectivitytype}. */
   new_connectivitytype?: number;
   /** Display label for new_connectivitytype */
   new_connectivitytype_label?: string;
@@ -1020,6 +1020,21 @@ export const SiteAddresstypecode = {
   Other: 4,
 } as const;
 export type SiteAddresstypecode = typeof SiteAddresstypecode[keyof typeof SiteAddresstypecode];
+
+/** Choice values for `site.new_connectivitytype` */
+export const SiteNewConnectivitytype = {
+  /** FTTP */
+  FTTP: 100000000,
+  /** FTTC */
+  FTTC: 100000001,
+  /** Leased Line */
+  LeasedLine: 100000002,
+  /** Dark Fibre */
+  DarkFibre: 100000003,
+  /** EFM */
+  EFM: 100000004,
+} as const;
+export type SiteNewConnectivitytype = typeof SiteNewConnectivitytype[keyof typeof SiteNewConnectivitytype];
 
 /** All valid table names accepted by the API */
 export type TableName = "account" | "case" | "casenote" | "casenotes" | "cases" | "contact" | "contacts" | "customeraddress" | "feedback" | "incidents" | "kb" | "knowledge" | "knowledgearticle" | "locations" | "msdyn_projects" | "notes" | "opportunities" | "opportunity" | "opps" | "planitems" | "portalfeedback" | "project" | "projectnote" | "projectnotes" | "projects" | "projecttask" | "projecttasks" | "quote" | "quotedetail" | "quotedetails" | "quoteline" | "quotelines" | "quotes" | "site" | "sites" | "tickets";
