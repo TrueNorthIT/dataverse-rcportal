@@ -4,11 +4,11 @@ import { useQuery } from '@tanstack/react-query'
 import { useDataverseClient } from '../lib/client'
 import { useSelectedCompany } from '../context/SelectedCompanyContext'
 import { useListNav } from '../hooks/useListNav'
-import { fetchProjectDetail, projectHealth, deriveMilestones, deriveDiary } from '../services/projectApi'
+import { fetchProjectDetail, projectHealth, deriveMilestones, deriveDiary, derivePhases } from '../services/projectApi'
 import { cleanDescription, formatDate } from '../lib/format'
 import { StatusChip } from '../components/common/StatusChip'
 import { Icon } from '../components/common/Icon'
-import { ProjectTimeline, ProjectDiary } from '../components/project/ProjectViews'
+import { ProjectPlanCard, ProjectPlanModal } from '../components/project/ProjectViews'
 import {
   DetailHeader,
   DetailNav,
@@ -34,8 +34,9 @@ export function ProjectDetailPage() {
   const error = query.error instanceof Error ? query.error.message : null
   const health = record ? projectHealth(record) : null
   const milestones = record ? deriveMilestones(record) : []
+  const phases = record ? derivePhases(record) : []
   const diary = record ? deriveDiary(record) : []
-  const [view, setView] = useState<'timeline' | 'diary'>('timeline')
+  const [planOpen, setPlanOpen] = useState(false)
 
   return (
     <div>
@@ -82,51 +83,22 @@ export function ProjectDetailPage() {
         </DetailHeader>
       )}
 
-      {record && (milestones.length > 0 || diary.length > 0) && (
+      {record && phases.length > 0 && (
         <div className="mt-6">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <SectionTitle icon="activity">Delivery</SectionTitle>
-            <ViewToggle view={view} onChange={setView} />
-          </div>
-          {view === 'timeline' ? (
-            <ProjectTimeline project={record} milestones={milestones} />
-          ) : (
-            <ProjectDiary entries={diary} />
-          )}
+          <SectionTitle icon="gantt">Delivery plan</SectionTitle>
+          <ProjectPlanCard project={record} milestones={milestones} onOpen={() => setPlanOpen(true)} />
         </div>
       )}
-    </div>
-  )
-}
 
-/** Segmented Timeline / Diary switch, styled light for the gradient page. */
-function ViewToggle({
-  view,
-  onChange,
-}: {
-  view: 'timeline' | 'diary'
-  onChange: (v: 'timeline' | 'diary') => void
-}) {
-  const opts: { key: 'timeline' | 'diary'; label: string; icon: 'activity' | 'fileText' }[] = [
-    { key: 'timeline', label: 'Timeline', icon: 'activity' },
-    { key: 'diary', label: 'Diary', icon: 'fileText' },
-  ]
-  return (
-    <div className="inline-flex rounded-lg border border-white/30 p-0.5">
-      {opts.map((o) => (
-        <button
-          key={o.key}
-          type="button"
-          onClick={() => onChange(o.key)}
-          className={
-            'inline-flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium transition-colors ' +
-            (view === o.key ? 'bg-white text-rc-navy' : 'text-white/90 hover:bg-white/10')
-          }
-        >
-          <Icon name={o.icon} className="h-3.5 w-3.5" />
-          {o.label}
-        </button>
-      ))}
+      {record && planOpen && (
+        <ProjectPlanModal
+          project={record}
+          phases={phases}
+          milestones={milestones}
+          diary={diary}
+          onClose={() => setPlanOpen(false)}
+        />
+      )}
     </div>
   )
 }

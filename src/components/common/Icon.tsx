@@ -7,7 +7,7 @@ export type IconName =
   | 'calendar' | 'clock' | 'tag' | 'hash' | 'pound' | 'percent'
   | 'mapPin' | 'phone' | 'mail' | 'globe' | 'building' | 'user' | 'users'
   | 'briefcase' | 'layers' | 'fileText' | 'link' | 'activity' | 'checkCircle'
-  | 'chevronRight' | 'flag' | 'truck' | 'receipt'
+  | 'chevronRight' | 'flag' | 'truck' | 'receipt' | 'maximize' | 'x' | 'gantt'
 
 /** Path/element markup per icon (inside a 24×24 stroked <svg>). */
 const PATHS: Record<IconName, React.ReactNode> = {
@@ -34,6 +34,9 @@ const PATHS: Record<IconName, React.ReactNode> = {
   flag: (<path d="M4 22V4s1-1 4-1 5 2 8 2 4-1 4-1v10s-1 1-4 1-5-2-8-2-4 1-4 1" />),
   truck: (<><path d="M1 3h15v13H1zM16 8h4l3 3v5h-7" /><circle cx="5.5" cy="18.5" r="2" /><circle cx="18.5" cy="18.5" r="2" /></>),
   receipt: (<path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1ZM8 7h8M8 11h8M8 15h5" />),
+  maximize: (<path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 1 2-2v-3" />),
+  x: (<path d="M18 6 6 18M6 6l12 12" />),
+  gantt: (<path d="M3 4h10M3 9h14M3 14h8M3 19h12M3 3v18" />),
 }
 
 export function Icon({ name, className = 'h-4 w-4' }: { name: IconName; className?: string }) {
