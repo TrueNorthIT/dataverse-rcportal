@@ -2,6 +2,7 @@ import type { DataverseClient, FilterCondition } from '@truenorth-it/dataverse-c
 import type { Project } from '../types/project'
 import type { Projectnotes, Projecttask } from '../types/dataverse.generated'
 import type { Pill } from './pills'
+import { fetchDetail } from './detail'
 import { humanDuration, cleanDescription, formatDate } from '../lib/format'
 
 /** Columns the portal reads for projects (Dataverse `msdyn_project`). */
@@ -70,22 +71,16 @@ const clamp01 = (n: number) => Math.max(0, Math.min(1, n))
  * Fetch a single project for the detail view. Projects are company-level, so
  * `team` is the reliable tier; with a hint we honour it, else team then me.
  */
-export async function fetchProjectDetail(
+export function fetchProjectDetail(
   client: DataverseClient,
   id: string,
   preferTier?: 'me' | 'team',
 ): Promise<{ record: Project; mine: boolean }> {
-  if (preferTier) {
-    const res = await client[preferTier].get<Project>('project', id, { select: PROJECT_DETAIL_SELECT })
-    return { record: res.data, mine: preferTier === 'me' }
-  }
-  try {
-    const res = await client.team.get<Project>('project', id, { select: PROJECT_DETAIL_SELECT })
-    return { record: res.data, mine: false }
-  } catch {
-    const res = await client.me.get<Project>('project', id, { select: PROJECT_DETAIL_SELECT })
-    return { record: res.data, mine: true }
-  }
+  // Projects are company-level — try the company tier first.
+  return fetchDetail<Project>(client, 'project', id, PROJECT_DETAIL_SELECT, {
+    defaultTier: 'team',
+    preferTier,
+  })
 }
 
 // ── Plan items (real new_projecttask rows) ───────────────────────────────────
