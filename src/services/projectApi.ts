@@ -1,6 +1,7 @@
-import type { DataverseClient } from '@truenorth-it/dataverse-client'
+import type { DataverseClient, FilterCondition } from '@truenorth-it/dataverse-client'
 import type { Project } from '../types/project'
 import type { Projectnotes, Projecttask } from '../types/dataverse.generated'
+import type { Pill } from './pills'
 import { humanDuration, cleanDescription, formatDate } from '../lib/format'
 
 /** Columns the portal reads for projects (Dataverse `msdyn_project`). */
@@ -26,6 +27,42 @@ export const PROJECT_DETAIL_SELECT = [
 
 /** Default list ordering — soonest to start first. */
 export const PROJECT_ORDER = { field: 'msdyn_scheduledstart', direction: 'asc' } as const
+
+const isoOffset = (days: number) => {
+  const d = new Date()
+  d.setDate(d.getDate() + days)
+  return d.toISOString().slice(0, 10)
+}
+
+/**
+ * RAG filter pills, mirroring projectHealth(). A delivered project
+ * (`msdyn_actualend` set) is Complete — never overdue/on-track — so the
+ * in-flight pills exclude it via `msdyn_actualend eq null`. Datetime fields
+ * accept a bare `null` in filters. Array conditions are AND-ed.
+ *
+ * Shared by ProjectsPage (filter pills) and the dashboard (Projects-by-health
+ * donut + counts) so the chip, the pill, and the chart segment always agree.
+ */
+export function buildProjectPills(): Pill[] {
+  const today = isoOffset(0)
+  const in30 = isoOffset(30)
+  const notDelivered: FilterCondition = { field: 'msdyn_actualend', operator: 'eq', value: 'null' }
+  return [
+    { key: 'all', label: 'All' },
+    { key: 'ontrack', label: 'On track', filter: [{ field: 'msdyn_finish', operator: 'gt', value: in30 }, notDelivered] },
+    {
+      key: 'duesoon',
+      label: 'Due soon',
+      filter: [
+        { field: 'msdyn_finish', operator: 'ge', value: today },
+        { field: 'msdyn_finish', operator: 'le', value: in30 },
+        notDelivered,
+      ],
+    },
+    { key: 'overdue', label: 'Overdue', filter: [{ field: 'msdyn_finish', operator: 'lt', value: today }, notDelivered] },
+    { key: 'complete', label: 'Complete', filter: { field: 'msdyn_actualend', operator: 'ne', value: 'null' } },
+  ]
+}
 
 const clamp01 = (n: number) => Math.max(0, Math.min(1, n))
 

@@ -1,9 +1,14 @@
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useDashboard } from '../hooks/useDashboard'
 import { useAttention } from '../hooks/useAttention'
 import { useMyCompany } from '../hooks/useMyCompany'
 import { PageHeader } from '../components/common/PageHeader'
 import { Card } from '../components/common/Card'
+import { Icon } from '../components/common/Icon'
+
+// recharts is heavy — split the whole charts section into its own lazy chunk.
+const DashboardCharts = lazy(() => import('../components/dashboard/DashboardCharts'))
 
 /** Landing dashboard: headline `me`-tier stats with links into each section. */
 export function DashboardPage() {
@@ -27,6 +32,14 @@ export function DashboardPage() {
       </div>
 
       <Attention />
+
+      <ScrollHint />
+
+      <Suspense
+        fallback={<div className="rc-skeleton mt-8 h-64 w-full rounded-2xl" aria-label="Loading insights" />}
+      >
+        <DashboardCharts />
+      </Suspense>
 
       <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Shortcut to="/cases" title="Raise a ticket" body="Log a new support case with our team." />
@@ -119,6 +132,36 @@ function Attention() {
         )}
       </div>
     </Card>
+  )
+}
+
+/** A bouncing down-arrow after the fold, hinting at the charts below. Scrolls
+ * to them on click and fades out once the user starts scrolling down. */
+function ScrollHint() {
+  const [show, setShow] = useState(true)
+  useEffect(() => {
+    const onScroll = () => setShow(window.scrollY < 140)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+  if (!show) return null
+  const toCharts = () =>
+    document.getElementById('insights')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  return (
+    <div className="mt-6 flex justify-center">
+      <button
+        type="button"
+        onClick={toCharts}
+        className="group flex flex-col items-center gap-1 text-rc-teal transition-colors hover:text-rc-blue"
+        aria-label="Scroll to insights"
+      >
+        <span className="text-xs font-medium">More insights</span>
+        <span className="rc-bounce flex h-8 w-8 items-center justify-center rounded-full border border-rc-blue-light bg-white shadow-sm transition-colors group-hover:border-rc-blue">
+          <Icon name="chevronDown" className="h-4 w-4" />
+        </span>
+      </button>
+    </div>
   )
 }
 

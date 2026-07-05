@@ -1,10 +1,10 @@
 import { useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import type { FilterCondition, OrderBy } from '@truenorth-it/dataverse-client'
+import type { OrderBy } from '@truenorth-it/dataverse-client'
 import { useTierList } from '../hooks/useTierList'
 import { usePillCounts } from '../hooks/usePillCounts'
 import { useListControls } from '../hooks/useListControls'
-import { QUOTE_SELECT } from '../services/quoteApi'
+import { QUOTE_SELECT, QUOTE_PILLS } from '../services/quoteApi'
 import type { Quote } from '../types/quote'
 import { cleanDescription, formatCurrency, formatDate } from '../lib/format'
 import { PageHeader } from '../components/common/PageHeader'
@@ -14,20 +14,6 @@ import { StatusChip } from '../components/common/StatusChip'
 import { FilterPills } from '../components/common/FilterPills'
 import { SortMenu } from '../components/common/SortMenu'
 import { ListStates, LoadMore } from '../components/common/ListStates'
-import { QuoteStatecode } from '../types/dataverse.generated'
-
-interface Pill {
-  key: string
-  label: string
-  filter?: FilterCondition | FilterCondition[]
-}
-
-const QUOTE_PILLS: Pill[] = [
-  { key: 'all', label: 'All' },
-  { key: 'active', label: 'Active', filter: { field: 'statecode', operator: 'eq', value: QuoteStatecode.Active } },
-  { key: 'draft', label: 'Draft', filter: { field: 'statecode', operator: 'eq', value: QuoteStatecode.Draft } },
-]
-
 const QUOTE_SORTS: { key: string; label: string; order: OrderBy }[] = [
   { key: 'newest', label: 'Newest', order: { field: 'createdon', direction: 'desc' } },
   { key: 'oldest', label: 'Oldest', order: { field: 'createdon', direction: 'asc' } },

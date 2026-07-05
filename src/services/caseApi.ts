@@ -1,6 +1,19 @@
 import type { DataverseClient } from '@truenorth-it/dataverse-client'
 import type { Case, NewCase } from '../types/case'
 import type { CaseNote } from '../types/caseNote'
+import type { Pill } from './pills'
+import { CasePrioritycode } from '../types/dataverse.generated'
+
+/**
+ * Filter pills for support cases — by priority. Keys match the list `?f=`
+ * values; shared with the dashboard's Cases-by-priority chart.
+ */
+export const CASE_PILLS: Pill[] = [
+  { key: 'all', label: 'All' },
+  { key: 'high', label: 'High', filter: { field: 'prioritycode', operator: 'eq', value: CasePrioritycode.High } },
+  { key: 'normal', label: 'Normal', filter: { field: 'prioritycode', operator: 'eq', value: CasePrioritycode.Normal } },
+  { key: 'low', label: 'Low', filter: { field: 'prioritycode', operator: 'eq', value: CasePrioritycode.Low } },
+]
 
 /** Columns read for the case-notes timeline. */
 export const CASE_NOTE_SELECT = [

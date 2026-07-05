@@ -1,5 +1,6 @@
 import type { DataverseClient } from '@truenorth-it/dataverse-client'
 import type { Site } from '../types/site'
+import type { Pill } from './pills'
 
 /** Columns the portal reads for sites (Dataverse `customeraddress`). */
 export const SITE_SELECT = [
@@ -34,6 +35,24 @@ export const SITE_ORDER = { field: 'name', direction: 'asc' } as const
  * `new_connectivitytype_label`.
  */
 export const CONNECTIVITY_LABELS = ['FTTP', 'FTTC', 'Leased Line', 'Dark Fibre', 'EFM']
+
+/**
+ * Filter pills for sites — one per connectivity type. The `key` is the label
+ * (the list filters client-side by `new_connectivitytype_label`, and the `?f=`
+ * value is the label). The `filter` targets the real `new_connectivitytype`
+ * choice value (100000000 + index, matching the seeders) for server-side counts
+ * on the dashboard's connectivity chart.
+ */
+export function buildSitePills(): Pill[] {
+  return [
+    { key: 'all', label: 'All' },
+    ...CONNECTIVITY_LABELS.map((l, i): Pill => ({
+      key: l,
+      label: l,
+      filter: { field: 'new_connectivitytype', operator: 'eq', value: 100000000 + i },
+    })),
+  ]
+}
 
 /**
  * Fetch a single site for the detail view. Sites are company-level, so `team`
