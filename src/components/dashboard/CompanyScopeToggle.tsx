@@ -16,7 +16,7 @@ export function CompanyScopeToggle() {
     <div
       role="tablist"
       aria-label="Dashboard scope"
-      className="inline-flex rounded-lg border border-rc-blue-light bg-white p-0.5 text-sm"
+      className="inline-flex rounded-lg border border-rc-blue-light bg-white p-0.5 text-sm shadow-sm"
     >
       <Segment active={!allCompanies} onClick={() => allCompanies && selectCompany(selectedContactId)}>
         This company
