@@ -89,6 +89,15 @@ export function ArchitectureNote() {
             point the API at it and set how it is scoped.
           </p>
 
+          <div className="mt-4 flex items-center gap-2.5 rounded-xl border border-rc-blue-light bg-rc-blue-light/40 px-4 py-2.5 text-sm text-rc-navy">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-white text-rc-blue">
+              <Icon name="zap" className="h-3.5 w-3.5" />
+            </span>
+            <span>
+              <span className="font-semibold">New table in minutes.</span> Expose it, set the scope, done.
+            </span>
+          </div>
+
           <div className="mt-4">
             <FlowDiagram svgRef={svgRef} />
           </div>
