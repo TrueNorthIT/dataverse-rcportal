@@ -10,10 +10,10 @@ import { CONNECTIVITY_COLORS, reducedMotion } from './palette'
  * donut). Counts come from `usePillCounts('site', …)` using the same site pills
  * as the Sites page; a bar click deep-links to `/sites?f=<type>`.
  */
-export function ConnectivityBars() {
+export function ConnectivityBars({ enabled = true }: { enabled?: boolean }) {
   const navigate = useNavigate()
   const pills = buildSitePills()
-  const counts = usePillCounts('site', 'team', pills, true)
+  const counts = usePillCounts('site', 'team', pills, { fanOut: true, enabled })
   const loaded = Object.keys(counts).length > 0
 
   const data = pills

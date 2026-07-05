@@ -35,6 +35,7 @@ export function useDashboard(): { stats: DashboardStats; loading: boolean } {
       ])
       return { cases, quotes, projects, sites }
     },
+    staleTime: 60_000,
     placeholderData: keepPreviousData,
   })
 

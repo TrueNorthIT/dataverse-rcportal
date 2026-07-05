@@ -16,6 +16,8 @@ interface Props {
   pills: Pill[]
   /** Pill key → hex colour. */
   colors: Record<string, string>
+  /** Only fetch once the card is in view (so it doesn't starve the tiles). */
+  enabled?: boolean
 }
 
 /**
@@ -24,10 +26,11 @@ interface Props {
  * the pill, and the list always agree. Clicking a slice or a legend row
  * deep-links to `${area}?f=${pillKey}`.
  */
-export function DistributionDonut({ title, icon, table, area, pills, colors }: Props) {
+export function DistributionDonut({ title, icon, table, area, pills, colors, enabled = true }: Props) {
   const navigate = useNavigate()
-  // fanOut=true → rolls up across all companies when "All companies" is on.
-  const counts = usePillCounts(table, 'team', pills, true)
+  // fanOut → roll up across all companies when "All companies" is on; enabled
+  // defers the fetch until the card is scrolled into view.
+  const counts = usePillCounts(table, 'team', pills, { fanOut: true, enabled })
   const loaded = Object.keys(counts).length > 0
 
   const segments = pills

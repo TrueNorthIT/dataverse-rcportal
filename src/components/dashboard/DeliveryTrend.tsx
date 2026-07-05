@@ -24,8 +24,8 @@ function TrendTip({ active, payload, label }: { active?: boolean; payload?: Arra
  * up to today, continuing as a dashed line for the upcoming pipeline. All from
  * real project dates (see useDeliveryTrend).
  */
-export function DeliveryTrend() {
-  const { data, loading } = useDeliveryTrend()
+export function DeliveryTrend({ enabled = true }: { enabled?: boolean }) {
+  const { data, loading } = useDeliveryTrend(enabled)
   const hasData = data.some((d) => (d.delivered ?? d.projected ?? 0) > 0)
 
   return (
