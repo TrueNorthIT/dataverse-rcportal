@@ -1,7 +1,7 @@
 import type { DataverseClient } from '@truenorth-it/dataverse-client'
 import type { Project } from '../types/project'
 import type { Projectnotes, Projecttask } from '../types/dataverse.generated'
-import { humanDuration, cleanDescription } from '../lib/format'
+import { humanDuration, cleanDescription, formatDate } from '../lib/format'
 
 /** Columns the portal reads for projects (Dataverse `msdyn_project`). */
 export const PROJECT_SELECT = [
@@ -9,6 +9,7 @@ export const PROJECT_SELECT = [
   'msdyn_subject',
   'msdyn_scheduledstart',
   'msdyn_finish',
+  'msdyn_actualend',
   'msdyn_description',
   'statecode',
   'statuscode',
@@ -141,8 +142,11 @@ export interface ProjectHealth {
  */
 export function projectHealth(p: Project): ProjectHealth {
   const state = `${p.statuscode_label ?? ''} ${p.statecode_label ?? ''}`.toLowerCase()
-  if (/complete|closed|finished|delivered|inactive/.test(state)) {
-    return { key: 'done', label: 'Complete', detail: 'Delivered', dot: 'bg-rc-teal', chip: 'bg-rc-blue-light text-rc-teal' }
+  // Delivered — an actual end date means it finished (even if late); it's not
+  // "overdue" any more.
+  if (p.msdyn_actualend || /complete|closed|finished|delivered|inactive/.test(state)) {
+    const detail = p.msdyn_actualend ? `Delivered ${formatDate(p.msdyn_actualend)}` : 'Delivered'
+    return { key: 'done', label: 'Complete', detail, dot: 'bg-rc-teal', chip: 'bg-rc-blue-light text-rc-teal' }
   }
   if (p.msdyn_finish) {
     const days = Math.round((new Date(p.msdyn_finish).getTime() - Date.now()) / 86_400_000)

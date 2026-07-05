@@ -40,7 +40,8 @@ function mulberry32(a) { return function () { a |= 0; a = (a + 0x6d2b79f5) | 0; 
 const DAY = 86_400_000
 
 const AUTHORS = ['Priya Shah (Project Manager)', 'Tom Fletcher (Delivery Lead)', 'Rachel Owen (Lead Engineer)', 'Sam Doyle (Solution Architect)']
-const STAGES = ['Kick-off', 'Discovery complete', 'Build', 'Testing & UAT', 'Go-live', 'Handover & close']
+// Must match MILESTONES in seed-project-tasks.mjs so the diary + Gantt agree.
+const STAGES = ['Kick-off', 'Discovery complete', 'Build complete', 'UAT sign-off', 'Go-live', 'Handover & close']
 const UPDATES = [
   (a) => ({ subject: 'Weekly status', text: `Weekly update from ${a}: progressing to plan, no blockers this week.` }),
   (a) => ({ subject: 'Weekly status', text: `Weekly update from ${a}: minor slippage on one workstream; recovery plan agreed.` }),
