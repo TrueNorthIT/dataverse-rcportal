@@ -114,7 +114,7 @@ export function QuotesPage() {
                   <span className="font-semibold text-rc-navy">
                     {formatCurrency(q.totalamount)}
                   </span>
-                  <StatusChip label={q.statuscode_label} />
+                  <StatusChip label={q.statecode_label} />
                 </div>
               </div>
             </CardButton>
