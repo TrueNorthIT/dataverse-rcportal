@@ -20,9 +20,12 @@ const DASH_KEYS = new Set(['dashboard', 'attention', 'pillcounts', 'delivery-tre
 
 /** Landing dashboard: headline `me`-tier stats with links into each section. */
 export function DashboardPage() {
-  const { stats, loading } = useDashboard()
+  const { stats, loading, stale } = useDashboard()
   const { account } = useMyCompany()
-  const { allCompanies, hasMultiple } = useSelectedCompany()
+  const { allCompanies, hasMultiple, selectedContactId } = useSelectedCompany()
+  // Changes when the scope changes — re-keys the tiles/charts so their entrance
+  // animation replays on a switch (skeleton while loading, then unfold in).
+  const scopeKey = allCompanies ? 'all' : selectedContactId ?? 'default'
   // Any dashboard query in flight → the roll-up is (re)loading. Tapping the
   // toggle again just switches the scope; React Query tracks the latest, so the
   // last tap always wins.
@@ -54,10 +57,10 @@ export function DashboardPage() {
       />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Stat to="/cases" label="Open tickets" value={fmtCount(stats.cases)} loading={loading} />
-        <Stat to="/quotes" label="Quotes" value={fmtCount(stats.quotes)} loading={loading} />
-        <Stat to="/projects" label="Projects" value={fmtCount(stats.projects)} loading={loading} />
-        <Stat to="/sites" label="Sites" value={fmtCount(stats.sites)} loading={loading} />
+        <Stat to="/cases" label="Open tickets" value={fmtCount(stats.cases)} loading={loading} stale={stale} />
+        <Stat to="/quotes" label="Quotes" value={fmtCount(stats.quotes)} loading={loading} stale={stale} />
+        <Stat to="/projects" label="Projects" value={fmtCount(stats.projects)} loading={loading} stale={stale} />
+        <Stat to="/sites" label="Sites" value={fmtCount(stats.sites)} loading={loading} stale={stale} />
       </div>
 
       <Attention />
@@ -67,7 +70,8 @@ export function DashboardPage() {
       <Suspense
         fallback={<div className="rc-skeleton mt-8 h-64 w-full rounded-2xl" aria-label="Loading insights" />}
       >
-        <DashboardCharts />
+        {/* Re-key on scope change so the charts re-defer + re-unfold on a switch. */}
+        <DashboardCharts key={scopeKey} />
       </Suspense>
 
       <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -88,30 +92,28 @@ function Stat({
   label,
   value,
   loading,
+  stale,
 }: {
   to: string
   label: string
   value: string
   loading?: boolean
+  /** Showing the previous scope's number while the new one loads. */
+  stale?: boolean
 }) {
-  // Skeleton only on first load (no value yet); on a refetch (company switch)
-  // keep the previous number and just dim it — no flash.
-  const firstLoad = loading && value === '—'
+  // Shimmer on first load and on a scope switch (stale); when the real number
+  // lands it fades up (keyed by value so the entrance replays on change).
+  const showSkeleton = stale || (loading && value === '—')
   return (
     <Link to={to} className="block">
       <Card className="overflow-hidden transition-colors hover:border-rc-blue">
         <div className="rc-gradient h-1 w-full" />
         <div className="p-5">
           <div className="text-xs font-medium text-rc-teal">{label}</div>
-          {firstLoad ? (
+          {showSkeleton ? (
             <div className="rc-skeleton mt-2 h-7 w-16 rounded" aria-label="Loading" />
           ) : (
-            <div
-              className={
-                'mt-1 text-3xl font-light tracking-tight text-rc-navy transition-opacity duration-200 ' +
-                (loading ? 'opacity-50' : 'opacity-100')
-              }
-            >
+            <div key={value} className="rc-fade-up mt-1 text-3xl font-light tracking-tight text-rc-navy">
               {value}
             </div>
           )}
@@ -123,7 +125,7 @@ function Stat({
 
 /** "Needs your attention" — a few actionable highlights, or an all-clear. */
 function Attention() {
-  const { items, loading } = useAttention()
+  const { items, loading, stale } = useAttention()
   const dot: Record<string, string> = {
     red: 'bg-red-500',
     amber: 'bg-amber-500',
@@ -137,12 +139,17 @@ function Attention() {
         <h2 className="text-base font-normal tracking-tight text-rc-navy">
           Needs your attention
         </h2>
-        {items.length === 0 ? (
+        {stale ? (
+          <div className="mt-3 space-y-2" aria-label="Loading">
+            <div className="rc-skeleton h-11 rounded-xl" />
+            <div className="rc-skeleton h-11 rounded-xl" style={{ ['--rc-delay' as string]: '0.12s' }} />
+          </div>
+        ) : items.length === 0 ? (
           <p className="mt-2 text-sm text-rc-teal">
             {loading ? 'Checking…' : 'You’re all caught up — nothing needs attention.'}
           </p>
         ) : (
-          <div className="mt-3 space-y-2">
+          <div className="mt-3 space-y-2 rc-land-list">
             {items.map((it) => (
               <Link
                 key={it.key}

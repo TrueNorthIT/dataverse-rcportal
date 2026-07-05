@@ -28,7 +28,7 @@ const plural = (n: number, one: string, many: string) => (n === 1 ? one : many)
  * recently-received quotes. Each count is a filtered aggregate; failures resolve
  * to 0 so a flaky table just drops its row rather than breaking the section.
  */
-export function useAttention(): { items: AttentionItem[]; loading: boolean } {
+export function useAttention(): { items: AttentionItem[]; loading: boolean; stale: boolean } {
   const client = useDataverseClient()
   const companyClients = useCompanyClients()
   const { selectedContactId, allCompanies } = useSelectedCompany()
@@ -90,5 +90,5 @@ export function useAttention(): { items: AttentionItem[]; loading: boolean } {
       })
   }
 
-  return { items, loading: query.isFetching }
+  return { items, loading: query.isFetching, stale: query.isPlaceholderData }
 }
