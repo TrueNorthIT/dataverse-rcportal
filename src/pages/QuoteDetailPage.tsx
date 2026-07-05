@@ -67,7 +67,7 @@ export function QuoteDetailPage() {
         <DetailHeader
           icon="receipt"
           title={record.name || record.quotenumber || 'Quote'}
-          trailing={<StatusChip label={record.statuscode_label} />}
+          trailing={<StatusChip label={record.statecode_label} />}
         >
           <MetaGrid>
             <MetaItem icon="hash" label="Quote number" value={record.quotenumber} />
