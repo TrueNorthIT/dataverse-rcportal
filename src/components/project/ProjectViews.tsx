@@ -164,7 +164,7 @@ export function ProjectPlanModal({
 
 // ── Gantt ────────────────────────────────────────────────────────────────────
 
-const LABEL_COL = 'w-40 shrink-0 pr-3'
+const LABEL_COL = 'w-48 shrink-0 pr-3'
 
 /** Month tick labels positioned by fraction along [s, e]. */
 function monthTicks(s: number, e: number): { frac: number; label: string }[] {
@@ -230,7 +230,7 @@ function ProjectGantt({ project, phases, milestones }: { project: Project; phase
 
         {/* rows with gridlines + today overlay */}
         <div className="relative">
-          <div className="pointer-events-none absolute inset-y-0 left-40 right-0">
+          <div className="pointer-events-none absolute inset-y-0 left-48 right-0">
             {ticks.map((t) => (
               <div key={t.label + t.frac} className="absolute inset-y-0 w-px bg-rc-blue-light/50" style={{ left: `${t.frac * 100}%` }} />
             ))}
@@ -248,8 +248,11 @@ function ProjectGantt({ project, phases, milestones }: { project: Project; phase
             const width = Math.max(1, frac(Date.parse(ph.end)) - left)
             return (
               <div key={ph.key} className="flex items-center py-1.5">
-                <div className={`${LABEL_COL} truncate text-sm text-rc-navy`} title={ph.label}>
-                  {ph.label}
+                <div className={LABEL_COL}>
+                  <div className="truncate text-sm text-rc-navy" title={ph.label}>{ph.label}</div>
+                  <div className="truncate text-[11px] text-rc-teal">
+                    {shortRange(ph.start, ph.end)} · {Math.round(ph.pct * 100)}%
+                  </div>
                 </div>
                 <div className="relative h-7 flex-1">
                   <div
@@ -302,6 +305,18 @@ function ProjectGantt({ project, phases, milestones }: { project: Project; phase
 
 function statusLabel(s: Phase['status']): string {
   return s === 'done' ? 'Complete' : s === 'active' ? 'In progress' : 'Upcoming'
+}
+
+/** Compact day-month, e.g. "3 Jan" (no year) for tight inline labels. */
+function shortDate(d?: string): string {
+  if (!d) return ''
+  const x = new Date(d)
+  return Number.isNaN(x.getTime()) ? '' : x.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+}
+function shortRange(a?: string, b?: string): string {
+  const A = shortDate(a)
+  const B = shortDate(b)
+  return A && B ? `${A} – ${B}` : A || B
 }
 
 // ── Diary ────────────────────────────────────────────────────────────────────
