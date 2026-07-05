@@ -28,15 +28,15 @@ const ICONS: Record<string, ReactNode> = {
 }
 
 const BOX_W = 284
-const BOX_H = 58
-const BOX_Y = 6
+const BOX_H = 76
+const BOX_Y = 8
 const MID_Y = BOX_Y + BOX_H / 2
 const NODES = [
-  { x: 6, icon: 'globe', title: 'React portal', sub: 'browser app' },
+  { x: 4, icon: 'globe', title: 'React portal', sub: 'browser app' },
   { x: 338, icon: 'link', title: 'Contact Portal API', sub: 'authorises + security-trims' },
-  { x: 670, icon: 'server', title: 'Dataverse', sub: 'your data' },
+  { x: 672, icon: 'server', title: 'Dataverse', sub: 'your data' },
 ]
-const GAPS = [290, 622] // left edge of each connector gap (48 wide)
+const GAPS = [288, 622] // right edge of box 1 and box 2 (50-wide connector gaps)
 
 const vars = (o: Record<string, string>) => o as CSSProperties
 
@@ -53,36 +53,36 @@ export function FlowDiagram({ svgRef }: { svgRef: RefObject<SVGSVGElement | null
     <div ref={wrapRef} className="w-full">
       <svg
         ref={svgRef}
-        viewBox="0 0 960 140"
+        viewBox="0 0 960 166"
         width="100%"
         role="img"
-        aria-label="React portal to Contact Portal API to Dataverse, secured end to end by Entra External ID"
+        aria-label="React portal to Contact Portal API to Dataverse, authenticated by Entra External ID"
         style={{ fontFamily: FONT, maxWidth: '100%', height: 'auto' }}
       >
         {/* connectors + streaming packets */}
         {GAPS.map((gx, i) => (
           <g key={gx}>
             <line
-              x1={gx + 4}
+              x1={gx + 5}
               y1={MID_Y}
-              x2={gx + 44}
+              x2={gx + 45}
               y2={MID_Y}
               stroke={LINE}
               strokeWidth={2}
               className={inView ? 'rc-dashmove' : undefined}
             />
             <path
-              d={`M${gx + 30} ${MID_Y - 5} l6 5 -6 5`}
+              d={`M${gx + 31} ${MID_Y - 6} l7 6 -7 6`}
               fill="none"
               stroke={BLUE}
-              strokeWidth={2}
+              strokeWidth={2.5}
               strokeLinecap="round"
               strokeLinejoin="round"
             />
             <circle
-              cx={gx + 6}
+              cx={gx + 7}
               cy={MID_Y}
-              r={3.5}
+              r={4.5}
               fill={BLUE}
               className={inView ? 'rc-flowdot' : undefined}
               style={vars({ '--rc-delay': `${0.6 + i * 0.3}s`, '--rc-flow-dist': '34px', opacity: '0' })}
@@ -97,10 +97,10 @@ export function FlowDiagram({ svgRef }: { svgRef: RefObject<SVGSVGElement | null
             className={inView ? 'rc-flowin' : undefined}
             style={vars({ '--rc-delay': `${i * 0.18}s`, opacity: inView ? '1' : '0' })}
           >
-            <rect x={n.x} y={BOX_Y} width={BOX_W} height={BOX_H} rx={12} fill={CANVAS} stroke={BLUELIGHT} />
-            <rect x={n.x + 12} y={BOX_Y + 13} width={32} height={32} rx={9} fill="#fff" stroke={BLUELIGHT} />
+            <rect x={n.x} y={BOX_Y} width={BOX_W} height={BOX_H} rx={14} fill={CANVAS} stroke={BLUELIGHT} />
+            <rect x={n.x + 16} y={BOX_Y + 17} width={42} height={42} rx={11} fill="#fff" stroke={BLUELIGHT} />
             <g
-              transform={`translate(${n.x + 19}, ${BOX_Y + 20}) scale(0.75)`}
+              transform={`translate(${n.x + 25}, ${BOX_Y + 26})`}
               fill="none"
               stroke={BLUE}
               strokeWidth={2}
@@ -109,10 +109,10 @@ export function FlowDiagram({ svgRef }: { svgRef: RefObject<SVGSVGElement | null
             >
               {ICONS[n.icon]}
             </g>
-            <text x={n.x + 56} y={BOX_Y + 26} fontSize={14} fontWeight={600} fill={NAVY}>
+            <text x={n.x + 72} y={BOX_Y + 34} fontSize={17} fontWeight={600} fill={NAVY}>
               {n.title}
             </text>
-            <text x={n.x + 56} y={BOX_Y + 44} fontSize={11} fill={TEAL}>
+            <text x={n.x + 72} y={BOX_Y + 56} fontSize={12.5} fill={TEAL}>
               {n.sub}
             </text>
           </g>
@@ -120,16 +120,16 @@ export function FlowDiagram({ svgRef }: { svgRef: RefObject<SVGSVGElement | null
 
         {/* badges */}
         <g className={inView ? 'rc-flowin' : undefined} style={vars({ '--rc-delay': '0.7s', opacity: inView ? '1' : '0' })}>
-          <rect x={358} y={78} width={244} height={22} rx={11} fill="#fff" stroke={BLUELIGHT} />
-          <text x={480} y={93} textAnchor="middle" fontSize={11} fontWeight={700} letterSpacing={1.2} fill={TEAL}>
+          <rect x={340} y={98} width={280} height={26} rx={13} fill="#fff" stroke={BLUELIGHT} />
+          <text x={480} y={115} textAnchor="middle" fontSize={12.5} fontWeight={700} letterSpacing={1.3} fill={TEAL}>
             GENERIC · STATELESS · SECURE
           </text>
-          <rect x={356} y={108} width={248} height={22} rx={11} fill={BLUELIGHT} />
-          <g transform="translate(370, 113) scale(0.62)" fill="none" stroke={NAVY} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+          <rect x={341} y={130} width={278} height={26} rx={13} fill={BLUELIGHT} />
+          <g transform="translate(357, 136) scale(0.72)" fill="none" stroke={NAVY} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
             <rect x="4" y="11" width="16" height="10" rx="2" />
             <path d="M8 11V7a4 4 0 0 1 8 0v4" />
           </g>
-          <text x={394} y={123} fontSize={11} fontWeight={600} fill={NAVY}>
+          <text x={384} y={147} fontSize={12.5} fontWeight={600} fill={NAVY}>
             Authenticated by Entra External ID
           </text>
         </g>
