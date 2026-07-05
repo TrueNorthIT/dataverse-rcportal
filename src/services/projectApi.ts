@@ -80,6 +80,96 @@ export function deriveMilestones(p: Project): Milestone[] {
   })
 }
 
+// ── Diary (activity feed) ────────────────────────────────────────────────────
+
+const DAY = 86_400_000
+function hashStr(s: string): number {
+  let h = 2166136261
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) }
+  return h >>> 0
+}
+function mulberry32(a: number) {
+  return function () {
+    a |= 0; a = (a + 0x6d2b79f5) | 0
+    let t = Math.imul(a ^ (a >>> 15), 1 | a)
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
+export type DiaryKind = 'milestone' | 'update' | 'risk' | 'note'
+
+/** A dated entry in the project diary/activity feed. */
+export interface DiaryEntry {
+  key: string
+  date: string
+  title: string
+  detail: string
+  author: string
+  kind: DiaryKind
+}
+
+const DIARY_AUTHORS = [
+  'Priya Shah · Project Manager',
+  'Tom Fletcher · Delivery Lead',
+  'Rachel Owen · Lead Engineer',
+  'Sam Doyle · Solution Architect',
+]
+
+const DIARY_EVENTS: { kind: DiaryKind; title: string; detail: string }[] = [
+  { kind: 'update', title: 'Weekly status', detail: 'Progressing to plan — no blockers this week.' },
+  { kind: 'update', title: 'Weekly status', detail: 'Minor slippage on one workstream; recovery plan agreed.' },
+  { kind: 'note', title: 'Steering call', detail: 'Fortnightly steering call held with the customer.' },
+  { kind: 'risk', title: 'Risk logged', detail: 'Third-party circuit lead time flagged; mitigation in progress.' },
+  { kind: 'risk', title: 'Risk closed', detail: 'Previously raised risk resolved and closed off.' },
+  { kind: 'note', title: 'Change request', detail: 'Small scope change agreed and baselined.' },
+  { kind: 'update', title: 'Workstream update', detail: 'Configuration complete; moving into testing.' },
+]
+
+/**
+ * DEMO NOTE: there's no project activity log exposed, so we synthesise a
+ * plausible diary from the schedule — milestone reached events plus periodic
+ * status/risk/notes — deterministically per project (stable across reloads).
+ * Only past-dated entries are returned; newest first, like the case timeline.
+ */
+export function deriveDiary(p: Project): DiaryEntry[] {
+  const start = p.msdyn_actualstart || p.msdyn_scheduledstart
+  if (!start) return []
+  const s = new Date(start).getTime()
+  if (Number.isNaN(s)) return []
+  const now = Date.now()
+  const e = p.msdyn_finish ? new Date(p.msdyn_finish).getTime() : now
+  const rng = mulberry32(hashStr(p.msdyn_projectid || 'project'))
+  const entries: DiaryEntry[] = []
+
+  // Milestone-reached events (past only).
+  for (const m of deriveMilestones(p)) {
+    if (new Date(m.date).getTime() <= now) {
+      entries.push({ key: `m-${m.key}`, date: m.date, title: m.label, detail: 'Milestone reached.', author: DIARY_AUTHORS[0], kind: 'milestone' })
+    }
+  }
+
+  // Periodic updates roughly every 1–2 weeks up to today (or finish).
+  const last = Math.min(now, e)
+  let t = s + 4 * DAY
+  let i = 0
+  while (t <= last && i < 40) {
+    const ev = DIARY_EVENTS[Math.floor(rng() * DIARY_EVENTS.length)]
+    entries.push({
+      key: `u-${p.msdyn_projectid}-${i}`,
+      date: new Date(t).toISOString(),
+      title: ev.title,
+      detail: ev.detail,
+      author: DIARY_AUTHORS[Math.floor(rng() * DIARY_AUTHORS.length)],
+      kind: ev.kind,
+    })
+    t += (8 + Math.floor(rng() * 7)) * DAY
+    i++
+  }
+
+  return entries.sort((a, b) => Date.parse(b.date) - Date.parse(a.date))
+}
+
 /** A schedule-health (RAG) verdict for a project tile. */
 export interface ProjectHealth {
   key: 'green' | 'amber' | 'red' | 'done'
