@@ -27,7 +27,7 @@ function downloadDiagram(svg: SVGSVGElement | null) {
   })
   const vb = svg.viewBox.baseVal
   const w = vb && vb.width ? vb.width : 960
-  const h = vb && vb.height ? vb.height : 166
+  const h = vb && vb.height ? vb.height : 184
   const xml = new XMLSerializer().serializeToString(clone)
   const src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(xml)
   const img = new Image()
