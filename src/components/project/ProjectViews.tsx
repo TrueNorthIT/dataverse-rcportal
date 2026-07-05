@@ -241,7 +241,7 @@ function ProjectGantt({ project, phases, milestones }: { project: Project; phase
                   {ph.label}
                 </div>
                 <div className="relative h-7 flex-1 hover:z-30">
-                  <div className="group absolute top-1/2 h-5 -translate-y-1/2" style={{ left: `${left}%`, width: `${width}%` }}>
+                  <div className="group absolute top-1 h-5" style={{ left: `${left}%`, width: `${width}%` }}>
                     <div className={`flex h-full items-center overflow-hidden rounded-md ${barTone(ph.status)}`}>
                       {ph.status === 'active' && (
                         <div className="h-full rounded-md rc-gradient" style={{ width: `${ph.pct * 100}%` }} />
