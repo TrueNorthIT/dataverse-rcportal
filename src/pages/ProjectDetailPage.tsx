@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useDataverseClient } from '../lib/client'
 import { useSelectedCompany } from '../context/SelectedCompanyContext'
 import { useListNav } from '../hooks/useListNav'
-import { fetchProjectDetail, projectHealth, deriveMilestones, deriveDiary, derivePhases } from '../services/projectApi'
+import { fetchProjectDetail, projectHealth, deriveMilestones, deriveDiary, derivePhases, listProjectNotes } from '../services/projectApi'
 import { cleanDescription, formatDate } from '../lib/format'
 import { StatusChip } from '../components/common/StatusChip'
 import { Icon } from '../components/common/Icon'
@@ -31,12 +31,23 @@ export function ProjectDetailPage() {
     enabled: !!id,
   })
   const record = query.data?.record ?? null
+  const mine = query.data?.mine ?? false
   const error = query.error instanceof Error ? query.error.message : null
   const health = record ? projectHealth(record) : null
   const milestones = record ? deriveMilestones(record) : []
   const phases = record ? derivePhases(record) : []
-  const diary = record ? deriveDiary(record) : []
   const [planOpen, setPlanOpen] = useState(false)
+
+  // Real delivery notes (annotations regarding the project). Fall back to a
+  // synthetic diary only if a project has none yet, so the view never looks empty.
+  const notesQuery = useQuery({
+    queryKey: ['projectnotes', id, mine, selectedContactId ?? 'default'],
+    queryFn: () => listProjectNotes(client, id!, mine),
+    enabled: !!id && !!record,
+  })
+  const diary = notesQuery.data && notesQuery.data.length > 0
+    ? notesQuery.data
+    : record ? deriveDiary(record) : []
 
   return (
     <div>
