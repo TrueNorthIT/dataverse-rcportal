@@ -1,8 +1,8 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
-import { useDataverseClient } from '../lib/client'
+import { useQueries } from '@tanstack/react-query'
+import type { DataverseClient } from '@truenorth-it/dataverse-client'
 import { useSelectedCompany } from '../context/SelectedCompanyContext'
 import { useCompanyClients } from './useCompanyClients'
-import { fanCount } from '../lib/aggregate'
+import { firstNumber } from '../lib/aggregate'
 
 export interface DashboardStats {
   cases: number | null
@@ -11,39 +11,62 @@ export interface DashboardStats {
   sites: number | null
 }
 
+/** The four headline counts for one company (team tier). */
+async function companyCounts(client: DataverseClient): Promise<DashboardStats> {
+  const one = async (table: string) => {
+    try {
+      const r = await client.team.aggregate(table, { aggregate: 'count' })
+      return firstNumber(r.data[0] as Record<string, unknown> | undefined)
+    } catch {
+      return null
+    }
+  }
+  const [cases, quotes, projects, sites] = await Promise.all([
+    one('case'),
+    one('quote'),
+    one('project'),
+    one('site'),
+  ])
+  return { cases, quotes, projects, sites }
+}
+
 /**
- * Dashboard tiles: the caller's company at a glance — quotes, projects, and
- * sites, counted at the `team` tier. When "All companies" is selected the
- * counts fan out across every company the caller belongs to and sum (each call
- * stays security-trimmed to its own company). Keyed on the scope; keeps prior
- * numbers while refetching. A table that errors everywhere just shows "—".
+ * Dashboard tiles — one React Query per company so TanStack caches each company
+ * independently. "This company" observes just the selected company's query;
+ * "All companies" observes every company and sums them via `combine`. Because
+ * they share the same per-company caches, switching scope only fetches the
+ * companies it hasn't seen yet, and switching back is instant.
+ *
+ * `stale` is true while any needed company is still loading — the tiles shimmer
+ * until the full (summed) figure is ready, then reveal it.
  */
 export function useDashboard(): { stats: DashboardStats; loading: boolean; stale: boolean } {
-  const client = useDataverseClient()
   const companyClients = useCompanyClients()
-  const { selectedContactId, allCompanies } = useSelectedCompany()
+  const { currentCompany, allCompanies } = useSelectedCompany()
+  const selectedId = currentCompany?.contactid
 
-  const query = useQuery({
-    queryKey: ['dashboard', allCompanies ? 'all' : selectedContactId ?? 'default'],
-    queryFn: async (): Promise<DashboardStats> => {
-      const targets = allCompanies ? companyClients.map((c) => c.client) : [client]
-      const [cases, quotes, projects, sites] = await Promise.all([
-        fanCount(targets, 'team', 'case', { aggregate: 'count' }),
-        fanCount(targets, 'team', 'quote', { aggregate: 'count' }),
-        fanCount(targets, 'team', 'project', { aggregate: 'count' }),
-        fanCount(targets, 'team', 'site', { aggregate: 'count' }),
-      ])
-      return { cases, quotes, projects, sites }
+  const targets = allCompanies
+    ? companyClients
+    : companyClients.filter((c) => c.company.contactid === selectedId)
+  const active = targets.length ? targets : companyClients.slice(0, 1)
+
+  return useQueries({
+    queries: active.map(({ company, client }) => ({
+      queryKey: ['company-counts', company.contactid],
+      queryFn: () => companyCounts(client),
+      staleTime: 60_000,
+    })),
+    combine: (results) => {
+      const data = results.map((r) => r.data).filter((d): d is DashboardStats => !!d)
+      const sum = (k: keyof DashboardStats) => {
+        const nums = data.map((d) => d[k]).filter((n): n is number => typeof n === 'number')
+        return nums.length ? nums.reduce((a, b) => a + b, 0) : null
+      }
+      return {
+        stats: { cases: sum('cases'), quotes: sum('quotes'), projects: sum('projects'), sites: sum('sites') },
+        loading: results.some((r) => r.isFetching),
+        stale: results.some((r) => r.isPending),
+      }
     },
-    staleTime: 60_000,
-    placeholderData: keepPreviousData,
   })
-
-  return {
-    stats: query.data ?? { cases: null, quotes: null, projects: null, sites: null },
-    loading: query.isFetching,
-    // True while showing the previous scope's data as the new scope loads —
-    // drives the skeleton on a scope switch.
-    stale: query.isPlaceholderData,
-  }
 }
