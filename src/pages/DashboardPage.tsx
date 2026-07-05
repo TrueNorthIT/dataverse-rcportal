@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
+import { useIsFetching } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { useDashboard } from '../hooks/useDashboard'
 import { useAttention } from '../hooks/useAttention'
@@ -13,11 +14,19 @@ import { CompanyScopeToggle } from '../components/dashboard/CompanyScopeToggle'
 // recharts is heavy — split the whole charts section into its own lazy chunk.
 const DashboardCharts = lazy(() => import('../components/dashboard/DashboardCharts'))
 
+// Query-key roots for everything the dashboard renders — used to show the
+// "updating" indicator while any of them (re)fetch, e.g. after a scope switch.
+const DASH_KEYS = new Set(['dashboard', 'attention', 'pillcounts', 'delivery-trend'])
+
 /** Landing dashboard: headline `me`-tier stats with links into each section. */
 export function DashboardPage() {
   const { stats, loading } = useDashboard()
   const { account } = useMyCompany()
   const { allCompanies, hasMultiple } = useSelectedCompany()
+  // Any dashboard query in flight → the roll-up is (re)loading. Tapping the
+  // toggle again just switches the scope; React Query tracks the latest, so the
+  // last tap always wins.
+  const syncing = useIsFetching({ predicate: (q) => DASH_KEYS.has(String(q.queryKey[0])) }) > 0
 
   const fmtCount = (n: number | null) => (n == null ? '—' : n.toLocaleString('en-GB'))
 
@@ -27,8 +36,9 @@ export function DashboardPage() {
           header/nav hides on scroll-down and slides back over this on
           scroll-up, hence the lower z-index). */}
       {hasMultiple && (
-        <div className="sticky top-2 z-30 mb-3">
+        <div className="sticky top-2 z-30 mb-3 flex items-center gap-3">
           <CompanyScopeToggle />
+          <SyncIndicator active={syncing} />
         </div>
       )}
       <PageHeader
@@ -154,6 +164,36 @@ function Attention() {
         )}
       </div>
     </Card>
+  )
+}
+
+/** Funky "updating" chip shown beside the scope toggle while the dashboard
+ * (re)loads — e.g. the all-companies roll-up fanning out. Three brand-coloured
+ * equalizer bars; fades in/out so tapping the toggle stays responsive. */
+function SyncIndicator({ active }: { active: boolean }) {
+  const bars = ['#0a5ca8', '#0e8aa0', '#1c6b4f']
+  return (
+    <span
+      role="status"
+      aria-live="polite"
+      className={
+        'inline-flex items-center gap-2 rounded-lg border border-rc-blue-light bg-white px-2.5 py-1.5 shadow-sm transition-opacity duration-200 ' +
+        (active ? 'opacity-100' : 'pointer-events-none opacity-0')
+      }
+    >
+      <span className="flex h-3.5 items-end gap-0.5" aria-hidden="true">
+        {bars.map((c, i) => (
+          <span
+            key={c}
+            className="rc-bar w-1 rounded-full"
+            style={{ height: '100%', backgroundColor: c, animationDelay: `${i * 0.14}s` }}
+          />
+        ))}
+      </span>
+      <span className="hidden text-xs font-medium text-rc-teal sm:inline">
+        {active ? 'Updating…' : 'Up to date'}
+      </span>
+    </span>
   )
 }
 
