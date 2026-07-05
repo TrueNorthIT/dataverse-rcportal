@@ -1,6 +1,7 @@
 import type { DataverseClient } from '@truenorth-it/dataverse-client'
 import type { Site } from '../types/site'
 import type { Pill } from './pills'
+import { fetchDetail } from './detail'
 
 /** Columns the portal reads for sites (Dataverse `customeraddress`). */
 export const SITE_SELECT = [
@@ -58,20 +59,11 @@ export function buildSitePills(): Pill[] {
  * Fetch a single site for the detail view. Sites are company-level, so `team`
  * is the reliable tier; with a hint we honour it, else team then me.
  */
-export async function fetchSiteDetail(
+export function fetchSiteDetail(
   client: DataverseClient,
   id: string,
   preferTier?: 'me' | 'team',
 ): Promise<{ record: Site; mine: boolean }> {
-  if (preferTier) {
-    const res = await client[preferTier].get<Site>('site', id, { select: SITE_DETAIL_SELECT })
-    return { record: res.data, mine: preferTier === 'me' }
-  }
-  try {
-    const res = await client.team.get<Site>('site', id, { select: SITE_DETAIL_SELECT })
-    return { record: res.data, mine: false }
-  } catch {
-    const res = await client.me.get<Site>('site', id, { select: SITE_DETAIL_SELECT })
-    return { record: res.data, mine: true }
-  }
+  // Sites are company-level — try the company tier first.
+  return fetchDetail<Site>(client, 'site', id, SITE_DETAIL_SELECT, { defaultTier: 'team', preferTier })
 }

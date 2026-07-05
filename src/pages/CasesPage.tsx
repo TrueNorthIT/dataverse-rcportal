@@ -1,8 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { useTierList } from '../hooks/useTierList'
-import { useListControls } from '../hooks/useListControls'
 import { useDataverseClient } from '../lib/client'
+import { useList, type SortOption } from '../hooks/useList'
 import { CASE_SELECT, CASE_PILLS, createCase } from '../services/caseApi'
 import type { Case } from '../types/case'
 import { cleanDescription, formatDate, relativeFromNow } from '../lib/format'
@@ -12,11 +11,9 @@ import { TierToggle } from '../components/common/TierToggle'
 import { StatusChip } from '../components/common/StatusChip'
 import { FilterPills } from '../components/common/FilterPills'
 import { SortMenu } from '../components/common/SortMenu'
-import { usePillCounts } from '../hooks/usePillCounts'
 import { ListStates, LoadMore } from '../components/common/ListStates'
-import type { OrderBy } from '@truenorth-it/dataverse-client'
 
-const CASE_SORTS: { key: string; label: string; order: OrderBy }[] = [
+const CASE_SORTS: SortOption[] = [
   { key: 'newest', label: 'Newest', order: { field: 'createdon', direction: 'desc' } },
   { key: 'oldest', label: 'Oldest', order: { field: 'createdon', direction: 'asc' } },
   { key: 'priority', label: 'Priority (high first)', order: { field: 'prioritycode', direction: 'asc' } },
@@ -25,42 +22,24 @@ const CASE_SORTS: { key: string; label: string; order: OrderBy }[] = [
 /**
  * Support cases — the primary self-service action a customer takes (spec: the
  * customer manages their identity and raises tickets; everything else is
- * read-only). List with My / Company toggle + raise-a-ticket create.
+ * read-only). The list machinery is shared via useList; this page adds the
+ * raise-a-ticket create form on top.
  */
 export function CasesPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const client = useDataverseClient()
-  const { filter: priority, setFilter: setPriority, sort, setSort } = useListControls('all', 'newest')
-  const activeSort = CASE_SORTS.find((s) => s.key === sort) ?? CASE_SORTS[0]
-  const {
-    tier,
-    setTier,
-    items,
-    loading,
-    error,
-    hasMore,
-    loadingMore,
-    loadMore,
-    refresh,
-  } = useTierList<Case>(
-    'case',
-    {
-      select: CASE_SELECT,
-      orderBy: activeSort.order,
-      top: 25,
-      filter: CASE_PILLS.find((p) => p.key === priority)?.filter,
-    },
-    'team',
-  )
-
-  const counts = usePillCounts('case', tier, [...CASE_PILLS])
-  const disabledKeys = new Set(CASE_PILLS.filter((p) => counts[p.key] === 0).map((p) => p.key))
-  useEffect(() => {
-    if (priority !== 'all' && counts[priority] === 0) setPriority('all')
-  }, [counts, priority, setPriority])
-
+  const list = useList<Case>({
+    table: 'case',
+    select: CASE_SELECT,
+    pills: [...CASE_PILLS],
+    sorts: CASE_SORTS,
+    defaultSort: 'newest',
+    defaultTier: 'team',
+  })
+  const { tier, items } = list
   const [raising, setRaising] = useState(false)
+  const ids = items.map((i) => i.incidentid)
 
   return (
     <div>
@@ -69,7 +48,7 @@ export function CasesPage() {
         subtitle={tier === 'me' ? 'Tickets you raised' : "Your company's tickets"}
         actions={
           <>
-            <TierToggle tier={tier} onChange={setTier} />
+            <TierToggle tier={tier} onChange={list.setTier} />
             <button
               type="button"
               onClick={() => setRaising((v) => !v)}
@@ -84,11 +63,11 @@ export function CasesPage() {
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         <FilterPills
           options={CASE_PILLS.map((p) => ({ key: p.key, label: p.label }))}
-          value={priority}
-          onChange={setPriority}
-          disabledKeys={disabledKeys}
+          value={list.filter}
+          onChange={list.setFilter}
+          disabledKeys={list.disabledKeys}
         />
-        <SortMenu options={CASE_SORTS} value={activeSort.key} onChange={setSort} />
+        <SortMenu options={CASE_SORTS} value={list.activeSort.key} onChange={list.setSort} />
       </div>
 
       {raising && (
@@ -96,16 +75,16 @@ export function CasesPage() {
           onCancel={() => setRaising(false)}
           onCreated={async () => {
             setRaising(false)
-            setTier('me')
-            await refresh()
+            list.setTier('me')
+            await list.refresh()
           }}
           create={(input) => createCase(client, input)}
         />
       )}
 
       <ListStates
-        loading={loading}
-        error={error}
+        loading={list.loading}
+        error={list.error}
         isEmpty={items.length === 0}
         emptyMessage={
           tier === 'me'
@@ -120,7 +99,7 @@ export function CasesPage() {
               onClick={() =>
                 navigate(`/cases/${c.incidentid}`, {
                   state: {
-                    ids: items.map((i) => i.incidentid),
+                    ids,
                     from: location.pathname + location.search,
                     tier,
                   },
@@ -153,7 +132,7 @@ export function CasesPage() {
             </CardButton>
           ))}
         </div>
-        <LoadMore hasMore={hasMore} loading={loadingMore} onClick={loadMore} />
+        <LoadMore hasMore={list.hasMore} loading={list.loadingMore} onClick={list.loadMore} />
       </ListStates>
     </div>
   )

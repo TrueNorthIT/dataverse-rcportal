@@ -1,6 +1,7 @@
 import type { DataverseClient } from '@truenorth-it/dataverse-client'
 import type { Quote, QuoteLine } from '../types/quote'
 import type { Pill } from './pills'
+import { fetchDetail } from './detail'
 import { QuoteStatecode } from '../types/dataverse.generated'
 
 /**
@@ -65,22 +66,13 @@ export async function listQuotesForOpportunity(
  * Mirrors the case pattern: with a tier hint from the list we fetch straight
  * from that tier; on a deep link we try `me` then fall back to `team`.
  */
-export async function fetchQuoteDetail(
+export function fetchQuoteDetail(
   client: DataverseClient,
   id: string,
   preferTier?: 'me' | 'team',
 ): Promise<{ record: Quote; mine: boolean }> {
-  if (preferTier) {
-    const res = await client[preferTier].get<Quote>('quote', id, { select: QUOTE_DETAIL_SELECT })
-    return { record: res.data, mine: preferTier === 'me' }
-  }
-  try {
-    const res = await client.me.get<Quote>('quote', id, { select: QUOTE_DETAIL_SELECT })
-    return { record: res.data, mine: true }
-  } catch {
-    const res = await client.team.get<Quote>('quote', id, { select: QUOTE_DETAIL_SELECT })
-    return { record: res.data, mine: false }
-  }
+  // Quotes are personal — try the caller's own tier first.
+  return fetchDetail<Quote>(client, 'quote', id, QUOTE_DETAIL_SELECT, { defaultTier: 'me', preferTier })
 }
 
 /** List the line items on a quote (scoped to the same tier the quote resolved at). */

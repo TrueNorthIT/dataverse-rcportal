@@ -2,6 +2,7 @@ import type { DataverseClient } from '@truenorth-it/dataverse-client'
 import type { Case, NewCase } from '../types/case'
 import type { CaseNote } from '../types/caseNote'
 import type { Pill } from './pills'
+import { fetchDetail } from './detail'
 import { CasePrioritycode } from '../types/dataverse.generated'
 
 /**
@@ -101,22 +102,13 @@ export async function getCase(client: DataverseClient, id: string): Promise<Case
  * `me` then fall back to `team`. `mine` says whether it's the caller's own
  * ticket, so the UI can note the difference.
  */
-export async function fetchCaseDetail(
+export function fetchCaseDetail(
   client: DataverseClient,
   id: string,
   preferTier?: 'me' | 'team',
 ): Promise<{ record: Case; mine: boolean }> {
-  if (preferTier) {
-    const res = await client[preferTier].get<Case>('case', id, { select: CASE_SELECT })
-    return { record: res.data, mine: preferTier === 'me' }
-  }
-  try {
-    const res = await client.me.get<Case>('case', id, { select: CASE_SELECT })
-    return { record: res.data, mine: true }
-  } catch {
-    const res = await client.team.get<Case>('case', id, { select: CASE_SELECT })
-    return { record: res.data, mine: false }
-  }
+  // Cases are personal — try the caller's own tier first.
+  return fetchDetail<Case>(client, 'case', id, CASE_SELECT, { defaultTier: 'me', preferTier })
 }
 
 /**
