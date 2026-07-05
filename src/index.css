@@ -175,6 +175,34 @@ h3 {
   animation: rc-bounce-down 1.6s ease-in-out infinite;
 }
 
+/* Architecture flow diagram: nodes build in on scroll, then a packet streams
+ * along each connector to show the request flowing through. */
+@keyframes rc-flowin {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes rc-flowdot {
+  0% { opacity: 0; transform: translateX(0); }
+  25% { opacity: 1; }
+  75% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(var(--rc-flow-dist, 40px)); }
+}
+@keyframes rc-dashmove {
+  to { stroke-dashoffset: -12; }
+}
+.rc-flowin {
+  animation: rc-flowin 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--rc-delay, 0s);
+}
+.rc-flowdot {
+  animation: rc-flowdot 1.9s ease-in-out infinite;
+  animation-delay: var(--rc-delay, 0s);
+}
+.rc-dashmove {
+  stroke-dasharray: 5 5;
+  animation: rc-dashmove 0.9s linear infinite;
+}
+
 /* Living blue→teal→green hero background (login), echoing the redcentric.com
  * hero — the gradient slowly drifts across. */
 @keyframes rc-hero-shift {
@@ -197,6 +225,9 @@ h3 {
   .rc-land-list > *,
   .rc-unfold,
   .rc-bounce,
+  .rc-flowin,
+  .rc-flowdot,
+  .rc-dashmove,
   .rc-hero {
     animation: none;
   }

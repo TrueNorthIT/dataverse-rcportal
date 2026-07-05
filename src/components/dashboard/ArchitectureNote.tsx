@@ -1,32 +1,8 @@
-import type { ReactNode } from 'react'
+import { useRef, type ReactNode } from 'react'
 import { Card } from '../common/Card'
-import { Icon, type IconName } from '../common/Icon'
+import { Icon } from '../common/Icon'
 import { useInView } from '../../hooks/useInView'
-
-/** One box in the request-flow diagram. */
-function Node({ icon, title, sub }: { icon: IconName; title: string; sub: string }) {
-  return (
-    <div className="flex flex-1 items-center gap-3 rounded-xl border border-rc-blue-light bg-rc-canvas px-4 py-3">
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-rc-blue shadow-sm">
-        <Icon name={icon} className="h-5 w-5" />
-      </span>
-      <div className="min-w-0">
-        <div className="text-sm font-medium text-rc-navy">{title}</div>
-        <div className="text-xs text-rc-teal">{sub}</div>
-      </div>
-    </div>
-  )
-}
-
-/** Flow connector: points right on desktop, down when the boxes stack on mobile. */
-function Arrow() {
-  return (
-    <div className="flex shrink-0 items-center justify-center text-rc-teal">
-      <Icon name="chevronRight" className="hidden h-5 w-5 sm:block" />
-      <Icon name="chevronDown" className="h-5 w-5 sm:hidden" />
-    </div>
-  )
-}
+import { FlowDiagram } from './FlowDiagram'
 
 function Point({ children }: { children: ReactNode }) {
   return (
@@ -37,18 +13,75 @@ function Point({ children }: { children: ReactNode }) {
   )
 }
 
+/** Rasterise the live SVG diagram to a PNG and download it. Pure-shape SVG, so
+ * it draws to a canvas without tainting; colours are inline on the SVG so the
+ * export stays styled without the app's stylesheet. */
+function downloadDiagram(svg: SVGSVGElement | null) {
+  if (!svg) return
+  const clone = svg.cloneNode(true) as SVGSVGElement
+  clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+  // Freeze to a clean static frame: drop animation classes + reveal everything.
+  clone.querySelectorAll('*').forEach((el) => {
+    el.removeAttribute('class')
+    if (el instanceof SVGElement) el.style.opacity = ''
+  })
+  const vb = svg.viewBox.baseVal
+  const w = vb && vb.width ? vb.width : 960
+  const h = vb && vb.height ? vb.height : 140
+  const xml = new XMLSerializer().serializeToString(clone)
+  const src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(xml)
+  const img = new Image()
+  img.onload = () => {
+    const scale = 2
+    const canvas = document.createElement('canvas')
+    canvas.width = w * scale
+    canvas.height = h * scale
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+    ctx.fillStyle = '#ffffff'
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+    ctx.setTransform(scale, 0, 0, scale, 0, 0)
+    ctx.drawImage(img, 0, 0, w, h)
+    canvas.toBlob((blob) => {
+      if (!blob) return
+      const a = document.createElement('a')
+      a.href = URL.createObjectURL(blob)
+      a.download = 'contact-portal-architecture.png'
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(a.href)
+    }, 'image/png')
+  }
+  img.src = src
+}
+
 /**
- * Bottom-of-dashboard explainer: how the portal is wired and secured. Copy is
- * kept plain and direct (no marketing framing). Doubles as a demo talking point.
+ * Bottom-of-dashboard explainer: how the portal is wired and secured, with an
+ * animated request-flow diagram that builds in on scroll and a download button.
+ * Copy is plain and direct (no marketing framing); doubles as a demo talking point.
  */
 export function ArchitectureNote() {
   const [ref, inView] = useInView<HTMLDivElement>()
+  const svgRef = useRef<SVGSVGElement>(null)
+
   return (
     <div ref={ref} className={inView ? 'rc-unfold' : 'opacity-0'}>
       <Card className="overflow-hidden">
         <div className="rc-gradient h-1 w-full" />
         <div className="p-5 sm:p-6">
-          <h2 className="text-base font-medium tracking-tight text-rc-navy">How this portal is built</h2>
+          <div className="flex items-start justify-between gap-3">
+            <h2 className="text-base font-medium tracking-tight text-rc-navy">How this portal is built</h2>
+            <button
+              type="button"
+              onClick={() => downloadDiagram(svgRef.current)}
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-rc-blue-light px-2.5 py-1 text-xs font-medium text-rc-teal transition-colors hover:border-rc-blue hover:text-rc-navy"
+            >
+              <Icon name="download" className="h-3.5 w-3.5" />
+              Download
+            </button>
+          </div>
+
           <p className="mt-2 max-w-3xl text-sm leading-relaxed text-rc-teal">
             Everything on this page is real Dataverse data. The React portal never talks to Dataverse
             directly. It goes through the TrueNorth Contact Portal API, a stateless proxy that
@@ -56,25 +89,11 @@ export function ArchitectureNote() {
             to see.
           </p>
 
-          {/* Request flow: browser → API → data store */}
-          <div className="mt-5 flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
-            <Node icon="globe" title="React portal" sub="browser app" />
-            <Arrow />
-            <Node icon="link" title="Contact Portal API" sub="Docker service" />
-            <Arrow />
-            <Node icon="server" title="Dataverse" sub="your data" />
-          </div>
-          <div className="mt-3 flex flex-col items-center gap-2">
-            <span className="inline-flex items-center rounded-full border border-rc-blue-light bg-white px-3.5 py-1 text-xs font-semibold uppercase tracking-wide text-rc-teal">
-              Generic · stateless · secure
-            </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-rc-blue-light px-3 py-1 text-xs font-medium text-rc-navy">
-              <Icon name="lock" className="h-3.5 w-3.5" />
-              Secured end to end by Entra External ID
-            </span>
+          <div className="mt-4">
+            <FlowDiagram svgRef={svgRef} />
           </div>
 
-          <div className="mt-6 grid gap-2 text-sm text-rc-navy sm:grid-cols-2">
+          <div className="mt-5 grid gap-2 text-sm text-rc-navy sm:grid-cols-2">
             <Point>There is no middleware to build. You write only the React client.</Point>
             <Point>Projects, sites and quotes are scoped to the signed-in contact or their company.</Point>
             <Point>Knowledge base articles are public, so no permission check runs.</Point>
