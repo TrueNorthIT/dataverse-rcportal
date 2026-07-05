@@ -99,16 +99,18 @@ function HelpMenu() {
 
   useEffect(() => {
     if (!open) return
-    const onClick = (e: MouseEvent) => {
+    // pointerdown fires reliably on the first press (mouse or touch); mousedown
+    // is synthesized late on touch and made the first tap flaky.
+    const onDown = (e: PointerEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
     }
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setOpen(false)
     }
-    document.addEventListener('mousedown', onClick)
+    document.addEventListener('pointerdown', onDown)
     document.addEventListener('keydown', onKey)
     return () => {
-      document.removeEventListener('mousedown', onClick)
+      document.removeEventListener('pointerdown', onDown)
       document.removeEventListener('keydown', onKey)
     }
   }, [open])
