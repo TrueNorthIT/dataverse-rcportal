@@ -7,7 +7,7 @@ import { CompanyScopeToggle } from './CompanyScopeToggle'
 interface CompanyState {
   hasMultiple: boolean
   allCompanies: boolean
-  selectedContactId: string | undefined
+  selectedCompanyId: string | undefined
   selectAllCompanies: ReturnType<typeof vi.fn>
   selectCompany: ReturnType<typeof vi.fn>
 }
@@ -20,7 +20,7 @@ function makeState(over: Partial<CompanyState> = {}): CompanyState {
   return {
     hasMultiple: true,
     allCompanies: false,
-    selectedContactId: 'c1',
+    selectedCompanyId: 'c1',
     selectAllCompanies: vi.fn(),
     selectCompany: vi.fn(),
     ...over,
@@ -83,7 +83,7 @@ describe('CompanyScopeToggle', () => {
     })
 
     it('commits back to the selected company id when switching to "This company"', () => {
-      company = makeState({ allCompanies: true, selectedContactId: 'c2' })
+      company = makeState({ allCompanies: true, selectedCompanyId: 'c2' })
       render(<CompanyScopeToggle />)
 
       fireEvent.click(screen.getByRole('tab', { name: 'This company' }))

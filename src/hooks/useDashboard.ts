@@ -43,16 +43,16 @@ async function companyCounts(client: DataverseClient): Promise<DashboardStats> {
 export function useDashboard(): { stats: DashboardStats; loading: boolean; stale: boolean } {
   const companyClients = useCompanyClients()
   const { currentCompany, allCompanies } = useSelectedCompany()
-  const selectedId = currentCompany?.contactid
+  const selectedId = currentCompany?.companyId
 
   const targets = allCompanies
     ? companyClients
-    : companyClients.filter((c) => c.company.contactid === selectedId)
+    : companyClients.filter((c) => c.company.companyId === selectedId)
   const active = targets.length ? targets : companyClients.slice(0, 1)
 
   return useQueries({
     queries: active.map(({ company, client }) => ({
-      queryKey: ['company-counts', company.contactid],
+      queryKey: ['company-counts', company.companyId],
       queryFn: () => companyCounts(client),
       staleTime: 60_000,
     })),

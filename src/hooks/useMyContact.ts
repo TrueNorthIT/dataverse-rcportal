@@ -27,9 +27,9 @@ interface UseMyContactResult {
  */
 export function useMyContact(): UseMyContactResult {
   const client = useDataverseClient()
-  const { selectedContactId } = useSelectedCompany()
+  const { selectedCompanyId } = useSelectedCompany()
   const qc = useQueryClient()
-  const key = ['myContact', selectedContactId ?? 'default']
+  const key = ['myContact', selectedCompanyId ?? 'default']
 
   const query = useQuery({
     queryKey: key,

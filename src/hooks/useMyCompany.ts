@@ -23,10 +23,10 @@ interface UseMyCompanyResult {
  */
 export function useMyCompany(): UseMyCompanyResult {
   const client = useDataverseClient()
-  const { selectedContactId } = useSelectedCompany()
+  const { selectedCompanyId } = useSelectedCompany()
 
   const query = useQuery({
-    queryKey: ['myCompany', selectedContactId ?? 'default'],
+    queryKey: ['myCompany', selectedCompanyId ?? 'default'],
     queryFn: async () => {
       const res = await client.team.list<Account>('account', { select: ACCOUNT_SELECT, top: 1 })
       return res.data[0] ?? null

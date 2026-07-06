@@ -17,7 +17,7 @@ type Scope = 'one' | 'all'
  * actually loads.
  */
 export function CompanyScopeToggle() {
-  const { hasMultiple, allCompanies, selectAllCompanies, selectCompany, selectedContactId } =
+  const { hasMultiple, allCompanies, selectAllCompanies, selectCompany, selectedCompanyId } =
     useSelectedCompany()
   const contextScope: Scope = allCompanies ? 'all' : 'one'
   const [scope, setScope] = useState<Scope>(contextScope)
@@ -35,7 +35,7 @@ export function CompanyScopeToggle() {
     clearTimeout(timer.current)
     timer.current = setTimeout(() => {
       if (next === 'all') selectAllCompanies()
-      else selectCompany(selectedContactId)
+      else selectCompany(selectedCompanyId)
     }, 180) // commit (and load) once taps settle
   }
 

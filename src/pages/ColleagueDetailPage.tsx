@@ -21,11 +21,11 @@ import {
 export function ColleagueDetailPage() {
   const { id } = useParams<{ id: string }>()
   const client = useDataverseClient()
-  const { selectedContactId } = useSelectedCompany()
+  const { selectedCompanyId } = useSelectedCompany()
   const { prevId, nextId, goPrev, goNext, goBack } = useListNav('/company', id)
 
   const query = useQuery({
-    queryKey: ['colleague', id, selectedContactId ?? 'default'],
+    queryKey: ['colleague', id, selectedCompanyId ?? 'default'],
     queryFn: () => fetchColleague(client, id!),
     enabled: !!id,
   })
@@ -33,7 +33,7 @@ export function ColleagueDetailPage() {
   const error = query.error instanceof Error ? query.error.message : null
 
   const casesQuery = useQuery({
-    queryKey: ['colleague-cases', id, selectedContactId ?? 'default'],
+    queryKey: ['colleague-cases', id, selectedCompanyId ?? 'default'],
     queryFn: () => listColleagueCases(client, id!),
     enabled: !!id && !!c,
   })

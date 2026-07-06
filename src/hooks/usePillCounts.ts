@@ -40,11 +40,11 @@ export function usePillCounts(
 ): Record<string, number | null> {
   const client = useDataverseClient()
   const companyClients = useCompanyClients()
-  const { selectedContactId, allCompanies } = useSelectedCompany()
+  const { selectedCompanyId, allCompanies } = useSelectedCompany()
   const useAll = fanOut && allCompanies
 
   const query = useQuery({
-    queryKey: ['pillcounts', table, tier, useAll ? 'all' : selectedContactId ?? 'default', pills.map((p) => p.key)],
+    queryKey: ['pillcounts', table, tier, useAll ? 'all' : selectedCompanyId ?? 'default', pills.map((p) => p.key)],
     queryFn: async () => {
       const targets = useAll ? companyClients.map((c) => c.client) : [client]
       const entries = await Promise.all(

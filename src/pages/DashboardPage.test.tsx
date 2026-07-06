@@ -45,7 +45,7 @@ const stats = (over: Partial<DashboardStats> = {}): DashboardStats => ({
 
 function selectedCompany(over: Record<string, unknown> = {}) {
   return {
-    selectedContactId: undefined,
+    selectedCompanyId: undefined,
     allCompanies: false,
     hasMultiple: false,
     companies: [],

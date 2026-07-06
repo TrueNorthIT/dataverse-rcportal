@@ -6,8 +6,8 @@ import { useSelectedCompany } from '../../context/SelectedCompanyContext'
  *
  * Renders nothing for the common single-company case. Otherwise it's a compact
  * "company chip" (building icon + current company + chevron) that opens a
- * branded popover menu; picking a company sends its contact id into
- * `useDataverseClient()` as the `X-Contact-Id` header so every request acts as
+ * branded popover menu; picking a company sends its companyId into
+ * `useDataverseClient()` as the `X-Company-Id` header so every request acts as
  * that company. Closes on outside-click or Escape.
  */
 export function CompanySwitcher() {
@@ -63,15 +63,15 @@ export function CompanySwitcher() {
           </div>
           <ul className="max-h-80 overflow-y-auto pb-1">
             {companies.map((c) => {
-              const active = c.contactid === currentCompany?.contactid
+              const active = c.companyId === currentCompany?.companyId
               return (
-                <li key={c.contactid}>
+                <li key={c.companyId}>
                   <button
                     type="button"
                     role="menuitemradio"
                     aria-checked={active}
                     onClick={() => {
-                      selectCompany(c.contactid)
+                      selectCompany(c.companyId)
                       setOpen(false)
                     }}
                     className={

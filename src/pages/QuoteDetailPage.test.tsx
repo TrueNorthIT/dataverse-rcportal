@@ -11,7 +11,7 @@ const client: MockClient = makeClient()
 vi.mock('../lib/client', () => ({ useDataverseClient: () => client, publicClient: () => client }))
 vi.mock('../context/SelectedCompanyContext', () => ({
   useSelectedCompany: () => ({
-    selectedContactId: undefined,
+    selectedCompanyId: undefined,
     allCompanies: false,
     companies: [],
     hasMultiple: false,

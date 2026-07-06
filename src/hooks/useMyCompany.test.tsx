@@ -11,7 +11,7 @@ import { useMyCompany } from './useMyCompany'
 const client: MockClient = makeClient()
 vi.mock('../lib/client', () => ({ useDataverseClient: () => client }))
 
-const selected = { selectedContactId: undefined as string | undefined }
+const selected = { selectedCompanyId: undefined as string | undefined }
 vi.mock('../context/SelectedCompanyContext', () => ({
   useSelectedCompany: () => selected,
 }))
@@ -25,7 +25,7 @@ const account: Account = {
 describe('useMyCompany', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    selected.selectedContactId = undefined
+    selected.selectedCompanyId = undefined
   })
 
   it('starts loading before the account resolves', () => {
@@ -98,7 +98,7 @@ describe('useMyCompany', () => {
         resolveNext = resolve
       }),
     )
-    selected.selectedContactId = 'other-co'
+    selected.selectedCompanyId = 'other-co'
     rerender()
 
     // ...and keepPreviousData keeps the old company visible (never blanks to null).

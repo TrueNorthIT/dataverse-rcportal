@@ -9,7 +9,7 @@ import { useTierList } from './useTierList'
 const client: MockClient = makeClient()
 vi.mock('../lib/client', () => ({ useDataverseClient: () => client }))
 vi.mock('../context/SelectedCompanyContext', () => ({
-  useSelectedCompany: () => ({ selectedContactId: undefined }),
+  useSelectedCompany: () => ({ selectedCompanyId: undefined }),
 }))
 
 interface Row {

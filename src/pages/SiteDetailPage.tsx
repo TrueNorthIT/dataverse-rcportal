@@ -18,11 +18,11 @@ import {
 export function SiteDetailPage() {
   const { id } = useParams<{ id: string }>()
   const client = useDataverseClient()
-  const { selectedContactId } = useSelectedCompany()
+  const { selectedCompanyId } = useSelectedCompany()
   const { tier, prevId, nextId, goPrev, goNext, goBack } = useListNav('/sites', id)
 
   const query = useQuery({
-    queryKey: ['site', id, tier ?? 'auto', selectedContactId ?? 'default'],
+    queryKey: ['site', id, tier ?? 'auto', selectedCompanyId ?? 'default'],
     queryFn: () => fetchSiteDetail(client, id!, tier),
     enabled: !!id,
   })

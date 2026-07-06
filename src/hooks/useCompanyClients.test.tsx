@@ -31,7 +31,7 @@ describe('useCompanyClients', () => {
     expect(createClient).not.toHaveBeenCalled()
   })
 
-  it('builds one client per company, each bound to that company contact id', () => {
+  it('builds one client per company, each bound to that company by companyId', () => {
     companies = [
       makeCompany({ contactid: 'c1', companyName: 'One' }),
       makeCompany({ contactid: 'c2', companyName: 'Two', isDefault: false }),
@@ -40,16 +40,16 @@ describe('useCompanyClients', () => {
     const { result } = renderHook(() => useCompanyClients())
 
     expect(result.current).toHaveLength(2)
-    expect(result.current[0].company.contactid).toBe('c1')
-    expect(result.current[1].company.contactid).toBe('c2')
+    expect(result.current[0].company.companyId).toBe('c1')
+    expect(result.current[1].company.companyId).toBe('c2')
     expect(createClient).toHaveBeenCalledTimes(2)
     expect(createClient).toHaveBeenNthCalledWith(
       1,
-      expect.objectContaining({ contactId: 'c1', getToken }),
+      expect.objectContaining({ companyId: 'c1', getToken }),
     )
     expect(createClient).toHaveBeenNthCalledWith(
       2,
-      expect.objectContaining({ contactId: 'c2', getToken }),
+      expect.objectContaining({ companyId: 'c2', getToken }),
     )
   })
 
@@ -62,7 +62,7 @@ describe('useCompanyClients', () => {
       baseUrl: 'https://api.test.local',
       scope: 'rcportal',
       getToken,
-      contactId: 'c1',
+      companyId: 'c1',
     })
   })
 
@@ -71,7 +71,7 @@ describe('useCompanyClients', () => {
     const { result } = renderHook(() => useCompanyClients())
     // createClient stub echoes its config back, so we can assert the binding.
     expect(result.current[0].client).toEqual({
-      config: expect.objectContaining({ contactId: 'c1' }),
+      config: expect.objectContaining({ companyId: 'c1' }),
     })
   })
 
