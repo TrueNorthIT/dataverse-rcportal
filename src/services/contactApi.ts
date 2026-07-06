@@ -74,24 +74,13 @@ const CONTACT_SELECT = [
  * (see registerMyContact below to self-provision one).
  */
 export async function fetchMyContact(client: DataverseClient): Promise<Contact | null> {
-  const res = await client.me.list<Contact>('contact', {
-    select: CONTACT_SELECT,
-    top: 1,
-    // Try a filter instead to narrow a wider table, e.g.:
-    // filter: { field: 'statecode', operator: 'eq', value: 0 },
-  })
-  // NB: the SDK returns { data, page } — list rows live on `.data`, not `.value`.
+  const res = await client.me.list<Contact>('contact', { select: CONTACT_SELECT, top: 1 })
   return res.data[0] ?? null
 }
 
 /**
- * Update the signed-in user's own contact.
- *
- * `client.me.update` targets a record the caller owns; the SDK issues the PATCH
- * and returns the updated row on `.data`. Only send changed fields.
- *
- * Next step: after saving you'll usually want to refresh — the useMyContact
- * hook does exactly that.
+ * Update the signed-in user's own contact. `client.me.update` targets a record
+ * the caller owns and returns the updated row on `.data`. Only send changed fields.
  */
 export async function updateMyContact(
   client: DataverseClient,
