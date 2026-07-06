@@ -15,6 +15,11 @@ const FIELDS: { key: Exclude<keyof EditableContactFields, 'donotbulkemail'>; lab
   { key: 'address1_country', label: 'Country' },
 ]
 
+/**
+ * The signed-in customer's own profile: identity header, an inline edit form for
+ * their contact fields, and the marketing-email preference. Self-registers a
+ * contact when the account has none yet.
+ */
 export function ContactProfile() {
   const { contact, loading, saving, error, needsRegistration, save, register } =
     useMyContact()
@@ -130,15 +135,6 @@ export function ContactProfile() {
         saving={saving}
         onChange={(receive) => void save({ donotbulkemail: !receive }).catch(() => {})}
       />
-
-      {/*
-        TODO: Add related records — a contact's cases, bookings, or activities.
-              Create a service like fetchMyCases(client) using
-              client.me.list('incident', { filter: { field: 'customerid',
-              operator: 'eq', value: contact.contactid } }) and render a list here.
-
-        TODO: Add a `contactid`/`createdon` metadata footer, or an avatar upload.
-      */}
     </div>
   )
 }
