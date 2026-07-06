@@ -16,7 +16,7 @@ const { client } = await vi.hoisted(async () => {
 vi.mock('../lib/client', () => ({ useDataverseClient: () => client, publicClient: client }))
 vi.mock('../context/SelectedCompanyContext', () => ({
   useSelectedCompany: () => ({
-    selectedContactId: undefined,
+    selectedCompanyId: undefined,
     allCompanies: false,
     companies: [],
     hasMultiple: false,

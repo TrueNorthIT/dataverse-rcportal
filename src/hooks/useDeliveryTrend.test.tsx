@@ -17,7 +17,7 @@ vi.mock('./useCompanyClients', () => ({
   useCompanyClients: () => companyClients,
 }))
 
-let selectedCompany: { selectedContactId: string | undefined; allCompanies: boolean }
+let selectedCompany: { selectedCompanyId: string | undefined; allCompanies: boolean }
 vi.mock('../context/SelectedCompanyContext', () => ({
   useSelectedCompany: () => selectedCompany,
 }))
@@ -33,7 +33,7 @@ describe('useDeliveryTrend', () => {
     vi.useFakeTimers({ toFake: ['Date'] })
     vi.setSystemTime(new Date(NOW))
     companyClients = []
-    selectedCompany = { selectedContactId: undefined, allCompanies: false }
+    selectedCompany = { selectedCompanyId: undefined, allCompanies: false }
   })
 
   afterEach(() => {
@@ -158,7 +158,7 @@ describe('useDeliveryTrend', () => {
       { company: makeCompany({ contactid: 'c1' }), client: c1 },
       { company: makeCompany({ contactid: 'c2' }), client: c2 },
     ]
-    selectedCompany = { selectedContactId: 'c1', allCompanies: true }
+    selectedCompany = { selectedCompanyId: 'c1', allCompanies: true }
 
     const { result } = renderHook(() => useDeliveryTrend(), { wrapper: hookWrapper() })
 
@@ -183,7 +183,7 @@ describe('useDeliveryTrend', () => {
       { company: makeCompany({ contactid: 'c1' }), client: c1 },
       { company: makeCompany({ contactid: 'c2' }), client: c2 },
     ]
-    selectedCompany = { selectedContactId: 'c1', allCompanies: true }
+    selectedCompany = { selectedCompanyId: 'c1', allCompanies: true }
 
     const { result } = renderHook(() => useDeliveryTrend(), { wrapper: hookWrapper() })
 

@@ -9,7 +9,7 @@ import { useAttention } from './useAttention'
 const client: MockClient = makeClient()
 vi.mock('../lib/client', () => ({ useDataverseClient: () => client }))
 
-const selected = { selectedContactId: undefined as string | undefined, allCompanies: false }
+const selected = { selectedCompanyId: undefined as string | undefined, allCompanies: false }
 vi.mock('../context/SelectedCompanyContext', () => ({
   useSelectedCompany: () => selected,
 }))
@@ -45,7 +45,7 @@ describe('useAttention', () => {
     // setInterval real — waitFor and React Query's scheduler poll normally.
     vi.useFakeTimers({ toFake: ['Date'] })
     vi.setSystemTime(new Date('2026-07-05T12:00:00Z'))
-    selected.selectedContactId = undefined
+    selected.selectedCompanyId = undefined
     selected.allCompanies = false
     companyClients = []
   })

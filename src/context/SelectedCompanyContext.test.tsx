@@ -16,7 +16,7 @@ vi.mock('@azure/msal-react', () => ({
   }),
 }))
 
-const KEY = 'rcportal.selectedContactId.h1'
+const KEY = 'rcportal.selectedCompanyId.h1'
 const wrapper = ({ children }: { children: ReactNode }) => (
   <SelectedCompanyProvider>{children}</SelectedCompanyProvider>
 )
@@ -65,7 +65,7 @@ describe('SelectedCompanyProvider', () => {
 
     act(() => result.current.selectCompany('c2'))
 
-    expect(result.current.selectedContactId).toBe('c2')
+    expect(result.current.selectedCompanyId).toBe('c2')
     expect(result.current.currentCompany?.contactid).toBe('c2')
     expect(localStorage.getItem(KEY)).toBe('c2')
   })
@@ -82,7 +82,7 @@ describe('SelectedCompanyProvider', () => {
     await waitFor(() => expect(result.current.loading).toBe(false))
 
     act(() => result.current.selectCompany(undefined))
-    expect(result.current.selectedContactId).toBeUndefined()
+    expect(result.current.selectedCompanyId).toBeUndefined()
     expect(localStorage.getItem(KEY)).toBeNull()
   })
 
@@ -107,7 +107,7 @@ describe('SelectedCompanyProvider', () => {
     companiesFn.mockResolvedValue(companiesResponse([makeCompany({ contactid: 'c1' })]))
     const { result } = renderContext()
     await waitFor(() => expect(result.current.loading).toBe(false))
-    expect(result.current.selectedContactId).toBeUndefined()
+    expect(result.current.selectedCompanyId).toBeUndefined()
   })
 
   it('survives a failed companies() call with an empty list', async () => {

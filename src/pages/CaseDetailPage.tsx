@@ -25,11 +25,11 @@ export function CaseDetailPage() {
   const { id } = useParams<{ id: string }>()
   const client = useDataverseClient()
   const queryClient = useQueryClient()
-  const { selectedContactId } = useSelectedCompany()
+  const { selectedCompanyId } = useSelectedCompany()
   const { tier, prevId, nextId, goPrev, goNext, goBack } = useListNav('/cases', id)
 
   const query = useQuery({
-    queryKey: ['case', id, tier ?? 'auto', selectedContactId ?? 'default'],
+    queryKey: ['case', id, tier ?? 'auto', selectedCompanyId ?? 'default'],
     queryFn: () => fetchCaseDetail(client, id!, tier),
     enabled: !!id,
   })
@@ -39,7 +39,7 @@ export function CaseDetailPage() {
 
   // Notes timeline — only once we know the case (and which tier resolved it).
   const notesQuery = useQuery({
-    queryKey: ['casenotes', id, mine, selectedContactId ?? 'default'],
+    queryKey: ['casenotes', id, mine, selectedCompanyId ?? 'default'],
     queryFn: () => listCaseNotes(client, id!, mine),
     enabled: !!id && !!record,
   })

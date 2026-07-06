@@ -22,11 +22,11 @@ import {
 export function QuoteDetailPage() {
   const { id } = useParams<{ id: string }>()
   const client = useDataverseClient()
-  const { selectedContactId } = useSelectedCompany()
+  const { selectedCompanyId } = useSelectedCompany()
   const { tier, prevId, nextId, goPrev, goNext, goBack } = useListNav('/quotes', id)
 
   const query = useQuery({
-    queryKey: ['quote', id, tier ?? 'auto', selectedContactId ?? 'default'],
+    queryKey: ['quote', id, tier ?? 'auto', selectedCompanyId ?? 'default'],
     queryFn: () => fetchQuoteDetail(client, id!, tier),
     enabled: !!id,
   })
@@ -35,7 +35,7 @@ export function QuoteDetailPage() {
   const error = query.error instanceof Error ? query.error.message : null
 
   const linesQuery = useQuery({
-    queryKey: ['quotelines', id, mine, selectedContactId ?? 'default'],
+    queryKey: ['quotelines', id, mine, selectedCompanyId ?? 'default'],
     queryFn: () => listQuoteLines(client, id!, mine),
     enabled: !!id && !!record,
   })

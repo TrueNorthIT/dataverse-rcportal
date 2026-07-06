@@ -15,7 +15,7 @@ vi.mock('./useCompanyClients', () => ({
   useCompanyClients: () => companyClients,
 }))
 
-let selectedCompany: { selectedContactId: string | undefined; allCompanies: boolean }
+let selectedCompany: { selectedCompanyId: string | undefined; allCompanies: boolean }
 vi.mock('../context/SelectedCompanyContext', () => ({
   useSelectedCompany: () => selectedCompany,
 }))
@@ -33,7 +33,7 @@ describe('usePillCounts', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     companyClients = []
-    selectedCompany = { selectedContactId: undefined, allCompanies: false }
+    selectedCompany = { selectedCompanyId: undefined, allCompanies: false }
   })
 
   it('returns an empty map before the counts resolve', () => {
@@ -101,7 +101,7 @@ describe('usePillCounts', () => {
   })
 
   it('does not fan out on the single-company path even with all-companies selected', async () => {
-    selectedCompany = { selectedContactId: 'c1', allCompanies: true }
+    selectedCompany = { selectedCompanyId: 'c1', allCompanies: true }
     const other = makeClient()
     other.team.aggregate.mockResolvedValue(count(100))
     companyClients = [{ company: makeCompany({ contactid: 'c2' }), client: other }]
@@ -126,7 +126,7 @@ describe('usePillCounts', () => {
       { company: makeCompany({ contactid: 'c1' }), client: c1 },
       { company: makeCompany({ contactid: 'c2' }), client: c2 },
     ]
-    selectedCompany = { selectedContactId: 'c1', allCompanies: true }
+    selectedCompany = { selectedCompanyId: 'c1', allCompanies: true }
 
     const { result } = renderHook(
       () =>
@@ -147,7 +147,7 @@ describe('usePillCounts', () => {
     const other = makeClient()
     other.team.aggregate.mockResolvedValue(count(100))
     companyClients = [{ company: makeCompany({ contactid: 'c2' }), client: other }]
-    selectedCompany = { selectedContactId: 'c1', allCompanies: false }
+    selectedCompany = { selectedCompanyId: 'c1', allCompanies: false }
     client.team.aggregate.mockResolvedValue(count(7))
 
     const { result } = renderHook(

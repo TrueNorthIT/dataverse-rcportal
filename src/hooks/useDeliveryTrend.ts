@@ -75,10 +75,10 @@ function buildTrend(rows: Project[], now: number): TrendPoint[] {
 export function useDeliveryTrend(enabled = true): { data: TrendPoint[]; loading: boolean } {
   const client = useDataverseClient()
   const companyClients = useCompanyClients()
-  const { selectedContactId, allCompanies } = useSelectedCompany()
+  const { selectedCompanyId, allCompanies } = useSelectedCompany()
 
   const query = useQuery({
-    queryKey: ['delivery-trend', allCompanies ? 'all' : selectedContactId ?? 'default'],
+    queryKey: ['delivery-trend', allCompanies ? 'all' : selectedCompanyId ?? 'default'],
     enabled,
     staleTime: 60_000,
     queryFn: async () => {

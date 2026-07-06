@@ -40,6 +40,8 @@ export function count(n: number): AggregateResponse<Record<string, number>> {
 /** A `Company` with sensible defaults — override only what a test cares about. */
 export function makeCompany(over: Partial<Company> = {}): Company {
   return {
+    // Classic model: companyId === contactid.
+    companyId: over.contactid ?? 'contact-1',
     contactid: 'contact-1',
     accountId: 'account-1',
     companyName: 'Acme Ltd',

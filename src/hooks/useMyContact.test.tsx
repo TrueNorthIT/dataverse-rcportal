@@ -10,7 +10,7 @@ import { useMyContact } from './useMyContact'
 const client: MockClient = makeClient()
 vi.mock('../lib/client', () => ({ useDataverseClient: () => client }))
 
-const selected = { selectedContactId: undefined as string | undefined }
+const selected = { selectedCompanyId: undefined as string | undefined }
 vi.mock('../context/SelectedCompanyContext', () => ({
   useSelectedCompany: () => selected,
 }))
@@ -26,7 +26,7 @@ const contact: Contact = {
 describe('useMyContact', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    selected.selectedContactId = undefined
+    selected.selectedCompanyId = undefined
   })
 
   afterEach(() => {
@@ -205,7 +205,7 @@ describe('useMyContact', () => {
   })
 
   it('keys the query on the selected contact id', async () => {
-    selected.selectedContactId = 'other-co'
+    selected.selectedCompanyId = 'other-co'
     client.me.list.mockResolvedValue(paginated<Contact>([contact]))
 
     const qc = (await import('../test/render')).testQueryClient()

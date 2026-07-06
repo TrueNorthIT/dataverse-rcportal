@@ -12,12 +12,12 @@ import { useSelectedCompany } from '../context/SelectedCompanyContext'
  * query strings, and normalises errors into `ApiError`. Never set headers or
  * build `$filter` strings by hand; go through the SDK.
  *
- * When the caller is a contact under more than one company and has picked one,
- * the selected `contactId` is threaded in here so the SDK sends the
- * `X-Contact-Id` header on every request — meaning all tiers, lists, and
- * pagination automatically act as the chosen company. The server verifies the
- * contact belongs to the caller. With no selection the API uses the default
- * (earliest-created) company. See `SelectedCompanyContext`.
+ * When the caller can act as more than one company and has picked one, the
+ * selected `companyId` is threaded in here so the SDK sends the `X-Company-Id`
+ * header on every request — meaning all tiers, lists, and pagination
+ * automatically act as the chosen company. The server verifies the company
+ * belongs to the caller. With no selection the API uses the default company.
+ * See `SelectedCompanyContext`.
  *
  * Use the tier that matches the access you need:
  *   client.me   — records linked to the caller's own contact (this portal)
@@ -26,16 +26,16 @@ import { useSelectedCompany } from '../context/SelectedCompanyContext'
  */
 export function useDataverseClient() {
   const getToken = useGetToken()
-  const { selectedContactId } = useSelectedCompany()
+  const { selectedCompanyId } = useSelectedCompany()
   return useMemo(
     () =>
       createClient({
         baseUrl: apiOrigin,
         scope: dataverseScope,
         getToken,
-        ...(selectedContactId ? { contactId: selectedContactId } : {}),
+        ...(selectedCompanyId ? { companyId: selectedCompanyId } : {}),
       }),
-    [getToken, selectedContactId],
+    [getToken, selectedCompanyId],
   )
 }
 

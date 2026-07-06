@@ -31,10 +31,10 @@ const plural = (n: number, one: string, many: string) => (n === 1 ? one : many)
 export function useAttention(): { items: AttentionItem[]; loading: boolean; stale: boolean } {
   const client = useDataverseClient()
   const companyClients = useCompanyClients()
-  const { selectedContactId, allCompanies } = useSelectedCompany()
+  const { selectedCompanyId, allCompanies } = useSelectedCompany()
 
   const query = useQuery({
-    queryKey: ['attention', allCompanies ? 'all' : selectedContactId ?? 'default'],
+    queryKey: ['attention', allCompanies ? 'all' : selectedCompanyId ?? 'default'],
     queryFn: async () => {
       const today = isoOffset(0)
       const weekAgo = isoOffset(-7)

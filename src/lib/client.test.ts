@@ -8,9 +8,9 @@ const { createClient, getToken } = vi.hoisted(() => ({
 vi.mock('@truenorth-it/dataverse-client', () => ({ createClient }))
 vi.mock('./getToken', () => ({ useGetToken: () => getToken }))
 
-let selectedContactId: string | undefined
+let selectedCompanyId: string | undefined
 vi.mock('../context/SelectedCompanyContext', () => ({
-  useSelectedCompany: () => ({ selectedContactId }),
+  useSelectedCompany: () => ({ selectedCompanyId }),
 }))
 
 import { useDataverseClient, publicClient } from './client'
@@ -18,7 +18,7 @@ import { useDataverseClient, publicClient } from './client'
 describe('useDataverseClient', () => {
   beforeEach(() => {
     createClient.mockClear()
-    selectedContactId = undefined
+    selectedCompanyId = undefined
   })
 
   it('builds a client bound to the origin, scope and token', () => {
@@ -30,11 +30,11 @@ describe('useDataverseClient', () => {
     })
   })
 
-  it('threads the selected contact id in as the company override', () => {
-    selectedContactId = 'contact-42'
+  it('threads the selected companyId in as the company override', () => {
+    selectedCompanyId = 'company-42'
     renderHook(() => useDataverseClient())
     expect(createClient).toHaveBeenCalledWith(
-      expect.objectContaining({ contactId: 'contact-42' }),
+      expect.objectContaining({ companyId: 'company-42' }),
     )
   })
 })

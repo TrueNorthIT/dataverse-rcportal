@@ -40,11 +40,11 @@ export function useTierList<T>(
   initialTier: Tier = 'me',
 ): UseTierListResult<T> {
   const client = useDataverseClient()
-  const { selectedContactId } = useSelectedCompany()
+  const { selectedCompanyId } = useSelectedCompany()
   const [tier, setTier] = useState<Tier>(initialTier)
 
   const query = useInfiniteQuery({
-    queryKey: ['list', table, tier, selectedContactId ?? 'default', options ?? {}],
+    queryKey: ['list', table, tier, selectedCompanyId ?? 'default', options ?? {}],
     queryFn: ({ pageParam }) =>
       pageParam
         ? client[tier].fetchPage<T>(pageParam)

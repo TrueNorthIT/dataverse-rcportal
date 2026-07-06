@@ -22,7 +22,7 @@ export function ProjectDetailPage() {
   const client = useDataverseClient()
   const location = useLocation()
   const navigate = useNavigate()
-  const { selectedContactId } = useSelectedCompany()
+  const { selectedCompanyId } = useSelectedCompany()
   const { tier, prevId, nextId, goPrev, goNext, goBack } = useListNav('/projects', id)
 
   // The plan modal's open state lives in the URL hash (#plan) so it's
@@ -32,7 +32,7 @@ export function ProjectDetailPage() {
   const closePlan = () => navigate(`${location.pathname}${location.search}`, { replace: true })
 
   const query = useQuery({
-    queryKey: ['project', id, tier ?? 'auto', selectedContactId ?? 'default'],
+    queryKey: ['project', id, tier ?? 'auto', selectedCompanyId ?? 'default'],
     queryFn: () => fetchProjectDetail(client, id!, tier),
     enabled: !!id,
   })
@@ -43,7 +43,7 @@ export function ProjectDetailPage() {
 
   // Real plan items (new_projecttask rows) → Gantt phases + milestones.
   const tasksQuery = useQuery({
-    queryKey: ['projecttasks', id, mine, selectedContactId ?? 'default'],
+    queryKey: ['projecttasks', id, mine, selectedCompanyId ?? 'default'],
     queryFn: () => listProjectTasks(client, id!, mine),
     enabled: !!id && !!record,
   })
@@ -52,7 +52,7 @@ export function ProjectDetailPage() {
 
   // Real delivery notes (annotations regarding the project).
   const notesQuery = useQuery({
-    queryKey: ['projectnotes', id, mine, selectedContactId ?? 'default'],
+    queryKey: ['projectnotes', id, mine, selectedCompanyId ?? 'default'],
     queryFn: () => listProjectNotes(client, id!, mine),
     enabled: !!id && !!record,
   })
