@@ -70,7 +70,7 @@ function makeScope() {
     create: vi.fn().mockResolvedValue(single({})),
     whoami: vi.fn(),
     companies: vi.fn().mockResolvedValue(companiesResponse([makeCompany()])),
-    claimableCompanies: vi.fn().mockResolvedValue({ companies: [] }),
+    claimableCompanies: vi.fn().mockResolvedValue({ companies: [], requireDomainMatch: false }),
     register: vi.fn(),
     invokeFunction: vi.fn(),
     invokeAction: vi.fn(),

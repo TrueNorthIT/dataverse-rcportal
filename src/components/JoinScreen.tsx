@@ -1,6 +1,8 @@
 import { useState } from 'react'
+import { useMsal } from '@azure/msal-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { DataverseClient } from '@truenorth-it/dataverse-client'
+import { accountToUser, entraConfig } from '../config/entra'
 import { fetchClaimableCompanies, registerMyContact } from '../services/contactApi'
 import { Icon } from './common/Icon'
 
@@ -21,10 +23,16 @@ export function JoinScreen({ client }: { client: DataverseClient }) {
     queryKey: ['claimable-companies'],
     queryFn: () => fetchClaimableCompanies(client),
   })
-  const companies = claimable.data ?? []
+  const companies = claimable.data?.companies ?? []
+  const requireDomainMatch = claimable.data?.requireDomainMatch ?? false
 
-  const [firstname, setFirstname] = useState('')
-  const [lastname, setLastname] = useState('')
+  // We already signed the user in, so pre-fill their name from the token
+  // (given_name/family_name, falling back to the display name) — they only
+  // confirm it rather than retype it.
+  const { instance, accounts } = useMsal()
+  const user = accountToUser(instance.getActiveAccount() ?? accounts[0])
+  const [firstname, setFirstname] = useState(() => user?.firstName ?? '')
+  const [lastname, setLastname] = useState(() => user?.lastName ?? '')
   const [selected, setSelected] = useState<Set<string>>(new Set())
 
   const toggle = (id: string) =>
@@ -49,7 +57,13 @@ export function JoinScreen({ client }: { client: DataverseClient }) {
   })
 
   const error = join.error instanceof Error ? join.error.message : null
-  const canJoin = !join.isPending && (companies.length === 0 || selected.size > 0)
+  // Blocked: nothing matches the caller's domain and the scope requires a match.
+  const blocked = !claimable.isLoading && companies.length === 0 && requireDomainMatch
+  const canJoin = !join.isPending && !blocked && (companies.length === 0 || selected.size > 0)
+
+  // Signed in as the wrong account? Let them re-pick without leaving the app.
+  const signInAgain = () =>
+    void instance.loginRedirect({ scopes: [entraConfig.apiScope], prompt: 'select_account' })
 
   return (
     <div className="rc-hero relative flex min-h-screen items-center justify-center px-4 py-10">
@@ -63,7 +77,7 @@ export function JoinScreen({ client }: { client: DataverseClient }) {
           Welcome to the Redcentric Customer Portal
         </h1>
         <p className="mx-auto mt-3 max-w-md text-center text-sm text-white/80">
-          We couldn’t find your details yet. Tell us your name and choose the
+          We couldn’t find your details yet. Confirm your name and choose the
           companies you work with to get started.
         </p>
 
@@ -76,39 +90,70 @@ export function JoinScreen({ client }: { client: DataverseClient }) {
         >
           <div className="rc-gradient h-1 w-full" />
           <div className="space-y-5 p-6">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Field label="First name" value={firstname} onChange={setFirstname} autoFocus />
-              <Field label="Last name" value={lastname} onChange={setLastname} />
-            </div>
+            {blocked ? (
+              <BlockedNotice />
+            ) : (
+              <>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <Field label="First name" value={firstname} onChange={setFirstname} autoFocus />
+                  <Field label="Last name" value={lastname} onChange={setLastname} />
+                </div>
 
-            <CompanyPicker
-              loading={claimable.isLoading}
-              companies={companies}
-              selected={selected}
-              onToggle={toggle}
-            />
+                <CompanyPicker
+                  loading={claimable.isLoading}
+                  companies={companies}
+                  selected={selected}
+                  onToggle={toggle}
+                />
 
-            {error && (
-              <p className="flex items-start gap-1.5 text-sm text-red-600">
-                <Icon name="x" className="mt-0.5 h-4 w-4 shrink-0" />
-                {error}
-              </p>
+                {error && (
+                  <p className="flex items-start gap-1.5 text-sm text-red-600">
+                    <Icon name="x" className="mt-0.5 h-4 w-4 shrink-0" />
+                    {error}
+                  </p>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={!canJoin}
+                  className="w-full rounded-lg bg-rc-blue px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-rc-navy disabled:opacity-50"
+                >
+                  {join.isPending ? 'Setting up your account…' : 'Join'}
+                </button>
+              </>
             )}
-
-            <button
-              type="submit"
-              disabled={!canJoin}
-              className="w-full rounded-lg bg-rc-blue px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-rc-navy disabled:opacity-50"
-            >
-              {join.isPending ? 'Setting up your account…' : 'Join'}
-            </button>
           </div>
         </form>
 
-        <p className="mt-6 text-center text-xs text-white/60">
-          You can only join companies on your own email domain.
-        </p>
+        <div className="mt-6 text-center text-xs text-white/60">
+          {!blocked && <p>You can only join companies on your own email domain.</p>}
+          <p className="mt-1">
+            Not you?{' '}
+            <button type="button" onClick={signInAgain} className="font-medium text-white/90 underline hover:text-white">
+              Sign in with a different account
+            </button>
+          </p>
+        </div>
       </div>
+    </div>
+  )
+}
+
+/**
+ * Shown when the caller's email domain matches no company and the scope only
+ * admits people from a company it looks after (`requireDomainMatch`).
+ */
+function BlockedNotice() {
+  return (
+    <div className="flex flex-col items-center py-4 text-center">
+      <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rc-blue-light text-rc-blue">
+        <Icon name="lock" className="h-6 w-6" />
+      </span>
+      <h2 className="mt-4 text-lg font-medium text-rc-navy">We can’t sign you up</h2>
+      <p className="mt-1 max-w-sm text-sm text-rc-teal">
+        You’re not a member of any trusted domain for the companies we look after.
+        If you think this is wrong, contact your administrator.
+      </p>
     </div>
   )
 }

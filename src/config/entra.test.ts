@@ -38,7 +38,28 @@ describe('accountToUser', () => {
     const user = accountToUser(
       account({ idTokenClaims: { email: 'ada@acme.com', name: 'Ada Lovelace' } }),
     )
-    expect(user).toEqual({ id: 'home-1', email: 'ada@acme.com', name: 'Ada Lovelace' })
+    // first/last are split from the display name when no given/family claims.
+    expect(user).toEqual({
+      id: 'home-1',
+      email: 'ada@acme.com',
+      name: 'Ada Lovelace',
+      firstName: 'Ada',
+      lastName: 'Lovelace',
+    })
+  })
+
+  it('derives first/last name from the given_name/family_name claims', () => {
+    const user = accountToUser(
+      account({ idTokenClaims: { given_name: 'Ada', family_name: 'King', name: 'Ada Lovelace' } }),
+    )
+    expect(user?.firstName).toBe('Ada')
+    expect(user?.lastName).toBe('King')
+  })
+
+  it('splits the display name into first/last when given/family claims are absent', () => {
+    const user = accountToUser(account({ idTokenClaims: { name: 'Grace Brewster Hopper' } }))
+    expect(user?.firstName).toBe('Grace')
+    expect(user?.lastName).toBe('Brewster Hopper')
   })
 
   it('falls back to preferred_username when it looks like an email', () => {
