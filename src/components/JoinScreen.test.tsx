@@ -53,11 +53,12 @@ describe('JoinScreen', () => {
     expect(screen.getByText('Acme Labs')).toBeInTheDocument()
   })
 
-  it("pre-fills the name from the signed-in account", () => {
+  it("pre-fills the name and shows the signed-in email", () => {
     renderWithProviders(<JoinScreen client={client} />)
 
     expect(screen.getByLabelText('First name')).toHaveValue('Jane')
     expect(screen.getByLabelText('Last name')).toHaveValue('Doe')
+    expect(screen.getByText(/jane@acme\.co\.uk/)).toBeInTheDocument()
   })
 
   it('joins the selected companies, sending the inferred name + accountIds', async () => {
