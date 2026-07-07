@@ -14,6 +14,7 @@ import {
   MetaItem,
 } from '../components/detail/DetailChrome'
 import { SiteMap } from '../components/detail/SiteMap'
+import { SiteMapInteractive } from '../components/detail/SiteMapInteractive'
 
 /** Read-only site detail: full address + connectivity (all real DV fields). */
 export function SiteDetailPage() {
@@ -33,6 +34,10 @@ export function SiteDetailPage() {
     ? [record.line1, record.line2, record.city, record.stateorprovince, record.postalcode, record.country]
         .filter(Boolean)
         .join(', ')
+    : ''
+  // Compact address for the map panels' overlay caption.
+  const mapAddress = record
+    ? [record.line1, record.city, record.postalcode].filter(Boolean).join(', ')
     : ''
 
   return (
@@ -66,12 +71,23 @@ export function SiteDetailPage() {
             <MetaItem icon="clock" label="Added" value={formatDate(record.createdon)} />
           </MetaGrid>
         </DetailHeader>
+        {/* Two map variants side-by-side for now — pick the preferred one and
+            drop the other (and its component) once chosen. */}
         <SiteMap
           className="mt-6"
+          caption="Static"
           latitude={record.latitude}
           longitude={record.longitude}
           name={record.name || 'Site'}
-          address={[record.line1, record.city, record.postalcode].filter(Boolean).join(', ')}
+          address={mapAddress}
+        />
+        <SiteMapInteractive
+          className="mt-4"
+          caption="Interactive"
+          latitude={record.latitude}
+          longitude={record.longitude}
+          name={record.name || 'Site'}
+          address={mapAddress}
         />
         </>
         )}
