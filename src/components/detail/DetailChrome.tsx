@@ -153,22 +153,89 @@ export function SectionTitle({
  * `<ListStates>`. Shows a skeleton while the record loads, the error message on
  * failure, otherwise the resolved content. Keeps the same triad out of every
  * detail page.
+ *
+ * A 404 gets special treatment: rather than the raw "Record … does not belong
+ * to your team", it renders a friendly, guided state (`<DetailUnavailable>`) —
+ * because the usual cause is switching company while viewing a record the new
+ * company can't see. Pass `onBack`/`backLabel`/`companyName` to make that state
+ * actionable.
  */
 export function DetailStates({
   loading,
   error,
+  onBack,
+  backLabel,
+  companyName,
   skeleton,
   children,
 }: {
   loading: boolean
   error: string | null
+  /** Back-to-list handler — the primary action on the not-available state. */
+  onBack?: () => void
+  /** Section label for the back action, e.g. "Quotes". */
+  backLabel?: string
+  /** The company currently in scope, named in the not-available guidance. */
+  companyName?: string | null
   /** Placeholder while loading; defaults to <DetailSkeleton>. */
   skeleton?: React.ReactNode
   children: React.ReactNode
 }) {
   if (loading) return <>{skeleton ?? <DetailSkeleton />}</>
-  if (error) return <p className="text-sm text-red-200">{error}</p>
+  if (error) {
+    // The API answers a record the current company can't see with a 404 whose
+    // message is "… not found or does not belong to you/your team". Guide the
+    // user (usually a mid-view company switch) instead of surfacing that.
+    if (/not found|does not belong/i.test(error)) {
+      return <DetailUnavailable companyName={companyName} onBack={onBack} backLabel={backLabel} />
+    }
+    return <p className="text-sm text-red-200">{error}</p>
+  }
   return <>{children}</>
+}
+
+/**
+ * Friendly stand-in when a detail record isn't visible to the company currently
+ * in scope — typically after switching company mid-view. Explains why and offers
+ * the way back, rather than surfacing the raw "does not belong to your team".
+ */
+function DetailUnavailable({
+  companyName,
+  onBack,
+  backLabel,
+}: {
+  companyName?: string | null
+  onBack?: () => void
+  backLabel?: string
+}) {
+  return (
+    <Card className="overflow-hidden">
+      <div className="rc-gradient h-1 w-full" />
+      <div className="flex flex-col items-center px-6 py-10 text-center">
+        <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rc-blue-light text-rc-blue">
+          <Icon name="building" className="h-6 w-6" />
+        </span>
+        <h2 className="mt-4 text-lg font-medium text-rc-navy">
+          {companyName ? `Not available for ${companyName}` : 'This record isn’t available'}
+        </h2>
+        <p className="mt-1 max-w-sm text-sm text-rc-teal">
+          {companyName
+            ? `This record belongs to a different company. If you’ve just switched to ${companyName}, switch back with the company menu above — or head back to the list.`
+            : 'It may belong to a different company you can switch to, or it no longer exists. Try the company menu above, or head back to the list.'}
+        </p>
+        {onBack && (
+          <button
+            type="button"
+            onClick={onBack}
+            className="mt-5 inline-flex items-center gap-1.5 rounded-lg bg-rc-blue px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-rc-navy"
+          >
+            <Icon name="chevronRight" className="h-4 w-4 rotate-180" />
+            Back to {backLabel ?? 'the list'}
+          </button>
+        )}
+      </div>
+    </Card>
+  )
 }
 
 /** Shimmer placeholder for a detail card while it loads. */

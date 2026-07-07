@@ -69,9 +69,11 @@ describe('QuoteDetailPage', () => {
 
   it('renders an error message when the fetch rejects on both tiers', async () => {
     client.me.get.mockRejectedValue(new Error('me denied'))
-    client.team.get.mockRejectedValue(new Error('quote not found'))
+    client.team.get.mockRejectedValue(new Error('boom'))
     renderPage()
-    expect(await screen.findByText('quote not found')).toBeInTheDocument()
+    // A non-404 error surfaces its message verbatim (the friendly not-available
+    // state is reserved for 404s — see DetailChrome.test).
+    expect(await screen.findByText('boom')).toBeInTheDocument()
   })
 
   it('renders the header, status chip and meta grid on success', async () => {

@@ -69,9 +69,11 @@ describe('SiteDetailPage', () => {
 
   it('renders an error message when the fetch rejects on both tiers', async () => {
     client.team.get.mockRejectedValue(new Error('team denied'))
-    client.me.get.mockRejectedValue(new Error('site not found'))
+    client.me.get.mockRejectedValue(new Error('boom'))
     renderPage()
-    expect(await screen.findByText('site not found')).toBeInTheDocument()
+    // A non-404 error surfaces its message verbatim (the friendly not-available
+    // state is reserved for 404s — see DetailChrome.test).
+    expect(await screen.findByText('boom')).toBeInTheDocument()
   })
 
   it('renders the header, connectivity chip and joined full address', async () => {

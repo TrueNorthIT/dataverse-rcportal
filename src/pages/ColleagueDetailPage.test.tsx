@@ -114,9 +114,11 @@ describe('ColleagueDetailPage', () => {
   })
 
   it('surfaces an error message when the colleague fails to load', async () => {
-    client.team.get.mockRejectedValue(new Error('not found'))
+    client.team.get.mockRejectedValue(new Error('boom'))
     renderPage()
-    expect(await screen.findByText('not found')).toBeInTheDocument()
+    // A non-404 error surfaces its message verbatim (the friendly not-available
+    // state is reserved for 404s — see DetailChrome.test).
+    expect(await screen.findByText('boom')).toBeInTheDocument()
   })
 
   it('renders the recent cases list with count and ticket number', async () => {

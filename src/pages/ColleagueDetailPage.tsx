@@ -21,7 +21,7 @@ import {
 export function ColleagueDetailPage() {
   const { id } = useParams<{ id: string }>()
   const client = useDataverseClient()
-  const { selectedCompanyId } = useSelectedCompany()
+  const { selectedCompanyId, currentCompany } = useSelectedCompany()
   const { prevId, nextId, goPrev, goNext, goBack } = useListNav('/company', id)
 
   const query = useQuery({
@@ -47,7 +47,7 @@ export function ColleagueDetailPage() {
     <div>
       <DetailNav label="My company" prevId={prevId} nextId={nextId} onPrev={goPrev} onNext={goNext} onBack={goBack} />
 
-      <DetailStates loading={query.isLoading} error={error}>
+      <DetailStates loading={query.isLoading} error={error} onBack={goBack} backLabel="My company" companyName={currentCompany?.companyName}>
         {c && (
           <DetailHeader
             icon="user"

@@ -1,0 +1,205 @@
+import { useState } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import type { DataverseClient } from '@truenorth-it/dataverse-client'
+import { fetchClaimableCompanies, registerMyContact } from '../services/contactApi'
+import { Icon } from './common/Icon'
+
+/**
+ * First-run "join" screen, shown by `OnboardingGate` when a signed-in user has
+ * no Dataverse contact yet. They enter their name and pick which companies they
+ * work with — the picker only offers companies on their own email domain (the
+ * API returns them and re-verifies the choice server-side). Joining provisions
+ * their contact (one per chosen company) and, on success, invalidates `whoami`
+ * so the gate lets them into the app with their companies loaded.
+ *
+ * When nothing matches their domain the picker is skipped: they can still create
+ * their account, and an administrator connects them to a company afterwards.
+ */
+export function JoinScreen({ client }: { client: DataverseClient }) {
+  const qc = useQueryClient()
+  const claimable = useQuery({
+    queryKey: ['claimable-companies'],
+    queryFn: () => fetchClaimableCompanies(client),
+  })
+  const companies = claimable.data ?? []
+
+  const [firstname, setFirstname] = useState('')
+  const [lastname, setLastname] = useState('')
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+
+  const toggle = (id: string) =>
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+
+  const join = useMutation({
+    mutationFn: () =>
+      registerMyContact(client, {
+        firstname: firstname.trim() || undefined,
+        lastname: lastname.trim() || undefined,
+        accountIds: [...selected],
+      }),
+    // The gate keys off whoami; once a contact exists it drops us into the app
+    // and SelectedCompanyProvider (which mounts only past the gate) loads the
+    // freshly-linked companies. No reload needed.
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ['whoami'] }),
+  })
+
+  const error = join.error instanceof Error ? join.error.message : null
+  const canJoin = !join.isPending && (companies.length === 0 || selected.size > 0)
+
+  return (
+    <div className="rc-hero relative flex min-h-screen items-center justify-center px-4 py-10">
+      <div className="relative z-10 w-full max-w-lg">
+        <img
+          src="/brand/Redcentric_logo_white_no-strapline.png"
+          alt="Redcentric"
+          className="mx-auto h-9 w-auto"
+        />
+        <h1 className="mt-8 text-center text-3xl font-light tracking-tight text-white">
+          Welcome to the Redcentric Customer Portal
+        </h1>
+        <p className="mx-auto mt-3 max-w-md text-center text-sm text-white/80">
+          We couldn’t find your details yet. Tell us your name and choose the
+          companies you work with to get started.
+        </p>
+
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            join.mutate()
+          }}
+          className="mt-8 overflow-hidden rounded-2xl border border-rc-blue-light bg-white shadow-sm"
+        >
+          <div className="rc-gradient h-1 w-full" />
+          <div className="space-y-5 p-6">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Field label="First name" value={firstname} onChange={setFirstname} autoFocus />
+              <Field label="Last name" value={lastname} onChange={setLastname} />
+            </div>
+
+            <CompanyPicker
+              loading={claimable.isLoading}
+              companies={companies}
+              selected={selected}
+              onToggle={toggle}
+            />
+
+            {error && (
+              <p className="flex items-start gap-1.5 text-sm text-red-600">
+                <Icon name="x" className="mt-0.5 h-4 w-4 shrink-0" />
+                {error}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              disabled={!canJoin}
+              className="w-full rounded-lg bg-rc-blue px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-rc-navy disabled:opacity-50"
+            >
+              {join.isPending ? 'Setting up your account…' : 'Join'}
+            </button>
+          </div>
+        </form>
+
+        <p className="mt-6 text-center text-xs text-white/60">
+          You can only join companies on your own email domain.
+        </p>
+      </div>
+    </div>
+  )
+}
+
+function Field({
+  label,
+  value,
+  onChange,
+  autoFocus,
+}: {
+  label: string
+  value: string
+  onChange: (v: string) => void
+  autoFocus?: boolean
+}) {
+  return (
+    <label className="flex flex-col gap-1">
+      <span className="text-xs font-medium text-rc-teal">{label}</span>
+      <input
+        type="text"
+        value={value}
+        autoFocus={autoFocus}
+        onChange={(e) => onChange(e.target.value)}
+        className="rounded-lg border border-rc-blue-light px-3 py-2 text-sm text-rc-navy focus:border-rc-blue focus:ring-2 focus:ring-rc-blue/30 focus:outline-none"
+      />
+    </label>
+  )
+}
+
+/**
+ * The company multi-select. Skipped (with a friendly note) when no company
+ * matches the caller's email domain — they can still create their account and
+ * be connected by an administrator later.
+ */
+function CompanyPicker({
+  loading,
+  companies,
+  selected,
+  onToggle,
+}: {
+  loading: boolean
+  companies: { accountId: string; name: string; city?: string; websiteurl?: string }[]
+  selected: Set<string>
+  onToggle: (id: string) => void
+}) {
+  if (loading) {
+    return (
+      <div className="rc-skeleton h-24 w-full rounded-lg" aria-busy="true" aria-label="Finding your companies" />
+    )
+  }
+
+  if (companies.length === 0) {
+    return (
+      <div className="rounded-lg border border-rc-blue-light bg-rc-canvas p-4 text-sm text-rc-teal">
+        We couldn’t match any companies to your email domain yet. Create your
+        account and an administrator will connect you to your company.
+      </div>
+    )
+  }
+
+  return (
+    <fieldset className="space-y-2">
+      <legend className="mb-1 text-xs font-medium text-rc-teal">
+        Which companies do you work with?
+      </legend>
+      {companies.map((c) => {
+        const checked = selected.has(c.accountId)
+        return (
+          <label
+            key={c.accountId}
+            className={
+              'flex cursor-pointer items-center gap-3 rounded-lg border px-3 py-2.5 transition-colors ' +
+              (checked ? 'border-rc-blue bg-rc-blue-light/40' : 'border-rc-blue-light hover:bg-rc-canvas')
+            }
+          >
+            <input
+              type="checkbox"
+              checked={checked}
+              onChange={() => onToggle(c.accountId)}
+              className="h-4 w-4 rounded border-rc-blue-light text-rc-blue focus:ring-rc-blue/30"
+            />
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-rc-blue-light text-rc-blue">
+              <Icon name="building" className="h-4 w-4" />
+            </span>
+            <span className="min-w-0">
+              <span className="block truncate text-sm font-medium text-rc-navy">{c.name}</span>
+              {c.city && <span className="block truncate text-xs text-rc-teal">{c.city}</span>}
+            </span>
+          </label>
+        )
+      })}
+    </fieldset>
+  )
+}
