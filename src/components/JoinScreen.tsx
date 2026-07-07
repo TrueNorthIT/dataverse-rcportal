@@ -80,6 +80,11 @@ export function JoinScreen({ client }: { client: DataverseClient }) {
           We couldn’t find your details yet. Confirm your name and choose the
           companies you work with to get started.
         </p>
+        {user?.email && (
+          <p className="mt-2 text-center text-xs text-white/60">
+            Signed in as <span className="font-medium text-white/90">{user.email}</span>
+          </p>
+        )}
 
         <form
           onSubmit={(e) => {
