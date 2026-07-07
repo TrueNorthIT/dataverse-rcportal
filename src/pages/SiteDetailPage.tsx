@@ -13,7 +13,6 @@ import {
   MetaGrid,
   MetaItem,
 } from '../components/detail/DetailChrome'
-import { SiteMap } from '../components/detail/SiteMap'
 import { SiteMapInteractive } from '../components/detail/SiteMapInteractive'
 
 /** Read-only site detail: full address + connectivity (all real DV fields). */
@@ -71,19 +70,8 @@ export function SiteDetailPage() {
             <MetaItem icon="clock" label="Added" value={formatDate(record.createdon)} />
           </MetaGrid>
         </DetailHeader>
-        {/* Two map variants side-by-side for now — pick the preferred one and
-            drop the other (and its component) once chosen. */}
-        <SiteMap
-          className="mt-6"
-          caption="Static"
-          latitude={record.latitude}
-          longitude={record.longitude}
-          name={record.name || 'Site'}
-          address={mapAddress}
-        />
         <SiteMapInteractive
-          className="mt-4"
-          caption="Interactive"
+          className="mt-6"
           latitude={record.latitude}
           longitude={record.longitude}
           name={record.name || 'Site'}
