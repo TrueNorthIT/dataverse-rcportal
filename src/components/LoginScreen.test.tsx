@@ -10,7 +10,7 @@ import { LoginScreen } from './LoginScreen'
  * API scope — so we mock `useMsal` and assert the call.
  */
 
-const loginRedirect = vi.fn<(request: { scopes: string[] }) => Promise<void>>()
+const loginRedirect = vi.fn<(request: { scopes: string[]; prompt?: string }) => Promise<void>>()
 
 vi.mock('@azure/msal-react', () => ({
   useMsal: () => ({ instance: { loginRedirect } }),
@@ -45,6 +45,16 @@ describe('LoginScreen', () => {
 
     expect(loginRedirect).toHaveBeenCalledTimes(1)
     expect(loginRedirect).toHaveBeenCalledWith({ scopes: [entraConfig.apiScope] })
+  })
+
+  it('starts the Entra sign-up flow (prompt=create) when Create an account is clicked', async () => {
+    const user = userEvent.setup()
+    render(<LoginScreen />)
+
+    await user.click(screen.getByRole('button', { name: 'Create an account' }))
+
+    expect(loginRedirect).toHaveBeenCalledTimes(1)
+    expect(loginRedirect).toHaveBeenCalledWith({ scopes: [entraConfig.apiScope], prompt: 'create' })
   })
 
   it('does not throw when loginRedirect rejects (fire-and-forget)', async () => {
