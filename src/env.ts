@@ -39,8 +39,8 @@ export const DATAVERSE_URL = (import.meta.env.VITE_DATAVERSE_URL as string | und
 )
 
 /**
- * Optional MapTiler key — when set, the site detail page shows a styled static
- * map of the address. Unset (a minimal deployment) simply hides the map. It
+ * Optional MapTiler key — when set, the site detail page shows a styled map of
+ * the address. Unset (a minimal deployment) simply hides the map. It
  * ships in the client bundle, so restrict the key to your domain in the
  * MapTiler dashboard.
  */

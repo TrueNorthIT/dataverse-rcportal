@@ -25,12 +25,15 @@ export function SiteMap({
   longitude,
   name,
   address,
+  caption,
   className = '',
 }: {
   latitude?: number | null
   longitude?: number | null
   name: string
   address?: string
+  /** Small corner label — used while both map variants are shown together. */
+  caption?: string
   className?: string
 }) {
   const [failed, setFailed] = useState(false)
@@ -74,6 +77,12 @@ export function SiteMap({
             <span className="relative inline-flex h-4 w-4 rounded-full border-2 border-white bg-rc-blue shadow" />
           </span>
         </div>
+
+        {caption && (
+          <span className="pointer-events-none absolute left-3 top-3 rounded-full bg-black/40 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white backdrop-blur">
+            {caption}
+          </span>
+        )}
 
         {/* Bottom scrim carrying the address + a jump-to-maps link. */}
         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-rc-navy via-rc-navy/70 to-transparent p-4 pt-10">
