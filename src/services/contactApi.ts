@@ -110,13 +110,15 @@ export async function registerMyContact(
 
 /**
  * The companies a signed-in caller may self-join, matched on their verified
- * email domain (the API excludes any they already belong to). Feeds the join
- * screen's "which companies do you work with?" picker. Empty when the scope
- * doesn't allow self-registration or nothing matches the domain.
+ * email domain (the API excludes any they already belong to), plus the scope's
+ * `requireDomainMatch` policy. Feeds the join screen: the picker lists the
+ * companies, and when there are none `requireDomainMatch` decides whether the
+ * caller is blocked ("not a member of any trusted domain") or may still create
+ * an unlinked contact. Companies are empty when self-registration is off or
+ * nothing matches the domain.
  */
 export async function fetchClaimableCompanies(client: DataverseClient) {
-  const { companies } = await client.me.claimableCompanies()
-  return companies
+  return client.me.claimableCompanies()
 }
 
 /**

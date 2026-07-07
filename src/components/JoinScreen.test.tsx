@@ -1,9 +1,26 @@
-import { describe, expect, it, beforeEach } from 'vitest'
+import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '../test/render'
 import { makeClient, type MockClient } from '../test/dataverse'
 import { JoinScreen } from './JoinScreen'
+
+// The join form pre-fills the name from the signed-in Entra account and offers a
+// "sign in again" action, so mock a signed-in user + loginRedirect.
+const { loginRedirect } = vi.hoisted(() => ({ loginRedirect: vi.fn() }))
+vi.mock('@azure/msal-react', () => ({
+  useMsal: () => ({
+    instance: {
+      getActiveAccount: () => ({
+        homeAccountId: 'h1',
+        name: 'Jane Doe',
+        idTokenClaims: { given_name: 'Jane', family_name: 'Doe', email: 'jane@acme.co.uk' },
+      }),
+      loginRedirect,
+    },
+    accounts: [],
+  }),
+}))
 
 let client: MockClient
 
@@ -15,6 +32,7 @@ const registerOk = {
 }
 
 beforeEach(() => {
+  vi.clearAllMocks()
   client = makeClient()
   client.me.register.mockResolvedValue(registerOk)
 })
@@ -22,6 +40,7 @@ beforeEach(() => {
 describe('JoinScreen', () => {
   it('greets the joiner and lists the domain-matched companies', async () => {
     client.me.claimableCompanies.mockResolvedValue({
+      requireDomainMatch: true,
       companies: [
         { accountId: 'a1', name: 'Acme Ltd', city: 'Leeds' },
         { accountId: 'a2', name: 'Acme Labs' },
@@ -34,9 +53,17 @@ describe('JoinScreen', () => {
     expect(screen.getByText('Acme Labs')).toBeInTheDocument()
   })
 
-  it('joins the selected companies, sending name + accountIds to register', async () => {
+  it("pre-fills the name from the signed-in account", () => {
+    renderWithProviders(<JoinScreen client={client} />)
+
+    expect(screen.getByLabelText('First name')).toHaveValue('Jane')
+    expect(screen.getByLabelText('Last name')).toHaveValue('Doe')
+  })
+
+  it('joins the selected companies, sending the inferred name + accountIds', async () => {
     const user = userEvent.setup()
     client.me.claimableCompanies.mockResolvedValue({
+      requireDomainMatch: true,
       companies: [
         { accountId: 'a1', name: 'Acme Ltd' },
         { accountId: 'a2', name: 'Acme Labs' },
@@ -44,8 +71,6 @@ describe('JoinScreen', () => {
     })
     renderWithProviders(<JoinScreen client={client} />)
 
-    await user.type(screen.getByLabelText('First name'), 'Jane')
-    await user.type(screen.getByLabelText('Last name'), 'Doe')
     await screen.findByText('Acme Ltd')
     await user.click(screen.getAllByRole('checkbox')[0]) // Acme Ltd
     await user.click(screen.getByRole('button', { name: 'Join' }))
@@ -59,9 +84,9 @@ describe('JoinScreen', () => {
     )
   })
 
-  it('lets the user create an account even when nothing matches their domain', async () => {
+  it('lets the user create an account when nothing matches and a match is not required', async () => {
     const user = userEvent.setup()
-    client.me.claimableCompanies.mockResolvedValue({ companies: [] })
+    client.me.claimableCompanies.mockResolvedValue({ companies: [], requireDomainMatch: false })
     renderWithProviders(<JoinScreen client={client} />)
 
     expect(await screen.findByText(/couldn’t match any companies/i)).toBeInTheDocument()
@@ -69,16 +94,34 @@ describe('JoinScreen', () => {
 
     await waitFor(() =>
       expect(client.me.register).toHaveBeenCalledWith({
-        firstname: undefined,
-        lastname: undefined,
+        firstname: 'Jane',
+        lastname: 'Doe',
         accountIds: [],
       }),
     )
   })
 
+  it('blocks sign-up when nothing matches and the scope requires a match', async () => {
+    client.me.claimableCompanies.mockResolvedValue({ companies: [], requireDomainMatch: true })
+    renderWithProviders(<JoinScreen client={client} />)
+
+    expect(await screen.findByText(/not a member of any trusted domain/i)).toBeInTheDocument()
+    // No way to proceed — the Join button is gone.
+    expect(screen.queryByRole('button', { name: 'Join' })).not.toBeInTheDocument()
+    expect(client.me.register).not.toHaveBeenCalled()
+  })
+
+  it('offers to sign in with a different account', async () => {
+    const user = userEvent.setup()
+    renderWithProviders(<JoinScreen client={client} />)
+
+    await user.click(screen.getByRole('button', { name: /sign in with a different account/i }))
+    expect(loginRedirect).toHaveBeenCalledWith(expect.objectContaining({ prompt: 'select_account' }))
+  })
+
   it('surfaces a domain-rejection error from the API', async () => {
     const user = userEvent.setup()
-    client.me.claimableCompanies.mockResolvedValue({ companies: [{ accountId: 'a1', name: 'Acme Ltd' }] })
+    client.me.claimableCompanies.mockResolvedValue({ requireDomainMatch: true, companies: [{ accountId: 'a1', name: 'Acme Ltd' }] })
     client.me.register.mockRejectedValue(new Error('You can only join companies on your email domain (acme.co.uk).'))
     renderWithProviders(<JoinScreen client={client} />)
 

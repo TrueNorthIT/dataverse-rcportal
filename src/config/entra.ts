@@ -38,6 +38,10 @@ export interface AppUser {
   id: string
   email?: string
   name?: string
+  /** Given name from the token (given_name claim, else the first word of name). */
+  firstName?: string
+  /** Family name from the token (family_name claim, else the rest of name). */
+  lastName?: string
 }
 
 export function accountToUser(
@@ -54,9 +58,18 @@ export function accountToUser(
     (preferred && preferred.includes('@') ? preferred : undefined) ??
     (account.username && account.username.includes('@') ? account.username : undefined)
 
+  const name = claim('name') ?? account.name
+  // Prefer the explicit given/family claims; otherwise split the display name so
+  // the join form can still be pre-filled (first word → first name, rest → last).
+  const [firstWord, ...restWords] = (name ?? '').trim().split(/\s+/).filter(Boolean)
+  const firstName = claim('given_name') ?? firstWord
+  const lastName = claim('family_name') ?? (restWords.length ? restWords.join(' ') : undefined)
+
   return {
     id: account.homeAccountId,
     email,
-    name: claim('name') ?? account.name,
+    name,
+    firstName: firstName || undefined,
+    lastName: lastName || undefined,
   }
 }
