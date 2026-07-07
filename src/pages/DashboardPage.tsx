@@ -35,9 +35,14 @@ export function DashboardPage() {
       {/* The scope toggle stays pinned to the top as you scroll. It sits ABOVE
           the header (z-50 > z-40) so the header can never overlap it and eat a
           tap — the earlier z-30 let the header cover it in some scroll
-          positions, which is why this toggle needed a second press. */}
+          positions, which is why this toggle needed a second press.
+          But full-width + z-50 means its empty right half would paint over the
+          header's company-switcher dropdown and eat clicks on the menu items
+          beneath it. So the wrapper is pointer-events-none and the controls opt
+          back in (pointer-events-auto) — the band only catches clicks where a
+          real control is. */}
       {hasMultiple && (
-        <div className="sticky top-2 z-50 mb-3 flex items-center gap-3">
+        <div className="pointer-events-none sticky top-2 z-50 mb-3 flex items-center gap-3">
           <CompanyScopeToggle />
           <SyncIndicator active={syncing} />
         </div>

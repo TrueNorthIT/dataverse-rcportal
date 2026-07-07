@@ -44,7 +44,7 @@ export function CompanyScopeToggle() {
       value={scope}
       onChange={onChange}
       ariaLabel="Dashboard scope"
-      className="shadow-sm"
+      className="shadow-sm pointer-events-auto"
       options={[
         { key: 'one', label: 'This company' },
         { key: 'all', label: 'All companies' },
