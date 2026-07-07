@@ -16,6 +16,10 @@ vi.mock('@azure/msal-react', () => ({
 // Keep the authenticated tree light — providers pass through, the shell renders
 // its outlet, and the index page is a marker. Each is unit-tested on its own.
 vi.mock('./components/LoginScreen', () => ({ LoginScreen: () => <div>Sign in here</div> }))
+// Onboarding is unit-tested on its own; here it passes through to the app.
+vi.mock('./components/OnboardingGate', () => ({
+  OnboardingGate: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}))
 vi.mock('./context/SelectedCompanyContext', () => ({
   SelectedCompanyProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }))

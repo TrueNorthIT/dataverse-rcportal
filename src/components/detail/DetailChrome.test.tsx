@@ -5,6 +5,7 @@ import { renderWithProviders } from '../../test/render'
 import {
   DetailNav,
   DetailHeader,
+  DetailStates,
   MetaGrid,
   MetaItem,
   SectionTitle,
@@ -167,5 +168,67 @@ describe('DetailSkeleton', () => {
     // glyph + title bars — well over a handful of shimmer elements.
     const shimmer = container.querySelectorAll('.rc-skeleton')
     expect(shimmer.length).toBeGreaterThan(6)
+  })
+})
+
+describe('DetailStates', () => {
+  it('shows the skeleton while loading', () => {
+    const { container } = renderWithProviders(
+      <DetailStates loading error={null}>
+        <div>content</div>
+      </DetailStates>,
+    )
+    expect(container.querySelector('.rc-skeleton')).toBeInTheDocument()
+    expect(screen.queryByText('content')).not.toBeInTheDocument()
+  })
+
+  it('renders children once loaded with no error', () => {
+    renderWithProviders(
+      <DetailStates loading={false} error={null}>
+        <div>content</div>
+      </DetailStates>,
+    )
+    expect(screen.getByText('content')).toBeInTheDocument()
+  })
+
+  it('surfaces a non-404 error message verbatim', () => {
+    renderWithProviders(
+      <DetailStates loading={false} error="Something went wrong">
+        <div>content</div>
+      </DetailStates>,
+    )
+    expect(screen.getByText('Something went wrong')).toBeInTheDocument()
+    expect(screen.queryByText('content')).not.toBeInTheDocument()
+  })
+
+  it('shows a friendly, company-named state for a "does not belong" 404', async () => {
+    const user = userEvent.setup()
+    const onBack = vi.fn()
+    renderWithProviders(
+      <DetailStates
+        loading={false}
+        error="Record 303a1d26 does not belong to your team"
+        onBack={onBack}
+        backLabel="Quotes"
+        companyName="Globex Ltd"
+      >
+        <div>content</div>
+      </DetailStates>,
+    )
+    // The raw message is replaced by a guided, company-named explanation.
+    expect(screen.queryByText(/does not belong/i)).not.toBeInTheDocument()
+    expect(screen.getByText('Not available for Globex Ltd')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /Back to Quotes/ }))
+    expect(onBack).toHaveBeenCalledTimes(1)
+  })
+
+  it('uses a generic not-available message when no company name is given', () => {
+    renderWithProviders(
+      <DetailStates loading={false} error="Record x not found or does not belong to you">
+        <div>content</div>
+      </DetailStates>,
+    )
+    expect(screen.getByText(/isn’t available/)).toBeInTheDocument()
   })
 })

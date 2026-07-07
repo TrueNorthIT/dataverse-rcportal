@@ -18,7 +18,7 @@ import {
 export function SiteDetailPage() {
   const { id } = useParams<{ id: string }>()
   const client = useDataverseClient()
-  const { selectedCompanyId } = useSelectedCompany()
+  const { selectedCompanyId, currentCompany } = useSelectedCompany()
   const { tier, prevId, nextId, goPrev, goNext, goBack } = useListNav('/sites', id)
 
   const query = useQuery({
@@ -38,7 +38,7 @@ export function SiteDetailPage() {
     <div>
       <DetailNav label="Sites" prevId={prevId} nextId={nextId} onPrev={goPrev} onNext={goNext} onBack={goBack} />
 
-      <DetailStates loading={query.isLoading} error={error}>
+      <DetailStates loading={query.isLoading} error={error} onBack={goBack} backLabel="Sites" companyName={currentCompany?.companyName}>
         {record && (
         <DetailHeader
           icon="mapPin"

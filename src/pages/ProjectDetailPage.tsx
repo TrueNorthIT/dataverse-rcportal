@@ -22,7 +22,7 @@ export function ProjectDetailPage() {
   const client = useDataverseClient()
   const location = useLocation()
   const navigate = useNavigate()
-  const { selectedCompanyId } = useSelectedCompany()
+  const { selectedCompanyId, currentCompany } = useSelectedCompany()
   const { tier, prevId, nextId, goPrev, goNext, goBack } = useListNav('/projects', id)
 
   // The plan modal's open state lives in the URL hash (#plan) so it's
@@ -62,7 +62,7 @@ export function ProjectDetailPage() {
     <div>
       <DetailNav label="Projects" prevId={prevId} nextId={nextId} onPrev={goPrev} onNext={goNext} onBack={goBack} />
 
-      <DetailStates loading={query.isLoading} error={error}>
+      <DetailStates loading={query.isLoading} error={error} onBack={goBack} backLabel="Projects" companyName={currentCompany?.companyName}>
         {record && (
           <DetailHeader
           icon="layers"

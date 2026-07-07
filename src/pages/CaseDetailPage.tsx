@@ -25,7 +25,7 @@ export function CaseDetailPage() {
   const { id } = useParams<{ id: string }>()
   const client = useDataverseClient()
   const queryClient = useQueryClient()
-  const { selectedCompanyId } = useSelectedCompany()
+  const { selectedCompanyId, currentCompany } = useSelectedCompany()
   const { tier, prevId, nextId, goPrev, goNext, goBack } = useListNav('/cases', id)
 
   const query = useQuery({
@@ -56,7 +56,7 @@ export function CaseDetailPage() {
         onBack={goBack}
       />
 
-      <DetailStates loading={query.isLoading} error={error}>
+      <DetailStates loading={query.isLoading} error={error} onBack={goBack} backLabel="Support" companyName={currentCompany?.companyName}>
         {record && (
           <>
             <DetailHeader

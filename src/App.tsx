@@ -2,6 +2,7 @@ import { InteractionStatus } from '@azure/msal-browser'
 import { useIsAuthenticated, useMsal } from '@azure/msal-react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { LoginScreen } from './components/LoginScreen'
+import { OnboardingGate } from './components/OnboardingGate'
 import { AppShell } from './components/layout/AppShell'
 import { SelectedCompanyProvider } from './context/SelectedCompanyContext'
 import { DashboardPage } from './pages/DashboardPage'
@@ -48,6 +49,7 @@ function App() {
   }
 
   return (
+    <OnboardingGate>
     <SelectedCompanyProvider>
       <ToastProvider>
       <FeedbackProvider>
@@ -78,6 +80,7 @@ function App() {
       </FeedbackProvider>
       </ToastProvider>
     </SelectedCompanyProvider>
+    </OnboardingGate>
   )
 }
 

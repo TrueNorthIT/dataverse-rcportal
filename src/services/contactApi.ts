@@ -92,18 +92,31 @@ export async function updateMyContact(
 }
 
 /**
- * Self-provision a contact for a signed-in user who doesn't have one yet.
+ * Self-provision a contact for a signed-in user who doesn't have one yet,
+ * optionally joining companies.
  *
  * The email is taken from the verified token (never from the arguments) — only
- * name fields are accepted. Idempotent: returns the existing contact if one
- * already exists. Requires the `rcportal` scope to have self-registration
- * enabled, otherwise the API responds 403.
+ * name fields are accepted. Pass `accountIds` (from `fetchClaimableCompanies`)
+ * to also link the caller to those companies; the API re-verifies each is on
+ * the caller's email domain. Idempotent. Requires the `rcportal` scope to have
+ * self-registration enabled, otherwise the API responds 403.
  */
 export async function registerMyContact(
   client: DataverseClient,
-  names?: { firstname?: string; lastname?: string },
+  input?: { firstname?: string; lastname?: string; accountIds?: string[] },
 ) {
-  return client.me.register(names)
+  return client.me.register(input)
+}
+
+/**
+ * The companies a signed-in caller may self-join, matched on their verified
+ * email domain (the API excludes any they already belong to). Feeds the join
+ * screen's "which companies do you work with?" picker. Empty when the scope
+ * doesn't allow self-registration or nothing matches the domain.
+ */
+export async function fetchClaimableCompanies(client: DataverseClient) {
+  const { companies } = await client.me.claimableCompanies()
+  return companies
 }
 
 /**
