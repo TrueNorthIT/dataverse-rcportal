@@ -38,6 +38,9 @@ interface SelectedCompanyValue {
   selectCompany: (companyId: string | undefined) => void
   /** Roll the dashboard up across all of the caller's companies. */
   selectAllCompanies: () => void
+  /** Re-fetch the company list — e.g. after registering a contact that the
+   * API may have auto-linked to a company by email domain. */
+  reloadCompanies: () => void
   /** True while the company list is still loading. */
   loading: boolean
 }
@@ -70,6 +73,7 @@ export function SelectedCompanyProvider({ children }: { children: ReactNode }) {
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | undefined>(
     stored && stored !== ALL ? stored : undefined,
   )
+  const [refreshCounter, setRefreshCounter] = useState(0)
 
   // A base client (no company override) is enough to list companies — the
   // endpoint keys off the token email, not X-Contact-Id.
@@ -101,7 +105,9 @@ export function SelectedCompanyProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true
     }
-  }, [baseClient])
+  }, [baseClient, refreshCounter])
+
+  const reloadCompanies = useMemo(() => () => setRefreshCounter((n) => n + 1), [])
 
   const selectCompany = useMemo(
     () => (companyId: string | undefined) => {
@@ -146,9 +152,10 @@ export function SelectedCompanyProvider({ children }: { children: ReactNode }) {
       allCompanies,
       selectCompany,
       selectAllCompanies,
+      reloadCompanies,
       loading,
     }
-  }, [companies, selectedCompanyId, allCompanies, selectCompany, selectAllCompanies, loading])
+  }, [companies, selectedCompanyId, allCompanies, selectCompany, selectAllCompanies, reloadCompanies, loading])
 
   return (
     <SelectedCompanyContext.Provider value={value}>

@@ -10,7 +10,10 @@ import { useMyContact } from './useMyContact'
 const client: MockClient = makeClient()
 vi.mock('../lib/client', () => ({ useDataverseClient: () => client }))
 
-const selected = { selectedCompanyId: undefined as string | undefined }
+const selected = {
+  selectedCompanyId: undefined as string | undefined,
+  reloadCompanies: vi.fn(),
+}
 vi.mock('../context/SelectedCompanyContext', () => ({
   useSelectedCompany: () => selected,
 }))
@@ -145,6 +148,9 @@ describe('useMyContact', () => {
     expect(client.me.register).toHaveBeenCalledWith({ firstname: 'Ada', lastname: 'Lovelace' })
     await waitFor(() => expect(result.current.contact).toEqual(contact))
     expect(result.current.needsRegistration).toBe(false)
+    // The company list is refreshed — the API may have auto-linked the new
+    // contact to a company by email domain.
+    expect(selected.reloadCompanies).toHaveBeenCalled()
   })
 
   it('register() with no names still calls through', async () => {

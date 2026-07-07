@@ -27,7 +27,7 @@ interface UseMyContactResult {
  */
 export function useMyContact(): UseMyContactResult {
   const client = useDataverseClient()
-  const { selectedCompanyId } = useSelectedCompany()
+  const { selectedCompanyId, reloadCompanies } = useSelectedCompany()
   const qc = useQueryClient()
   const key = ['myContact', selectedCompanyId ?? 'default']
 
@@ -48,7 +48,12 @@ export function useMyContact(): UseMyContactResult {
   const register = useMutation({
     mutationFn: (names?: { firstname?: string; lastname?: string }) =>
       registerMyContact(client, names),
-    onSuccess: () => qc.invalidateQueries({ queryKey: key }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: key })
+      // The API may have auto-linked the new contact to a company by email
+      // domain — refresh the company list so it appears without a reload.
+      reloadCompanies()
+    },
   })
 
   const err = query.error ?? save.error ?? register.error
