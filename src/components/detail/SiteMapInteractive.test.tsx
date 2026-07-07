@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/react'
 import { SiteMapInteractive } from './SiteMapInteractive'
 
-// Mock env's MAP_KEY via a mutable holder (same trick as SiteMap.test) so each
-// case can flip the key without resetModules. Mock the canvas too: maplibre-gl
+// Mock env's MAP_KEY via a mutable, getter-backed holder so each case can flip
+// the key without resetModules. Mock the canvas too: maplibre-gl
 // needs WebGL, which jsdom lacks — we only test the chrome + guards here.
 const { mapKey } = vi.hoisted(() => ({ mapKey: { value: undefined as string | undefined } }))
 vi.mock('../../env', () => ({
@@ -30,12 +30,11 @@ describe('SiteMapInteractive', () => {
     expect(container).toBeEmptyDOMElement()
   })
 
-  it('renders the map canvas, caption, address and maps link when key + coords are present', async () => {
+  it('renders the map canvas, address and maps link when key + coords are present', async () => {
     mapKey.value = 'test-key'
-    render(<SiteMapInteractive {...leeds} address="Unit 7, Leeds, LS10 1AB" caption="Interactive" />)
+    render(<SiteMapInteractive {...leeds} address="Unit 7, Leeds, LS10 1AB" />)
 
     expect(await screen.findByTestId('site-map-canvas')).toBeInTheDocument()
-    expect(screen.getByText('Interactive')).toBeInTheDocument()
     expect(screen.getByText('Unit 7, Leeds, LS10 1AB')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /open in maps/i })).toHaveAttribute(
       'href',

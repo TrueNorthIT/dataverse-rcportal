@@ -33,7 +33,7 @@ export default function SiteMapCanvas({
       container: ref.current,
       style: `https://api.maptiler.com/maps/${MAP_STYLE}/style.json?key=${MAP_KEY}`,
       center: [longitude, latitude],
-      zoom: 14,
+      zoom: 15.5,
       scrollZoom: false,
       dragRotate: false,
       pitchWithRotate: false,
@@ -42,8 +42,8 @@ export default function SiteMapCanvas({
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right')
 
     // Brand pulsing pin, anchored to the point so it tracks pan/zoom. The
-    // Tailwind utility classes below are picked up by the JIT scanner from this
-    // file (and they also live in SiteMap.tsx's overlay pin).
+    // Tailwind utility classes below are picked up by the JIT scanner from
+    // this file.
     const el = document.createElement('div')
     el.setAttribute('aria-label', label)
     el.innerHTML =
