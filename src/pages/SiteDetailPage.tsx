@@ -13,6 +13,7 @@ import {
   MetaGrid,
   MetaItem,
 } from '../components/detail/DetailChrome'
+import { SiteMap } from '../components/detail/SiteMap'
 
 /** Read-only site detail: full address + connectivity (all real DV fields). */
 export function SiteDetailPage() {
@@ -40,6 +41,7 @@ export function SiteDetailPage() {
 
       <DetailStates loading={query.isLoading} error={error} onBack={goBack} backLabel="Sites" companyName={currentCompany?.companyName}>
         {record && (
+        <>
         <DetailHeader
           icon="mapPin"
           title={record.name || 'Site'}
@@ -64,6 +66,14 @@ export function SiteDetailPage() {
             <MetaItem icon="clock" label="Added" value={formatDate(record.createdon)} />
           </MetaGrid>
         </DetailHeader>
+        <SiteMap
+          className="mt-6"
+          latitude={record.latitude}
+          longitude={record.longitude}
+          name={record.name || 'Site'}
+          address={[record.line1, record.city, record.postalcode].filter(Boolean).join(', ')}
+        />
+        </>
         )}
       </DetailStates>
     </div>
