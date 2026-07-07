@@ -52,12 +52,33 @@ function storageKey(accountId: string | undefined): string {
   return `rcportal.selectedCompanyId.${accountId ?? 'anon'}`
 }
 
+/**
+ * localStorage key caching the caller's companies. Reading it at first paint
+ * lets the header switcher and dashboard scope toggle render immediately on a
+ * return visit, rather than popping in once `me.companies()` resolves — which
+ * shoved the whole page down (a large layout shift / CLS).
+ */
+function companiesKey(accountId: string | undefined): string {
+  return `rcportal.companies.${accountId ?? 'anon'}`
+}
+
+/** Best-effort read of the cached companies (empty on a first-ever visit). */
+function readCachedCompanies(accountId: string | undefined): Company[] {
+  try {
+    const raw = localStorage.getItem(companiesKey(accountId))
+    const parsed = raw ? JSON.parse(raw) : null
+    return Array.isArray(parsed) ? (parsed as Company[]) : []
+  } catch {
+    return []
+  }
+}
+
 export function SelectedCompanyProvider({ children }: { children: ReactNode }) {
   const { instance, accounts } = useMsal()
   const getToken = useGetToken()
   const accountId = (instance.getActiveAccount() ?? accounts[0])?.homeAccountId
 
-  const [companies, setCompanies] = useState<Company[]>([])
+  const [companies, setCompanies] = useState<Company[]>(() => readCachedCompanies(accountId))
   const [loading, setLoading] = useState(true)
   const stored = (() => {
     try {
@@ -86,6 +107,12 @@ export function SelectedCompanyProvider({ children }: { children: ReactNode }) {
       .then(({ companies }) => {
         if (cancelled) return
         setCompanies(companies)
+        // Cache for first-paint on the next visit (see readCachedCompanies).
+        try {
+          localStorage.setItem(companiesKey(accountId), JSON.stringify(companies))
+        } catch {
+          // Persistence is best-effort — ignore storage failures.
+        }
         // Drop a persisted selection that is no longer one of the caller's
         // companies (e.g. access revoked) — fall back to the default.
         setSelectedCompanyId((current) =>
@@ -101,7 +128,7 @@ export function SelectedCompanyProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true
     }
-  }, [baseClient])
+  }, [baseClient, accountId])
 
   const selectCompany = useMemo(
     () => (companyId: string | undefined) => {

@@ -10,6 +10,7 @@ import { Card } from '../components/common/Card'
 import { Icon } from '../components/common/Icon'
 import { ArchitectureNote } from '../components/dashboard/ArchitectureNote'
 import { CompanyScopeToggle } from '../components/dashboard/CompanyScopeToggle'
+import { DashboardChartsSkeleton } from '../components/dashboard/DashboardChartsSkeleton'
 
 // recharts is heavy — split the whole charts section into its own lazy chunk.
 const DashboardCharts = lazy(() => import('../components/dashboard/DashboardCharts'))
@@ -69,9 +70,10 @@ export function DashboardPage() {
 
       <ScrollHint />
 
-      <Suspense
-        fallback={<div className="rc-skeleton mt-8 h-64 w-full rounded-2xl" aria-label="Loading insights" />}
-      >
+      {/* The fallback mirrors the charts' layout exactly (see
+          DashboardChartsSkeleton) so the lazy chunk swaps in without shifting
+          the shortcuts + notes below it. */}
+      <Suspense fallback={<DashboardChartsSkeleton />}>
         {/* No re-key: on a scope switch the charts stay mounted and update in
             place (their query keys already flip all↔current), so switching
             works even while they're scrolled into view. */}
