@@ -95,15 +95,22 @@ export async function updateMyContact(
  * Self-provision a contact for a signed-in user who doesn't have one yet.
  *
  * The email is taken from the verified token (never from the arguments) — only
- * name fields are accepted. Idempotent: returns the existing contact if one
- * already exists. Requires the `rcportal` scope to have self-registration
- * enabled, otherwise the API responds 403.
+ * name fields plus an optional company choice are accepted. Idempotent:
+ * returns the existing contact if one already exists. Requires the `rcportal`
+ * scope to have self-registration enabled, otherwise the API responds 403.
+ *
+ * `companyId` picks which domain-matched company to join (from
+ * `fetchRegistrableCompanies`); the API validates it against the caller's
+ * email domain. The extra field rides through a cast because the pinned SDK
+ * (^1.7.0) predates it — drop the cast once 1.8.0 is published.
  */
 export async function registerMyContact(
   client: DataverseClient,
   names?: { firstname?: string; lastname?: string },
+  companyId?: string,
 ) {
-  return client.me.register(names)
+  const payload = companyId ? { ...names, companyId } : names
+  return client.me.register(payload as { firstname?: string; lastname?: string })
 }
 
 /**

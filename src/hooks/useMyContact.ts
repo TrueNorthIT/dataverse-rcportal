@@ -17,7 +17,10 @@ interface UseMyContactResult {
   needsRegistration: boolean
   refresh: () => void
   save: (patch: Partial<EditableContactFields>) => Promise<void>
-  register: (names?: { firstname?: string; lastname?: string }) => Promise<void>
+  register: (
+    names?: { firstname?: string; lastname?: string },
+    companyId?: string,
+  ) => Promise<void>
 }
 
 /**
@@ -46,8 +49,10 @@ export function useMyContact(): UseMyContactResult {
   })
 
   const register = useMutation({
-    mutationFn: (names?: { firstname?: string; lastname?: string }) =>
-      registerMyContact(client, names),
+    mutationFn: (args: {
+      names?: { firstname?: string; lastname?: string }
+      companyId?: string
+    }) => registerMyContact(client, args.names, args.companyId),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: key })
       // The API may have auto-linked the new contact to a company by email
@@ -68,8 +73,8 @@ export function useMyContact(): UseMyContactResult {
     save: async (patch) => {
       await save.mutateAsync(patch)
     },
-    register: async (names) => {
-      await register.mutateAsync(names)
+    register: async (names, companyId) => {
+      await register.mutateAsync({ names, companyId })
     },
   }
 }

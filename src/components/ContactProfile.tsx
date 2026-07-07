@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useMyContact } from '../hooks/useMyContact'
+import { useRegistrableCompanies } from '../hooks/useRegistrableCompanies'
 import type { EditableContactFields } from '../types/contact'
 
 /** Text fields the form edits, in display order (donotbulkemail is a toggle). */
@@ -47,24 +48,10 @@ export function ContactProfile() {
     return <Centered>Loading your details…</Centered>
   }
 
-  // Authenticated but no contact yet — offer self-registration.
+  // Authenticated but no contact yet — offer self-registration, with a company
+  // picker when the user's email domain matches known companies.
   if (needsRegistration) {
-    return (
-      <Centered>
-        <div className="text-center">
-          <p className="text-rc-navy">You don't have a contact record yet.</p>
-          <button
-            type="button"
-            disabled={saving}
-            onClick={() => void register()}
-            className="mt-4 rounded-lg bg-rc-blue px-4 py-2 text-sm font-medium text-white hover:bg-rc-navy disabled:opacity-50 transition-colors"
-          >
-            {saving ? 'Creating…' : 'Create my contact'}
-          </button>
-          {error && <ErrorNote>{error}</ErrorNote>}
-        </div>
-      </Centered>
-    )
+    return <RegistrationPrompt saving={saving} error={error} register={register} />
   }
 
   if (!contact) {
@@ -136,6 +123,98 @@ export function ContactProfile() {
         onChange={(receive) => void save({ donotbulkemail: !receive }).catch(() => {})}
       />
     </div>
+  )
+}
+
+/**
+ * The no-contact-yet prompt. Looks up the companies whose email domains match
+ * the signed-in user (the API's domain auto-linking): none → plain register,
+ * one → register with a "you'll join X" note, several → pick before creating
+ * (the API rejects a no-choice registration with 409 in that case).
+ */
+function RegistrationPrompt({
+  saving,
+  error,
+  register,
+}: {
+  saving: boolean
+  error: string | null
+  register: (
+    names?: { firstname?: string; lastname?: string },
+    companyId?: string,
+  ) => Promise<void>
+}) {
+  const { companies, mustChoose, loading } = useRegistrableCompanies(true)
+  const [companyId, setCompanyId] = useState<string | undefined>(undefined)
+
+  if (loading) {
+    return <Centered>Checking which companies match your email…</Centered>
+  }
+
+  const single = companies.length === 1 ? companies[0] : undefined
+  const chosen = companies.find((c) => c.companyId === companyId)
+
+  return (
+    <Centered>
+      <div className="w-full max-w-md text-center">
+        <p className="text-rc-navy">You don't have a contact record yet.</p>
+
+        {single && (
+          <p className="mt-2 text-sm text-rc-teal">
+            Your email matches <span className="font-medium">{single.name ?? 'a known company'}</span> —
+            registering will add you to it.
+          </p>
+        )}
+
+        {mustChoose && (
+          <fieldset className="mt-4 text-left">
+            <legend className="text-sm text-rc-teal">
+              Your email matches more than one company. Choose which one to join:
+            </legend>
+            <div className="mt-2 flex flex-col gap-2">
+              {companies.map((c) => (
+                <label
+                  key={c.companyId}
+                  className={
+                    'flex cursor-pointer items-center gap-3 rounded-lg border px-3 py-2 text-sm text-rc-navy transition-colors ' +
+                    (companyId === c.companyId
+                      ? 'border-rc-blue bg-rc-blue/5'
+                      : 'border-rc-blue-light hover:border-rc-blue')
+                  }
+                >
+                  <input
+                    type="radio"
+                    name="register-company"
+                    value={c.companyId}
+                    checked={companyId === c.companyId}
+                    onChange={() => setCompanyId(c.companyId)}
+                    className="accent-rc-blue"
+                  />
+                  {c.name ?? c.companyId}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        )}
+
+        <button
+          type="button"
+          disabled={saving || (mustChoose && !chosen)}
+          onClick={() => void register(undefined, mustChoose ? companyId : undefined)}
+          className="mt-4 rounded-lg bg-rc-blue px-4 py-2 text-sm font-medium text-white hover:bg-rc-navy disabled:opacity-50 transition-colors"
+        >
+          {saving
+            ? 'Creating…'
+            : mustChoose && chosen
+              ? `Join ${chosen.name ?? 'company'}`
+              : 'Create my contact'}
+        </button>
+        {mustChoose && !chosen && (
+          <p className="mt-2 text-xs text-rc-teal">Select a company to continue.</p>
+        )}
+        {error && <ErrorNote>{error}</ErrorNote>}
+      </div>
+    </Centered>
   )
 }
 

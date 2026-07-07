@@ -24,13 +24,26 @@ interface HookState {
 }
 
 const save = vi.fn<(patch: Partial<EditableContactFields>) => Promise<void>>()
-const register = vi.fn<(names?: { firstname?: string; lastname?: string }) => Promise<void>>()
+const register = vi.fn<
+  (names?: { firstname?: string; lastname?: string }, companyId?: string) => Promise<void>
+>()
 const refresh = vi.fn()
 
 let state: HookState
 
 vi.mock('../hooks/useMyContact', () => ({
   useMyContact: () => state,
+}))
+
+/** Domain-matched companies offered by the registration picker. */
+let registrable: {
+  companies: { companyId: string; name: string | null }[]
+  mustChoose: boolean
+  loading: boolean
+}
+
+vi.mock('../hooks/useRegistrableCompanies', () => ({
+  useRegistrableCompanies: () => registrable,
 }))
 
 /** Build a hook-state envelope, defaulting to a happy loaded contact. */
@@ -74,6 +87,7 @@ describe('ContactProfile', () => {
     save.mockResolvedValue(undefined)
     register.mockResolvedValue(undefined)
     state = hookState()
+    registrable = { companies: [], mustChoose: false, loading: false }
   })
 
   it('shows a loading message while the contact loads', () => {
@@ -108,6 +122,57 @@ describe('ContactProfile', () => {
       state = hookState({ needsRegistration: true, error: 'register failed' })
       renderWithProviders(<ContactProfile />)
       expect(screen.getByText('register failed')).toBeInTheDocument()
+    })
+
+    it('shows a checking message while the company lookup loads', () => {
+      state = hookState({ needsRegistration: true })
+      registrable = { companies: [], mustChoose: false, loading: true }
+      renderWithProviders(<ContactProfile />)
+      expect(
+        screen.getByText('Checking which companies match your email…'),
+      ).toBeInTheDocument()
+    })
+
+    it('notes the single matching company and registers without an explicit pick', async () => {
+      const user = userEvent.setup()
+      state = hookState({ needsRegistration: true })
+      registrable = {
+        companies: [{ companyId: 'acc-1', name: 'Acme Ltd' }],
+        mustChoose: false,
+        loading: false,
+      }
+      renderWithProviders(<ContactProfile />)
+
+      expect(screen.getByText('Acme Ltd')).toBeInTheDocument()
+      await user.click(screen.getByRole('button', { name: 'Create my contact' }))
+      // No companyId needed — the API auto-links a single match itself.
+      expect(register).toHaveBeenCalledWith(undefined, undefined)
+    })
+
+    it('requires a pick when several companies match, then registers with it', async () => {
+      const user = userEvent.setup()
+      state = hookState({ needsRegistration: true })
+      registrable = {
+        companies: [
+          { companyId: 'acc-1', name: 'Acme Ltd' },
+          { companyId: 'acc-2', name: 'Globex Inc' },
+        ],
+        mustChoose: true,
+        loading: false,
+      }
+      renderWithProviders(<ContactProfile />)
+
+      // Button starts disabled until a company is chosen.
+      const button = screen.getByRole('button', { name: 'Create my contact' })
+      expect(button).toBeDisabled()
+      expect(screen.getByText('Select a company to continue.')).toBeInTheDocument()
+
+      await user.click(screen.getByRole('radio', { name: 'Globex Inc' }))
+      const joinButton = screen.getByRole('button', { name: 'Join Globex Inc' })
+      expect(joinButton).toBeEnabled()
+
+      await user.click(joinButton)
+      expect(register).toHaveBeenCalledWith(undefined, 'acc-2')
     })
   })
 
