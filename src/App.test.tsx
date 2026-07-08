@@ -31,6 +31,7 @@ vi.mock('./components/common/FeedbackDialog', () => ({
 }))
 vi.mock('./components/layout/AppShell', () => ({ AppShell: () => <Outlet /> }))
 vi.mock('./components/layout/ScrollManager', () => ({ ScrollManager: () => null }))
+vi.mock('./components/layout/ClarityTracker', () => ({ ClarityTracker: () => null }))
 vi.mock('./components/common/ScrollToTop', () => ({ ScrollToTop: () => null }))
 vi.mock('./pages/DashboardPage', () => ({ DashboardPage: () => <div>Dashboard home</div> }))
 

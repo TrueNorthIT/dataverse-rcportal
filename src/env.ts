@@ -45,3 +45,13 @@ export const DATAVERSE_URL = (import.meta.env.VITE_DATAVERSE_URL as string | und
  * MapTiler dashboard.
  */
 export const MAP_KEY = import.meta.env.VITE_MAPTILER_KEY as string | undefined
+
+/**
+ * Optional Microsoft Clarity project id — user-interaction analytics for demos.
+ * When set (e.g. in Vercel), Clarity loads and records clicks, scroll depth,
+ * dwell time, heatmaps and full session replays, attributed to the signed-in
+ * user. Unset (dev, tests, a minimal customer deployment) → Clarity never
+ * loads and no third-party script ships. Create a free project (no session or
+ * time limits) at https://clarity.microsoft.com to get the id.
+ */
+export const CLARITY_PROJECT_ID = import.meta.env.VITE_CLARITY_PROJECT_ID as string | undefined

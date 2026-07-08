@@ -24,6 +24,7 @@ import { KnowledgeBasePage } from './pages/KnowledgeBasePage'
 import { ArticleDetailPage } from './pages/ArticleDetailPage'
 import { BrandLoader } from './components/common/BrandLoader'
 import { ScrollManager } from './components/layout/ScrollManager'
+import { ClarityTracker } from './components/layout/ClarityTracker'
 import { ScrollToTop } from './components/common/ScrollToTop'
 import { ToastProvider } from './components/common/Toast'
 import { FeedbackProvider } from './components/common/FeedbackDialog'
@@ -57,6 +58,7 @@ function App() {
       <FeedbackProvider>
       <BrowserRouter>
         <ScrollManager />
+        <ClarityTracker />
         <ScrollToTop />
         <Routes>
           <Route element={<AppShell />}>
