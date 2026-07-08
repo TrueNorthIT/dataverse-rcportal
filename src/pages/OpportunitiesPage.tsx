@@ -1,6 +1,7 @@
 import { ListScreen } from '../components/common/ListScreen'
 import type { SortOption } from '../hooks/useList'
-import { OPPORTUNITY_SELECT, OPPORTUNITY_PILLS } from '../services/opportunityApi'
+import { OPPORTUNITY_SELECT, OPPORTUNITY_PILLS, stripCompanySuffix } from '../services/opportunityApi'
+import { useSelectedCompany } from '../context/SelectedCompanyContext'
 import type { Opportunity } from '../types/dataverse.generated'
 import { cleanDescription, formatCurrency, formatDate } from '../lib/format'
 import { StatusChip } from '../components/common/StatusChip'
@@ -12,11 +13,13 @@ const OPPORTUNITY_SORTS: SortOption[] = [
 ]
 
 /** One opportunity row: name, description, close date, value, and state. */
-function OpportunityRow({ opp: o }: { opp: Opportunity }) {
+function OpportunityRow({ opp: o, company }: { opp: Opportunity; company?: string | null }) {
   return (
     <div className="flex items-start justify-between gap-4">
       <div>
-        <div className="font-medium text-rc-navy">{o.name || 'Untitled opportunity'}</div>
+        <div className="font-medium text-rc-navy">
+          {stripCompanySuffix(o.name || 'Untitled opportunity', company)}
+        </div>
         {cleanDescription(o.description) && (
           <p className="mt-1 line-clamp-2 text-sm text-rc-teal">{cleanDescription(o.description)}</p>
         )}
@@ -36,6 +39,7 @@ function OpportunityRow({ opp: o }: { opp: Opportunity }) {
  * portal (see opportunityApi).
  */
 export function OpportunitiesPage() {
+  const { currentCompany } = useSelectedCompany()
   return (
     <ListScreen<Opportunity>
       title="Opportunities"
@@ -49,7 +53,7 @@ export function OpportunitiesPage() {
       defaultTier="team"
       getId={(o) => o.opportunityid ?? ''}
       emptyMessage="No opportunities to show yet."
-      renderRow={(o) => <OpportunityRow opp={o} />}
+      renderRow={(o) => <OpportunityRow opp={o} company={currentCompany?.companyName} />}
     />
   )
 }

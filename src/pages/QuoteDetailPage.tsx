@@ -4,7 +4,7 @@ import { useDataverseClient } from '../lib/client'
 import { useSelectedCompany } from '../context/SelectedCompanyContext'
 import { useListNav } from '../hooks/useListNav'
 import { fetchQuoteDetail, listQuoteLines } from '../services/quoteApi'
-import { fetchOpportunitySummary } from '../services/opportunityApi'
+import { fetchOpportunitySummary, stripCompanySuffix } from '../services/opportunityApi'
 import { cleanDescription, formatCurrency, formatDate } from '../lib/format'
 import { Card } from '../components/common/Card'
 import { StatusChip } from '../components/common/StatusChip'
@@ -95,7 +95,9 @@ export function QuoteDetailPage() {
                 <Icon name="link" className="h-3.5 w-3.5" /> Source opportunity
               </dt>
               <div className="mt-1 flex items-center justify-between gap-3 rounded-lg border border-rc-blue-light bg-rc-canvas px-3 py-2">
-                <span className="text-sm text-rc-navy">{opp.name || 'Opportunity'}</span>
+                <span className="text-sm text-rc-navy">
+                  {stripCompanySuffix(opp.name || 'Opportunity', currentCompany?.companyName)}
+                </span>
                 <span className="text-sm font-medium text-rc-teal">{formatCurrency(opp.estimatedvalue)}</span>
               </div>
             </div>

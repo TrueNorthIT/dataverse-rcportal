@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useDataverseClient } from '../lib/client'
 import { useSelectedCompany } from '../context/SelectedCompanyContext'
 import { useListNav } from '../hooks/useListNav'
-import { fetchOpportunityDetail } from '../services/opportunityApi'
+import { fetchOpportunityDetail, stripCompanySuffix } from '../services/opportunityApi'
 import { listQuotesForOpportunity } from '../services/quoteApi'
 import type { Opportunity } from '../types/dataverse.generated'
 import { cleanDescription, formatCurrency, formatDate } from '../lib/format'
@@ -27,19 +27,6 @@ function opportunitySubtitle(o: Opportunity): string | undefined {
   if (o.estimatedclosedate) bits.push(`expected to close ${formatDate(o.estimatedclosedate)}`)
   const status = o.statuscode_label || o.statecode_label
   return [status, bits.join(' · ')].filter(Boolean).join(' — ') || undefined
-}
-
-/** Opportunity names are often seeded with a "— <company>" tail, but the portal
- *  is already acting as that company, so drop the redundant suffix. */
-function stripCompanySuffix(name: string, company?: string | null): string {
-  if (!company) return name
-  const trimmed = name.trimEnd()
-  const co = company.trim()
-  if (trimmed.toLowerCase().endsWith(co.toLowerCase())) {
-    const head = trimmed.slice(0, trimmed.length - co.length).replace(/[\s—–-]+$/, '')
-    if (head) return head
-  }
-  return name
 }
 
 /** Read-only opportunity detail: value, close date, notes, and its quotes. */
