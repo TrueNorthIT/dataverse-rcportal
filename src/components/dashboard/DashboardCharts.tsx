@@ -74,10 +74,15 @@ export default function DashboardCharts() {
             colors={OPPORTUNITY_COLORS}
           />
         </Reveal>
-        <Reveal index={4}>
-          <ConnectivityBars />
-        </Reveal>
       </div>
+      {/* Connectivity + trend run full-width below the 2x2 donut grid — an odd
+          fifth donut would leave a hole, and the horizontal bars read better
+          with the room. */}
+      <Reveal index={4}>
+        <div className="mt-4">
+          <ConnectivityBars />
+        </div>
+      </Reveal>
       <Reveal index={5}>
         <div className="mt-4">
           <DeliveryTrend />

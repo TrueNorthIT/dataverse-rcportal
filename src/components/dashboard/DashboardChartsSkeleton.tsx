@@ -8,7 +8,6 @@ const DONUTS: { title: string; icon: IconName; body: string }[] = [
   { title: 'Cases by priority', icon: 'flag', body: 'h-32' },
   { title: 'Quotes by state', icon: 'receipt', body: 'h-32' },
   { title: 'Opportunities by state', icon: 'activity', body: 'h-32' },
-  { title: 'Sites by connectivity', icon: 'mapPin', body: 'h-40' },
 ]
 
 /**
@@ -29,6 +28,11 @@ export function DashboardChartsSkeleton() {
             <ChartSkeleton className={`${c.body} w-full`} />
           </ChartCard>
         ))}
+      </div>
+      <div className="mt-4">
+        <ChartCard title="Sites by connectivity" icon="mapPin">
+          <ChartSkeleton className="h-40 w-full" />
+        </ChartCard>
       </div>
       <div className="mt-4">
         <ChartCard title="Deliveries by month" icon="activity">
