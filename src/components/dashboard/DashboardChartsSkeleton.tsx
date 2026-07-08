@@ -7,6 +7,7 @@ const DONUTS: { title: string; icon: IconName; body: string }[] = [
   { title: 'Projects by health', icon: 'layers', body: 'h-32' },
   { title: 'Cases by priority', icon: 'flag', body: 'h-32' },
   { title: 'Quotes by state', icon: 'receipt', body: 'h-32' },
+  { title: 'Opportunities by state', icon: 'activity', body: 'h-32' },
   { title: 'Sites by connectivity', icon: 'mapPin', body: 'h-40' },
 ]
 

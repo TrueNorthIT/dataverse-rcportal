@@ -42,11 +42,12 @@ describe('useDashboard', () => {
     const { result } = renderHook(() => useDashboard(), { wrapper: hookWrapper() })
 
     await waitFor(() => expect(result.current.stale).toBe(false))
-    expect(result.current.stats).toEqual({ cases: 3, quotes: 3, projects: 3, sites: 3 })
+    expect(result.current.stats).toEqual({ cases: 3, quotes: 3, projects: 3, sites: 3, opportunities: 3 })
     expect(result.current.loading).toBe(false)
-    // Four aggregate calls: one per table (case/quote/project/site).
-    expect(cc.client.team.aggregate).toHaveBeenCalledTimes(4)
+    // Five aggregate calls: one per table (case/quote/project/site/opportunity).
+    expect(cc.client.team.aggregate).toHaveBeenCalledTimes(5)
     expect(cc.client.team.aggregate).toHaveBeenCalledWith('case', { aggregate: 'count' })
+    expect(cc.client.team.aggregate).toHaveBeenCalledWith('opportunity', { aggregate: 'count' })
     expect(cc.client.team.aggregate).toHaveBeenCalledWith('site', { aggregate: 'count' })
   })
 
@@ -73,7 +74,7 @@ describe('useDashboard', () => {
     const { result } = renderHook(() => useDashboard(), { wrapper: hookWrapper() })
 
     await waitFor(() => expect(result.current.stale).toBe(false))
-    expect(result.current.stats).toEqual({ cases: 7, quotes: 7, projects: 7, sites: 7 })
+    expect(result.current.stats).toEqual({ cases: 7, quotes: 7, projects: 7, sites: 7, opportunities: 7 })
     expect(c1.client.team.aggregate).toHaveBeenCalled()
     expect(c2.client.team.aggregate).toHaveBeenCalled()
   })
@@ -128,6 +129,7 @@ describe('useDashboard', () => {
       quotes: null,
       projects: null,
       sites: null,
+      opportunities: null,
     })
   })
 
@@ -157,6 +159,7 @@ describe('useDashboard', () => {
       quotes: null,
       projects: null,
       sites: null,
+      opportunities: null,
     })
     expect(result.current.loading).toBe(false)
   })
