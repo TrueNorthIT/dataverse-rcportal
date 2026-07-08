@@ -5,6 +5,7 @@ import { useSelectedCompany } from '../context/SelectedCompanyContext'
 import { useListNav } from '../hooks/useListNav'
 import { fetchOpportunityDetail } from '../services/opportunityApi'
 import { listQuotesForOpportunity } from '../services/quoteApi'
+import type { Opportunity } from '../types/dataverse.generated'
 import { cleanDescription, formatCurrency, formatDate } from '../lib/format'
 import { Card, CardButton } from '../components/common/Card'
 import { StatusChip } from '../components/common/StatusChip'
@@ -17,6 +18,16 @@ import {
   MetaItem,
   SectionTitle,
 } from '../components/detail/DetailChrome'
+
+/** A one-line summary for the opportunity header — its status plus the headline
+ *  value and expected close, so the title area reads richly at a glance. */
+function opportunitySubtitle(o: Opportunity): string | undefined {
+  const bits: string[] = []
+  if (o.estimatedvalue != null) bits.push(`estimated ${formatCurrency(o.estimatedvalue)}`)
+  if (o.estimatedclosedate) bits.push(`expected to close ${formatDate(o.estimatedclosedate)}`)
+  const status = o.statuscode_label || o.statecode_label
+  return [status, bits.join(' · ')].filter(Boolean).join(' — ') || undefined
+}
 
 /** Read-only opportunity detail: value, close date, notes, and its quotes. */
 export function OpportunityDetailPage() {
@@ -51,6 +62,7 @@ export function OpportunityDetailPage() {
         <DetailHeader
           icon="activity"
           title={record.name || 'Untitled opportunity'}
+          subtitle={opportunitySubtitle(record)}
           trailing={<StatusChip label={record.statuscode_label} />}
         >
           <MetaGrid>
@@ -88,7 +100,11 @@ export function OpportunityDetailPage() {
                   key={q.quoteid}
                   onClick={() =>
                     navigate(`/quotes/${q.quoteid}`, {
-                      state: { from: `/opportunities/${id}`, tier: mine ? 'me' : 'team' },
+                      state: {
+                        from: `/opportunities/${id}`,
+                        fromLabel: record.name || 'Opportunity',
+                        tier: mine ? 'me' : 'team',
+                      },
                     })
                   }
                 >

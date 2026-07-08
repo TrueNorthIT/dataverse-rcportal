@@ -1,7 +1,7 @@
 import { Outlet } from 'react-router-dom'
 import { useMsal } from '@azure/msal-react'
 import { accountToUser } from '../../config/entra'
-import { DATAVERSE_URL } from '../../env'
+import { DATAVERSE_URL, CLARITY_PROJECT_ID } from '../../env'
 import { useMyCompany } from '../../hooks/useMyCompany'
 import { useHideOnScroll } from '../../hooks/useHideOnScroll'
 import { NavTabs } from './NavTabs'
@@ -16,9 +16,11 @@ export function AppShell() {
   const { instance, accounts } = useMsal()
   const user = accountToUser(instance.getActiveAccount() ?? accounts[0])
   const { account } = useMyCompany()
-  // The Dataverse deep link is a demo/operator aid — only surface it for the
-  // operator account, never for other demo logins or real customers.
-  const isOperator = user?.email?.toLowerCase() === 'steve@drakey.co.uk'
+  // Operator/demo aids (Dataverse deep link, Clarity dashboard) — only for our
+  // own operator logins, never for other demo users or real customers.
+  const email = user?.email?.toLowerCase()
+  const isOperator = email === 'steve@drakey.co.uk' || email === 'sdrake@truenorthit.co.uk'
+  const isSteve = email === 'steve@drakey.co.uk'
   // Collapse the brand bar + nav when scrolling down (reveal on scroll up) so
   // content gets the full screen — reads much better on mobile.
   const navHidden = useHideOnScroll()
@@ -58,23 +60,44 @@ export function AppShell() {
         <Outlet />
       </main>
 
-      {/* Operator/demo aid: jump to the backing record in Dataverse. Shown only
-          when VITE_DATAVERSE_URL is set AND the operator (Steve) is signed in —
-          never for other demo logins or real customers. */}
-      {DATAVERSE_URL && isOperator && (
+      {/* Operator/demo aids — the Dataverse deep link and the Clarity dashboard,
+          for our operator logins only (never other demo logins or real
+          customers). The "Clarity not configured" note is Steve-only, so a
+          missing key is obvious to the maintainer without nagging anyone else. */}
+      {isOperator && (
         <footer className="mx-auto max-w-5xl px-4 pb-8 pt-2 text-xs text-white/70">
-          <a
-            href={
-              account?.accountid
-                ? `${DATAVERSE_URL}/main.aspx?pagetype=entityrecord&etn=account&id=${account.accountid}`
-                : DATAVERSE_URL
-            }
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-1 hover:text-white hover:underline"
-          >
-            {account?.name ? `View ${account.name} in Dataverse` : 'Open Dataverse environment'} ↗
-          </a>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+            {DATAVERSE_URL && (
+              <a
+                href={
+                  account?.accountid
+                    ? `${DATAVERSE_URL}/main.aspx?pagetype=entityrecord&etn=account&id=${account.accountid}`
+                    : DATAVERSE_URL
+                }
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 hover:text-white hover:underline"
+              >
+                {account?.name ? `View ${account.name} in Dataverse` : 'Open Dataverse environment'} ↗
+              </a>
+            )}
+            {CLARITY_PROJECT_ID ? (
+              <a
+                href={`https://clarity.microsoft.com/projects/view/${CLARITY_PROJECT_ID}/dashboard`}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 hover:text-white hover:underline"
+              >
+                Clarity analytics ↗
+              </a>
+            ) : (
+              isSteve && (
+                <span className="text-amber-300/90">
+                  Clarity not configured — set VITE_CLARITY_PROJECT_ID
+                </span>
+              )
+            )}
+          </div>
         </footer>
       )}
     </div>

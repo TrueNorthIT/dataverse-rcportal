@@ -4,6 +4,9 @@ import { useLocation, useNavigate } from 'react-router-dom'
 export interface ListNavState {
   ids?: string[]
   from?: string
+  /** Label for the back control when arriving from another record (e.g. an
+   *  opportunity linking to one of its quotes) — overrides the list's default. */
+  fromLabel?: string
   tier?: 'me' | 'team'
 }
 
@@ -30,6 +33,8 @@ export function useListNav(basePath: string, id: string | undefined) {
 
   return {
     tier: nav.tier,
+    /** Where Back goes/reads when arriving from another record (else undefined). */
+    backLabel: nav.fromLabel,
     prevId,
     nextId,
     goPrev: () => prevId && goTo(prevId),

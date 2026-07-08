@@ -28,10 +28,10 @@ export function DetailNav({
       <button
         type="button"
         onClick={onBack}
-        className="inline-flex items-center gap-1 text-sm font-medium text-white/90 hover:underline"
+        className="flex min-w-0 items-center gap-1 text-sm font-medium text-white/90 hover:underline"
       >
-        <Icon name="chevronRight" className="h-4 w-4 rotate-180" />
-        {label}
+        <Icon name="chevronRight" className="h-4 w-4 shrink-0 rotate-180" />
+        <span className="truncate">{label}</span>
       </button>
       {(prevId || nextId) && (
         <div className="flex items-center gap-2">
@@ -74,11 +74,14 @@ function NavArrow({
 export function DetailHeader({
   icon,
   title,
+  subtitle,
   trailing,
   children,
 }: {
   icon: IconName
   title: string
+  /** Optional one-line summary under the title, for a richer header. */
+  subtitle?: string
   trailing?: React.ReactNode
   children?: React.ReactNode
 }) {
@@ -91,7 +94,10 @@ export function DetailHeader({
             <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rc-blue-light text-rc-blue">
               <Icon name={icon} className="h-5 w-5" />
             </span>
-            <h1 className="text-2xl font-normal tracking-tight text-rc-navy">{title}</h1>
+            <div className="min-w-0">
+              <h1 className="text-2xl font-normal tracking-tight text-rc-navy">{title}</h1>
+              {subtitle && <p className="mt-1 text-sm leading-relaxed text-rc-teal">{subtitle}</p>}
+            </div>
           </div>
           {trailing}
         </div>
