@@ -5,6 +5,21 @@ import type { Pill } from './pills'
 import { fetchDetail, type Detail } from './detail'
 
 /**
+ * Opportunity names are often seeded with a "— <company>" tail, but the portal
+ * is already acting as that company, so drop the redundant suffix for display.
+ */
+export function stripCompanySuffix(name: string, company?: string | null): string {
+  if (!company) return name
+  const trimmed = name.trimEnd()
+  const co = company.trim()
+  if (trimmed.toLowerCase().endsWith(co.toLowerCase())) {
+    const head = trimmed.slice(0, trimmed.length - co.length).replace(/[\s—–-]+$/, '')
+    if (head) return head
+  }
+  return name
+}
+
+/**
  * Filter pills for opportunities — by state (Open/Won/Lost). Keys match the
  * list `?f=` values.
  */
