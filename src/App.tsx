@@ -8,6 +8,8 @@ import { SelectedCompanyProvider } from './context/SelectedCompanyContext'
 import { DashboardPage } from './pages/DashboardPage'
 import { ProfilePage } from './pages/ProfilePage'
 import { CompanyPage } from './pages/CompanyPage'
+import { OpportunitiesPage } from './pages/OpportunitiesPage'
+import { OpportunityDetailPage } from './pages/OpportunityDetailPage'
 import { QuotesPage } from './pages/QuotesPage'
 import { QuoteDetailPage } from './pages/QuoteDetailPage'
 import { ProjectsPage } from './pages/ProjectsPage'
@@ -62,6 +64,8 @@ function App() {
           <Route path="profile" element={<ProfilePage />} />
           <Route path="company" element={<CompanyPage />} />
           <Route path="company/:id" element={<ColleagueDetailPage />} />
+          <Route path="opportunities" element={<OpportunitiesPage />} />
+          <Route path="opportunities/:id" element={<OpportunityDetailPage />} />
           <Route path="quotes" element={<QuotesPage />} />
           <Route path="quotes/:id" element={<QuoteDetailPage />} />
           <Route path="projects" element={<ProjectsPage />} />

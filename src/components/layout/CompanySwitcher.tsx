@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { useSelectedCompany } from '../../context/SelectedCompanyContext'
+import { AnchoredMenu } from './AnchoredMenu'
 
 /**
  * Company switcher for users who are a contact under more than one company.
@@ -8,29 +9,15 @@ import { useSelectedCompany } from '../../context/SelectedCompanyContext'
  * "company chip" (building icon + current company + chevron) that opens a
  * branded popover menu; picking a company sends its companyId into
  * `useDataverseClient()` as the `X-Company-Id` header so every request acts as
- * that company. Closes on outside-click or Escape.
+ * that company. The menu renders via AnchoredMenu (a body portal) so the
+ * dashboard's sticky scope toggle — which sits above the header — can never
+ * paint over it. Closes on outside press, Escape, or page scroll.
  */
 export function CompanySwitcher() {
   const { companies, hasMultiple, currentCompany, selectCompany } = useSelectedCompany()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!open) return
-    // pointerdown (not mousedown): on touch, mousedown is synthesized late in
-    // the gesture, which made the first press flaky. pointerdown fires reliably
-    // at the start of any press, mouse or touch.
-    const onDown = (e: PointerEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
-    }
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false)
-    document.addEventListener('pointerdown', onDown)
-    document.addEventListener('keydown', onKey)
-    return () => {
-      document.removeEventListener('pointerdown', onDown)
-      document.removeEventListener('keydown', onKey)
-    }
-  }, [open])
+  const close = useCallback(() => setOpen(false), [])
 
   if (!hasMultiple) return null
 
@@ -53,10 +40,7 @@ export function CompanySwitcher() {
       </button>
 
       {open && (
-        <div
-          role="menu"
-          className="absolute right-0 z-30 mt-2 w-max min-w-[16rem] max-w-[26rem] overflow-hidden rounded-xl border border-rc-blue-light bg-white shadow-xl"
-        >
+        <AnchoredMenu anchorRef={ref} onClose={close} className="w-max min-w-[16rem] max-w-[26rem]">
           <div className="rc-gradient h-1 w-full" />
           <div className="px-3 pb-1 pt-3 text-[10px] font-semibold uppercase tracking-wide text-rc-teal">
             Switch company
@@ -87,7 +71,7 @@ export function CompanySwitcher() {
               )
             })}
           </ul>
-        </div>
+        </AnchoredMenu>
       )}
     </div>
   )

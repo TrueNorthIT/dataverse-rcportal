@@ -144,10 +144,12 @@ describe('CompanySwitcher', () => {
 
   it('renders a monogram avatar for each company (aria-hidden)', async () => {
     const user = userEvent.setup()
-    const { container } = render(<CompanySwitcher />)
+    render(<CompanySwitcher />)
     await user.click(screen.getByRole('button', { name: /Acme Ltd/ }))
-    // Avatar spans are decorative -> aria-hidden. One on the trigger + one per item.
-    const avatars = container.querySelectorAll('span[aria-hidden="true"]')
+    // Avatar spans are decorative -> aria-hidden. One on the trigger + one per
+    // item. The open menu renders through a body portal (AnchoredMenu), so
+    // count across the document rather than the render container.
+    const avatars = document.body.querySelectorAll('span[aria-hidden="true"]')
     expect(avatars.length).toBeGreaterThanOrEqual(3)
   })
 })
