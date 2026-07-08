@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { useMsal } from '@azure/msal-react'
 import { accountToUser } from '../../config/entra'
 import { useMyCompany } from '../../hooks/useMyCompany'
 import { useSelectedCompany } from '../../context/SelectedCompanyContext'
+import { AnchoredMenu } from './AnchoredMenu'
 
 /**
  * Signed-in user chip in the header: avatar + first name (avatar only on the
@@ -26,22 +27,7 @@ export function UserMenu() {
   const { hasMultiple } = useSelectedCompany()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!open) return
-    // pointerdown fires reliably on the first press (mouse or touch); mousedown
-    // is synthesized late on touch and made the first tap flaky.
-    const onDown = (e: PointerEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
-    }
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false)
-    document.addEventListener('pointerdown', onDown)
-    document.addEventListener('keydown', onKey)
-    return () => {
-      document.removeEventListener('pointerdown', onDown)
-      document.removeEventListener('keydown', onKey)
-    }
-  }, [open])
+  const close = useCallback(() => setOpen(false), [])
 
   const displayName = user?.name ?? user?.email ?? 'Account'
   const firstName = displayName.split(/\s+/)[0]
@@ -64,10 +50,7 @@ export function UserMenu() {
       </button>
 
       {open && (
-        <div
-          role="menu"
-          className="absolute right-0 z-30 mt-2 w-max min-w-[15rem] max-w-[20rem] overflow-hidden rounded-xl border border-rc-blue-light bg-white shadow-xl"
-        >
+        <AnchoredMenu anchorRef={ref} onClose={close} className="w-max min-w-[15rem] max-w-[20rem]">
           <div className="rc-gradient h-1 w-full" />
           <div className="border-b border-rc-blue-light/60 px-4 py-3">
             <div className="truncate text-sm font-semibold text-rc-navy">{displayName}</div>
@@ -106,7 +89,7 @@ export function UserMenu() {
           >
             Sign out
           </button>
-        </div>
+        </AnchoredMenu>
       )}
     </div>
   )

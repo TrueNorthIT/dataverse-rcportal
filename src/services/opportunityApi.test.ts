@@ -1,7 +1,66 @@
 import { describe, expect, it } from 'vitest'
 import type { Opportunity } from '../types/dataverse.generated'
-import { OPP_SUMMARY_SELECT, fetchOpportunitySummary } from './opportunityApi'
+import { OpportunityStatecode } from '../types/dataverse.generated'
+import {
+  OPPORTUNITY_PILLS,
+  OPPORTUNITY_SELECT,
+  OPPORTUNITY_DETAIL_SELECT,
+  OPP_SUMMARY_SELECT,
+  fetchOpportunityDetail,
+  fetchOpportunitySummary,
+} from './opportunityApi'
 import { makeClient, single } from '../test/dataverse'
+
+describe('OPPORTUNITY_PILLS', () => {
+  it('leads with an unfiltered All pill and filters the rest by statecode', () => {
+    expect(OPPORTUNITY_PILLS[0]).toEqual({ key: 'all', label: 'All' })
+    expect(OPPORTUNITY_PILLS.map((p) => p.key)).toEqual(['all', 'open', 'won', 'lost'])
+    expect(OPPORTUNITY_PILLS[1].filter).toEqual({
+      field: 'statecode',
+      operator: 'eq',
+      value: OpportunityStatecode.Open,
+    })
+  })
+})
+
+describe('OPPORTUNITY_SELECT', () => {
+  it('covers the list-row columns; detail adds modifiedon', () => {
+    expect(OPPORTUNITY_SELECT).toContain('name')
+    expect(OPPORTUNITY_SELECT).toContain('estimatedvalue')
+    expect(OPPORTUNITY_SELECT).toContain('estimatedclosedate')
+    expect(OPPORTUNITY_SELECT).toContain('statecode')
+    expect(OPPORTUNITY_DETAIL_SELECT).toEqual([...OPPORTUNITY_SELECT, 'modifiedon'])
+  })
+})
+
+describe('fetchOpportunityDetail', () => {
+  it('honours an explicit "team" tier hint and marks the record not mine', async () => {
+    const client = makeClient()
+    const opp: Opportunity = { opportunityid: 'o1', name: 'Expansion' }
+    client.team.get.mockResolvedValue(single(opp))
+
+    const out = await fetchOpportunityDetail(client, 'o1', 'team')
+
+    expect(out).toEqual({ record: opp, mine: false })
+    expect(client.team.get).toHaveBeenCalledWith('opportunity', 'o1', {
+      select: OPPORTUNITY_DETAIL_SELECT,
+    })
+    expect(client.me.get).not.toHaveBeenCalled()
+  })
+
+  it('tries me first on a deep link and falls back to team', async () => {
+    const client = makeClient()
+    client.me.get.mockRejectedValue(new Error('404'))
+    const opp: Opportunity = { opportunityid: 'o2', name: 'Renewal' }
+    client.team.get.mockResolvedValue(single(opp))
+
+    const out = await fetchOpportunityDetail(client, 'o2')
+
+    expect(out).toEqual({ record: opp, mine: false })
+    expect(client.me.get).toHaveBeenCalledTimes(1)
+    expect(client.team.get).toHaveBeenCalledTimes(1)
+  })
+})
 
 describe('OPP_SUMMARY_SELECT', () => {
   it('covers the summary-card columns', () => {

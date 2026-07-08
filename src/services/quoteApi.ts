@@ -48,12 +48,16 @@ export const QUOTE_LINE_SELECT = [
   'createdon',
 ]
 
-/** List quotes tied to a single opportunity (both tiers support the filter). */
+/**
+ * List quotes tied to a single opportunity, scoped to the tier the opportunity
+ * resolved at (a team-tier opportunity's quotes aren't visible at `me`).
+ */
 export async function listQuotesForOpportunity(
   client: DataverseClient,
   opportunityId: string,
+  mine: boolean,
 ): Promise<Quote[]> {
-  const res = await client.me.list<Quote>('quote', {
+  const res = await client[mine ? 'me' : 'team'].list<Quote>('quote', {
     select: QUOTE_SELECT,
     filter: { field: '_opportunityid_value', operator: 'eq', value: opportunityId },
     top: 50,

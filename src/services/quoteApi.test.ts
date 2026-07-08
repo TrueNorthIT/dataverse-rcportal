@@ -57,7 +57,7 @@ describe('listQuotesForOpportunity', () => {
     const rows: Quote[] = [{ quoteid: 'q1', name: 'Renewal' }]
     client.me.list.mockResolvedValue(paginated(rows))
 
-    const out = await listQuotesForOpportunity(client, 'opp-1')
+    const out = await listQuotesForOpportunity(client, 'opp-1', true)
 
     expect(out).toEqual(rows)
     expect(client.me.list).toHaveBeenCalledWith('quote', {
@@ -65,13 +65,30 @@ describe('listQuotesForOpportunity', () => {
       filter: { field: '_opportunityid_value', operator: 'eq', value: 'opp-1' },
       top: 50,
     })
+    expect(client.team.list).not.toHaveBeenCalled()
+  })
+
+  it('reads team-tier quotes when the opportunity resolved at team', async () => {
+    const client = makeClient()
+    const rows: Quote[] = [{ quoteid: 'q2', name: 'Expansion' }]
+    client.team.list.mockResolvedValue(paginated(rows))
+
+    const out = await listQuotesForOpportunity(client, 'opp-1', false)
+
+    expect(out).toEqual(rows)
+    expect(client.team.list).toHaveBeenCalledWith('quote', {
+      select: QUOTE_SELECT,
+      filter: { field: '_opportunityid_value', operator: 'eq', value: 'opp-1' },
+      top: 50,
+    })
+    expect(client.me.list).not.toHaveBeenCalled()
   })
 
   it('returns an empty array when the opportunity has no quotes', async () => {
     const client = makeClient()
     client.me.list.mockResolvedValue(paginated<Quote>([]))
 
-    expect(await listQuotesForOpportunity(client, 'opp-2')).toEqual([])
+    expect(await listQuotesForOpportunity(client, 'opp-2', true)).toEqual([])
   })
 })
 

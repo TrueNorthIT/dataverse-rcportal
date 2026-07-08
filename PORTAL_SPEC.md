@@ -58,13 +58,15 @@ Demo login identities (one per company, all route to the operator's inbox):
 
 ## 5. Data model (published `rcportal` tables)
 
-Customer-facing tables, read/write at `me` + `team` (support/quotes also `create`).
+Customer-facing tables, read/write at `me` + `team` (support/quotes also
+`create`; opportunities read-only).
 Key fields and how each relates to the signed-in user:
 
 | Route | Dataverse | `me` = | `team` = | Notable fields |
 |---|---|---|---|---|
 | `contact` | contacts | own record | colleagues at account | fullname, emailaddress1, jobtitle, telephone1, mobilephone, address1_* |
 | `account` | accounts | account you're primary contact of | your own account | name, telephone1, websiteurl, address1_*, primarycontactid |
+| `opportunity` | opportunities | deals you're primary contact on | your company's pipeline | name, estimatedvalue, estimatedclosedate, statecode/statuscode (labels) |
 | `quote` | quotes | quotes on your deals | your company's quotes | name, quotenumber, totalamount, statecode/statuscode (labels) |
 | `project` | msdyn_project | your company's projects | your company's projects | msdyn_subject (name), status, `new_accountid` (custom account link) |
 | `support` | incident | cases you're the contact on | your company's cases | title, ticketnumber, prioritycode, statuscode (labels), createdon |
@@ -74,12 +76,13 @@ Relationships worth surfacing in the UI: contact → account (company);
 quote → account; project → account; support case → account + primary contact;
 site → account (via `parentid`).
 
-> **Opportunities & pipeline are intentionally OUT of customer scope.** An
-> opportunity is internal sales forecasting (value, win probability, stage) —
-> not something a customer should see. The `opportunity` table still exists and
-> backs quotes internally (a quote references its source opportunity), but there
-> is **no customer `opportunity` heading/page**. Don't surface it. If a sales/
-> pipeline view is ever wanted, it belongs in a separate internal/admin app.
+> **Opportunities are customer-visible but READ-ONLY.** They were briefly
+> removed as "internal sales forecasting", then deliberately brought back as a
+> portal heading: a customer can see the deals being pursued with them (value,
+> close date, state) and click through to the quotes each one produced. What
+> stays out of scope is *authoring* — the portal never creates or edits an
+> opportunity, and internal-only fields (win probability, sales stage) are not
+> surfaced. `opportunityApi` has no create/update helpers by design.
 
 ## 6. Screens / features (build these)
 
@@ -91,7 +94,8 @@ site → account (via `parentid`).
 4. **My company** (`account` me + `contact` team) — company details; a directory
    of colleagues (team contacts).
 5. **Opportunities** — list with **My / Company** toggle, value + close date +
-   status chips; detail view; create (me). Sort by close date.
+   status chips; detail view with the quotes it produced. Read-only (see the
+   note in §5). Sort by close date.
 6. **Quotes** — list with My / Company toggle; show number, total, status; link
    through to the source opportunity.
 7. **Projects** — list with My / Company toggle; subject, status, dates.

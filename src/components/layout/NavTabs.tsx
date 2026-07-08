@@ -8,6 +8,7 @@ import { useFeedback } from '../common/FeedbackDialog'
 // sm+) so the whole row fits a phone without sideways scrolling.
 const CORE = [
   { to: '/', label: 'Dashboard', end: true, icon: true },
+  { to: '/opportunities', label: 'Opportunities' },
   { to: '/quotes', label: 'Quotes' },
   { to: '/projects', label: 'Projects' },
   { to: '/sites', label: 'Sites' },
