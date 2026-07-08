@@ -55,3 +55,12 @@ export const MAP_KEY = import.meta.env.VITE_MAPTILER_KEY as string | undefined
  * time limits) at https://clarity.microsoft.com to get the id.
  */
 export const CLARITY_PROJECT_ID = import.meta.env.VITE_CLARITY_PROJECT_ID as string | undefined
+
+/**
+ * Deployment environment for analytics tagging — Vercel's framework-prefixed
+ * VITE_VERCEL_ENV ("production" | "preview" | "development") when deployed
+ * there, else Vite's mode (local dev / tests). Lets Clarity sessions be
+ * filtered to production only, keeping preview/dev noise out of demo stats.
+ */
+export const DEPLOY_ENV =
+  (import.meta.env.VITE_VERCEL_ENV as string | undefined) ?? import.meta.env.MODE

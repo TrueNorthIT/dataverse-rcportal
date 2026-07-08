@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useMyContact } from '../hooks/useMyContact'
+import { clarityEvent } from '../lib/clarity'
 import type { EditableContactFields } from '../types/contact'
 
 /** Text fields the form edits, in display order (donotbulkemail is a toggle). */
@@ -82,6 +83,7 @@ export function ContactProfile() {
     // The SDK PATCHes only what we send; the hook refreshes state from the response.
     try {
       await save(form)
+      clarityEvent('profile-saved')
     } catch {
       /* error already surfaced via the hook's `error` */
     }

@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { useDataverseClient } from '../../lib/client'
+import { clarityEvent, claritySetTag } from '../../lib/clarity'
 import { createFeedback } from '../../services/feedbackApi'
 import { StarRating } from './StarRating'
 import { useToast } from './Toast'
@@ -48,6 +49,10 @@ function FeedbackDialog({ onClose }: { onClose: () => void }) {
         new_rating: rating || undefined,
       }),
     onSuccess: () => {
+      clarityEvent('feedback-sent')
+      // Tagging the score lets the dashboard filter straight to unhappy
+      // sessions ("feedback-rating ≤ 2") and watch what went wrong.
+      if (rating) claritySetTag('feedback-rating', String(rating))
       toast.show('Thanks — your feedback was sent')
       onClose()
     },

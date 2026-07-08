@@ -3,6 +3,7 @@ import { useMsal } from '@azure/msal-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { DataverseClient } from '@truenorth-it/dataverse-client'
 import { accountToUser, entraConfig } from '../config/entra'
+import { clarityEvent, clarityUpgrade } from '../lib/clarity'
 import { fetchClaimableCompanies, registerMyContact } from '../services/contactApi'
 import { Icon } from './common/Icon'
 
@@ -53,7 +54,12 @@ export function JoinScreen({ client }: { client: DataverseClient }) {
     // The gate keys off whoami; once a contact exists it drops us into the app
     // and SelectedCompanyProvider (which mounts only past the gate) loads the
     // freshly-linked companies. No reload needed.
-    onSuccess: () => void qc.invalidateQueries({ queryKey: ['whoami'] }),
+    onSuccess: () => {
+      // First-run onboarding — keep this session's recording.
+      clarityEvent('registered')
+      clarityUpgrade('registered')
+      void qc.invalidateQueries({ queryKey: ['whoami'] })
+    },
   })
 
   const error = join.error instanceof Error ? join.error.message : null

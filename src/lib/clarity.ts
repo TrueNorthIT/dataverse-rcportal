@@ -65,9 +65,37 @@ export function clarityIdentify(user: AppUser | undefined): void {
 }
 
 /**
+ * Attach a session-level custom tag — Clarity's filter dimension. Tags don't
+ * mark moments; they label the session so recordings/heatmaps can be sliced in
+ * the dashboard (e.g. company = "Chevin Print", env = "production").
+ */
+export function claritySetTag(key: string, value: string): void {
+  clarity('set', key, value)
+}
+
+/**
  * Tag the active route on the session timeline (a Clarity custom tag) so
  * replays and heatmaps can be sliced by page. Called on every navigation.
  */
 export function clarityTrackPage(path: string): void {
-  clarity('set', 'page', path)
+  claritySetTag('page', path)
+}
+
+/**
+ * Mark a named moment (a Clarity custom event): a pin on the replay timeline
+ * and a filterable "smart event" in the dashboard. Fire these at the actions
+ * that matter in a demo — ticket raised, feedback sent, MCP URL copied — so
+ * "show me every session where X happened" is one filter away.
+ */
+export function clarityEvent(name: string): void {
+  clarity('event', name)
+}
+
+/**
+ * Ask Clarity to prioritise keeping this session's recording (Clarity samples
+ * under load). Fire alongside high-value events so the sessions worth showing
+ * in a demo are never the ones sampled away.
+ */
+export function clarityUpgrade(reason: string): void {
+  clarity('upgrade', reason)
 }

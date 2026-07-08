@@ -13,6 +13,7 @@ import { FilterPills } from '../components/common/FilterPills'
 import { SortMenu } from '../components/common/SortMenu'
 import { ListStates, LoadMore } from '../components/common/ListStates'
 import { RaiseCase } from '../components/RaiseCase'
+import { clarityEvent, clarityUpgrade } from '../lib/clarity'
 
 const CASE_SORTS: SortOption[] = [
   { key: 'newest', label: 'Newest', order: { field: 'createdon', direction: 'desc' } },
@@ -75,6 +76,10 @@ export function CasesPage() {
         <RaiseCase
           onCancel={() => setRaising(false)}
           onCreated={async () => {
+            // The headline self-service action — mark it on the replay
+            // timeline and make sure this session's recording is kept.
+            clarityEvent('case-raised')
+            clarityUpgrade('case-raised')
             setRaising(false)
             list.setTier('me')
             await list.refresh()
