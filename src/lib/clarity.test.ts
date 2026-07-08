@@ -1,17 +1,20 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
+  clarityConsent,
   clarityEvent,
   clarityIdentify,
   claritySetTag,
   clarityTrackPage,
   clarityUpgrade,
+  getStoredClarityConsent,
   initClarity,
 } from './clarity'
 import type { AppUser } from '../config/entra'
 
-/** Reset the Clarity global + any injected/seed scripts between tests. */
+/** Reset the Clarity global, injected scripts and stored consent between tests. */
 function reset() {
   delete window.clarity
+  localStorage.clear()
   document
     .querySelectorAll('script[src*="clarity.ms"], script[data-seed]')
     .forEach((s) => s.remove())
@@ -131,6 +134,54 @@ describe('clarityEvent', () => {
 
   it('no-ops (does not throw) when Clarity is not active', () => {
     expect(() => clarityEvent('x')).not.toThrow()
+  })
+})
+
+describe('consent', () => {
+  it('has no stored choice by default', () => {
+    expect(getStoredClarityConsent()).toBeNull()
+  })
+
+  it('clarityConsent(true) stores the choice and signals consentv2 granted', () => {
+    const spy = vi.fn()
+    window.clarity = spy as unknown as Window['clarity']
+    clarityConsent(true)
+    expect(getStoredClarityConsent()).toBe('granted')
+    expect(spy).toHaveBeenCalledWith('consentv2', {
+      ad_Storage: 'denied',
+      analytics_Storage: 'granted',
+    })
+  })
+
+  it('clarityConsent(false) stores the choice and signals consentv2 denied', () => {
+    const spy = vi.fn()
+    window.clarity = spy as unknown as Window['clarity']
+    clarityConsent(false)
+    expect(getStoredClarityConsent()).toBe('denied')
+    expect(spy).toHaveBeenCalledWith('consentv2', {
+      ad_Storage: 'denied',
+      analytics_Storage: 'denied',
+    })
+  })
+
+  it('initClarity refuses to load once consent is declined', () => {
+    clarityConsent(false)
+    expect(initClarity('abc123')).toBe(false)
+    expect(window.clarity).toBeUndefined()
+    expect(document.querySelector('script[src*="clarity.ms"]')).toBeNull()
+  })
+
+  it('initClarity re-signals a previously granted consent on the queue', () => {
+    clarityConsent(true) // no window.clarity yet → only persists the choice
+    initClarity('abc123')
+    expect(window.clarity!.q).toEqual([
+      ['consentv2', { ad_Storage: 'denied', analytics_Storage: 'granted' }],
+    ])
+  })
+
+  it('initClarity queues nothing when no choice is stored yet', () => {
+    initClarity('abc123')
+    expect(window.clarity!.q).toBeUndefined()
   })
 })
 
