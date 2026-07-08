@@ -7,6 +7,7 @@ import { useSelectedCompany } from '../context/SelectedCompanyContext'
 import { useListNav } from '../hooks/useListNav'
 import { addCaseNote, fetchCaseDetail, listCaseNotes, updateCase } from '../services/caseApi'
 import { cleanDescription, formatDate, relativeFromNow } from '../lib/format'
+import { clarityEvent } from '../lib/clarity'
 import { Card } from '../components/common/Card'
 import { StatusChip } from '../components/common/StatusChip'
 import { Skeleton } from '../components/common/Skeleton'
@@ -153,7 +154,10 @@ function EditableDescription({
   const [value, setValue] = useState(initial)
   const save = useMutation({
     mutationFn: () => updateCase(client, caseId, { description: value.trim() }),
-    onSuccess: onSaved,
+    onSuccess: () => {
+      clarityEvent('case-description-saved')
+      onSaved()
+    },
   })
   const dirty = value.trim() !== initial.trim()
 
@@ -188,6 +192,7 @@ function AddNote({
   const add = useMutation({
     mutationFn: () => addCaseNote(client, caseId, { notetext: text }),
     onSuccess: () => {
+      clarityEvent('case-update-posted')
       setText('')
       onAdded()
     },

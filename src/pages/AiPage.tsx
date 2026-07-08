@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { PageHeader } from '../components/common/PageHeader'
 import { Card } from '../components/common/Card'
 import { apiBaseUrl } from '../config/entra'
+import { clarityEvent, clarityUpgrade } from '../lib/clarity'
 
 /**
  * "AI assistant" — not an embedded chatbot, but a bring-your-own-AI page. The
@@ -293,6 +294,11 @@ function useCopy() {
   const [copied, setCopied] = useState(false)
   const copy = (text: string) => {
     void navigator.clipboard.writeText(text).then(() => {
+      // Both copy targets on this page are MCP connect artifacts (server URL /
+      // CLI command) — copying one means the customer is wiring up their AI,
+      // the moment this page exists for. Keep that session's recording.
+      clarityEvent('ai-mcp-copied')
+      clarityUpgrade('ai-mcp-copied')
       setCopied(true)
       setTimeout(() => setCopied(false), 1500)
     })

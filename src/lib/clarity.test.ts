@@ -1,5 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { clarityIdentify, clarityTrackPage, initClarity } from './clarity'
+import {
+  clarityEvent,
+  clarityIdentify,
+  claritySetTag,
+  clarityTrackPage,
+  clarityUpgrade,
+  initClarity,
+} from './clarity'
 import type { AppUser } from '../config/entra'
 
 /** Reset the Clarity global + any injected/seed scripts between tests. */
@@ -98,5 +105,44 @@ describe('clarityTrackPage', () => {
 
   it('no-ops (does not throw) when Clarity is not active', () => {
     expect(() => clarityTrackPage('/x')).not.toThrow()
+  })
+})
+
+describe('claritySetTag', () => {
+  it('sets a session custom tag', () => {
+    const spy = vi.fn()
+    window.clarity = spy as unknown as Window['clarity']
+    claritySetTag('company', 'Chevin Print')
+    expect(spy).toHaveBeenCalledWith('set', 'company', 'Chevin Print')
+  })
+
+  it('no-ops (does not throw) when Clarity is not active', () => {
+    expect(() => claritySetTag('env', 'production')).not.toThrow()
+  })
+})
+
+describe('clarityEvent', () => {
+  it('fires a custom event', () => {
+    const spy = vi.fn()
+    window.clarity = spy as unknown as Window['clarity']
+    clarityEvent('case-raised')
+    expect(spy).toHaveBeenCalledWith('event', 'case-raised')
+  })
+
+  it('no-ops (does not throw) when Clarity is not active', () => {
+    expect(() => clarityEvent('x')).not.toThrow()
+  })
+})
+
+describe('clarityUpgrade', () => {
+  it('upgrades the session with a reason', () => {
+    const spy = vi.fn()
+    window.clarity = spy as unknown as Window['clarity']
+    clarityUpgrade('case-raised')
+    expect(spy).toHaveBeenCalledWith('upgrade', 'case-raised')
+  })
+
+  it('no-ops (does not throw) when Clarity is not active', () => {
+    expect(() => clarityUpgrade('x')).not.toThrow()
   })
 })
