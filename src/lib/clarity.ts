@@ -21,15 +21,54 @@ declare global {
 }
 
 /**
+ * The visitor's stored cookie-consent choice, persisted per browser so the
+ * cookie notice is asked once. Clarity enforces Consent Mode for UK/EEA/CH
+ * traffic (since Oct 2025): without a granted signal it runs cookieless and
+ * counts a NEW unique user per page view — which is how one developer became
+ * "209 unique users". Grant restores real user counts; decline means we don't
+ * load Clarity at all, so declined visitors can't inflate the numbers either.
+ */
+const CONSENT_KEY = 'rcportal.clarityConsent'
+
+export type ClarityConsentChoice = 'granted' | 'denied'
+
+/** The persisted consent choice, or null when the visitor hasn't chosen yet. */
+export function getStoredClarityConsent(): ClarityConsentChoice | null {
+  try {
+    const v = localStorage.getItem(CONSENT_KEY)
+    return v === 'granted' || v === 'denied' ? v : null
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Record the visitor's choice and signal it to Clarity. Ad storage is always
+ * denied — the portal runs no ads; granting covers analytics cookies only.
+ */
+export function clarityConsent(granted: boolean): void {
+  try {
+    localStorage.setItem(CONSENT_KEY, granted ? 'granted' : 'denied')
+  } catch {
+    // Persistence is best-effort — the signal below still applies this session.
+  }
+  clarity('consentv2', {
+    ad_Storage: 'denied',
+    analytics_Storage: granted ? 'granted' : 'denied',
+  })
+}
+
+/**
  * Inject the Clarity loader — the official queue-shim snippet, expressed in TS.
- * Idempotent (guards on `window.clarity`) and a safe no-op when unconfigured or
- * off-DOM (tests). Returns whether Clarity is now active so callers can skip
- * follow-up work.
+ * Idempotent (guards on `window.clarity`) and a safe no-op when unconfigured,
+ * off-DOM (tests), or when the visitor has declined cookies. Returns whether
+ * Clarity is now active so callers can skip follow-up work.
  */
 export function initClarity(projectId: string | undefined = CLARITY_PROJECT_ID): boolean {
   if (!projectId) return false
   if (typeof window === 'undefined' || typeof document === 'undefined') return false
   if (window.clarity) return true // already initialised
+  if (getStoredClarityConsent() === 'denied') return false
 
   // Queue shim: commands issued before the async script finishes loading are
   // buffered on `clarity.q` and replayed once it does.
@@ -44,6 +83,12 @@ export function initClarity(projectId: string | undefined = CLARITY_PROJECT_ID):
   const first = document.getElementsByTagName('script')[0]
   if (first?.parentNode) first.parentNode.insertBefore(script, first)
   else document.head.appendChild(script)
+
+  // Returning visitor who already accepted → re-signal straight away (queued
+  // until the script loads) so the session runs with cookies from first paint.
+  if (getStoredClarityConsent() === 'granted') {
+    clarity('consentv2', { ad_Storage: 'denied', analytics_Storage: 'granted' })
+  }
   return true
 }
 

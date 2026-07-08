@@ -25,6 +25,7 @@ import { ArticleDetailPage } from './pages/ArticleDetailPage'
 import { BrandLoader } from './components/common/BrandLoader'
 import { ScrollManager } from './components/layout/ScrollManager'
 import { ClarityTracker } from './components/layout/ClarityTracker'
+import { CookieNotice } from './components/common/CookieNotice'
 import { ScrollToTop } from './components/common/ScrollToTop'
 import { ToastProvider } from './components/common/Toast'
 import { FeedbackProvider } from './components/common/FeedbackDialog'
@@ -59,6 +60,7 @@ function App() {
       <BrowserRouter>
         <ScrollManager />
         <ClarityTracker />
+        <CookieNotice />
         <ScrollToTop />
         <Routes>
           <Route element={<AppShell />}>
