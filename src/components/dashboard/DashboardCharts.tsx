@@ -2,11 +2,12 @@ import type { CSSProperties, ReactNode } from 'react'
 import { buildProjectPills } from '../../services/projectApi'
 import { CASE_PILLS } from '../../services/caseApi'
 import { QUOTE_PILLS } from '../../services/quoteApi'
+import { OPPORTUNITY_PILLS } from '../../services/opportunityApi'
 import { useInView } from '../../hooks/useInView'
 import { DistributionDonut } from './DistributionDonut'
 import { ConnectivityBars } from './ConnectivityBars'
 import { DeliveryTrend } from './DeliveryTrend'
-import { HEALTH_COLORS, PRIORITY_COLORS, QUOTE_COLORS } from './palette'
+import { HEALTH_COLORS, OPPORTUNITY_COLORS, PRIORITY_COLORS, QUOTE_COLORS } from './palette'
 
 /** Wraps a chart so it unfolds when scrolled into view, staggered by index. */
 function Reveal({ index, children }: { index: number; children: ReactNode }) {
@@ -64,10 +65,20 @@ export default function DashboardCharts() {
           />
         </Reveal>
         <Reveal index={3}>
+          <DistributionDonut
+            title="Opportunities by state"
+            icon="activity"
+            table="opportunity"
+            area="/opportunities"
+            pills={OPPORTUNITY_PILLS}
+            colors={OPPORTUNITY_COLORS}
+          />
+        </Reveal>
+        <Reveal index={4}>
           <ConnectivityBars />
         </Reveal>
       </div>
-      <Reveal index={4}>
+      <Reveal index={5}>
         <div className="mt-4">
           <DeliveryTrend />
         </div>

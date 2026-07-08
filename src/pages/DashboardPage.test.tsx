@@ -40,6 +40,7 @@ const stats = (over: Partial<DashboardStats> = {}): DashboardStats => ({
   quotes: 2,
   projects: 6,
   sites: 3,
+  opportunities: 5,
   ...over,
 })
 

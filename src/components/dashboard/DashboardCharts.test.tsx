@@ -59,10 +59,10 @@ describe('DashboardCharts', () => {
     expect(screen.getByRole('heading', { name: 'At a glance' })).toBeInTheDocument()
   })
 
-  it('renders all three distribution donuts with their table + area props', () => {
+  it('renders the distribution donuts with their table + area props', () => {
     renderWithProviders(<DashboardCharts />)
     const donuts = screen.getAllByTestId('donut')
-    expect(donuts).toHaveLength(3)
+    expect(donuts).toHaveLength(4)
 
     const byTitle = Object.fromEntries(donuts.map((d) => [d.getAttribute('data-title'), d]))
     expect(byTitle['Projects by health']?.getAttribute('data-table')).toBe('project')
@@ -71,6 +71,8 @@ describe('DashboardCharts', () => {
     expect(byTitle['Cases by priority']?.getAttribute('data-area')).toBe('/cases')
     expect(byTitle['Quotes by state']?.getAttribute('data-table')).toBe('quote')
     expect(byTitle['Quotes by state']?.getAttribute('data-area')).toBe('/quotes')
+    expect(byTitle['Opportunities by state']?.getAttribute('data-table')).toBe('opportunity')
+    expect(byTitle['Opportunities by state']?.getAttribute('data-area')).toBe('/opportunities')
   })
 
   it('renders the connectivity bars and the delivery trend', () => {
@@ -84,8 +86,8 @@ describe('DashboardCharts', () => {
     // the viewport yet: every reveal wrapper stays opacity-0 (children present).
     const { container } = renderWithProviders(<DashboardCharts />)
     const hidden = container.querySelectorAll('.opacity-0')
-    // four charts in the grid + the delivery trend = five reveal wrappers.
-    expect(hidden).toHaveLength(5)
+    // five charts in the grid + the delivery trend = six reveal wrappers.
+    expect(hidden).toHaveLength(6)
     expect(container.querySelector('.rc-unfold')).toBeNull()
   })
 
@@ -104,13 +106,13 @@ describe('DashboardCharts', () => {
       act(() => observers.forEach((o) => o.fire([{ isIntersecting: true }])))
 
       const unfolded = container.querySelectorAll('.rc-unfold')
-      expect(unfolded).toHaveLength(5)
+      expect(unfolded).toHaveLength(6)
       expect(container.querySelector('.opacity-0')).toBeNull()
 
-      // Reveal index 0 has no delay; the trend (index 4) is staggered to 360ms.
+      // Reveal index 0 has no delay; the trend (index 5) is staggered to 450ms.
       const delays = Array.from(unfolded).map((el) => (el as HTMLElement).style.getPropertyValue('--rc-delay'))
       expect(delays).toContain('0ms')
-      expect(delays).toContain('360ms')
+      expect(delays).toContain('450ms')
     })
   })
 })

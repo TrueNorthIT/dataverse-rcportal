@@ -9,6 +9,7 @@ export interface DashboardStats {
   quotes: number | null
   projects: number | null
   sites: number | null
+  opportunities: number | null
 }
 
 /** The four headline counts for one company (team tier). */
@@ -21,13 +22,14 @@ async function companyCounts(client: DataverseClient): Promise<DashboardStats> {
       return null
     }
   }
-  const [cases, quotes, projects, sites] = await Promise.all([
+  const [cases, quotes, projects, sites, opportunities] = await Promise.all([
     one('case'),
     one('quote'),
     one('project'),
     one('site'),
+    one('opportunity'),
   ])
-  return { cases, quotes, projects, sites }
+  return { cases, quotes, projects, sites, opportunities }
 }
 
 /**
@@ -63,7 +65,13 @@ export function useDashboard(): { stats: DashboardStats; loading: boolean; stale
         return nums.length ? nums.reduce((a, b) => a + b, 0) : null
       }
       return {
-        stats: { cases: sum('cases'), quotes: sum('quotes'), projects: sum('projects'), sites: sum('sites') },
+        stats: {
+          cases: sum('cases'),
+          quotes: sum('quotes'),
+          projects: sum('projects'),
+          sites: sum('sites'),
+          opportunities: sum('opportunities'),
+        },
         loading: results.some((r) => r.isFetching),
         stale: results.some((r) => r.isPending),
       }

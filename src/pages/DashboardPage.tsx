@@ -62,9 +62,10 @@ export function DashboardPage() {
         }
       />
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
         <Stat to="/cases" label="Open tickets" value={fmtCount(stats.cases)} loading={loading} stale={stale} />
         <Stat to="/quotes" label="Quotes" value={fmtCount(stats.quotes)} loading={loading} stale={stale} />
+        <Stat to="/opportunities" label="Opportunities" value={fmtCount(stats.opportunities)} loading={loading} stale={stale} />
         <Stat to="/projects" label="Projects" value={fmtCount(stats.projects)} loading={loading} stale={stale} />
         <Stat to="/sites" label="Sites" value={fmtCount(stats.sites)} loading={loading} stale={stale} />
       </div>

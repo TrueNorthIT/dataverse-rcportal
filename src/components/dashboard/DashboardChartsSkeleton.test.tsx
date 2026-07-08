@@ -6,6 +6,7 @@ describe('DashboardChartsSkeleton', () => {
     render(<DashboardChartsSkeleton />)
     expect(screen.getByText('At a glance')).toBeInTheDocument()
     expect(screen.getByText('Projects by health')).toBeInTheDocument()
+    expect(screen.getByText('Opportunities by state')).toBeInTheDocument()
     expect(screen.getByText('Sites by connectivity')).toBeInTheDocument()
     expect(screen.getByText('Deliveries by month')).toBeInTheDocument()
   })
