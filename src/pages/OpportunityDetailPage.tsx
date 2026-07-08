@@ -5,6 +5,7 @@ import { useSelectedCompany } from '../context/SelectedCompanyContext'
 import { useListNav } from '../hooks/useListNav'
 import { fetchOpportunityDetail } from '../services/opportunityApi'
 import { listQuotesForOpportunity } from '../services/quoteApi'
+import type { Opportunity } from '../types/dataverse.generated'
 import { cleanDescription, formatCurrency, formatDate } from '../lib/format'
 import { Card, CardButton } from '../components/common/Card'
 import { StatusChip } from '../components/common/StatusChip'
@@ -17,6 +18,29 @@ import {
   MetaItem,
   SectionTitle,
 } from '../components/detail/DetailChrome'
+
+/** A one-line summary for the opportunity header — its status plus the headline
+ *  value and expected close, so the title area reads richly at a glance. */
+function opportunitySubtitle(o: Opportunity): string | undefined {
+  const bits: string[] = []
+  if (o.estimatedvalue != null) bits.push(`estimated ${formatCurrency(o.estimatedvalue)}`)
+  if (o.estimatedclosedate) bits.push(`expected to close ${formatDate(o.estimatedclosedate)}`)
+  const status = o.statuscode_label || o.statecode_label
+  return [status, bits.join(' · ')].filter(Boolean).join(' — ') || undefined
+}
+
+/** Opportunity names are often seeded with a "— <company>" tail, but the portal
+ *  is already acting as that company, so drop the redundant suffix. */
+function stripCompanySuffix(name: string, company?: string | null): string {
+  if (!company) return name
+  const trimmed = name.trimEnd()
+  const co = company.trim()
+  if (trimmed.toLowerCase().endsWith(co.toLowerCase())) {
+    const head = trimmed.slice(0, trimmed.length - co.length).replace(/[\s—–-]+$/, '')
+    if (head) return head
+  }
+  return name
+}
 
 /** Read-only opportunity detail: value, close date, notes, and its quotes. */
 export function OpportunityDetailPage() {
@@ -34,6 +58,8 @@ export function OpportunityDetailPage() {
   const record = query.data?.record ?? null
   const mine = query.data?.mine ?? false
   const error = query.error instanceof Error ? query.error.message : null
+  // Drop the redundant "— <company>" tail: we're already acting as that company.
+  const displayName = stripCompanySuffix(record?.name || 'Untitled opportunity', currentCompany?.companyName)
 
   const quotesQuery = useQuery({
     queryKey: ['opportunity-quotes', id, mine, selectedCompanyId ?? 'default'],
@@ -50,7 +76,8 @@ export function OpportunityDetailPage() {
       {record && (
         <DetailHeader
           icon="activity"
-          title={record.name || 'Untitled opportunity'}
+          title={displayName}
+          subtitle={opportunitySubtitle(record)}
           trailing={<StatusChip label={record.statuscode_label} />}
         >
           <MetaGrid>
@@ -88,7 +115,11 @@ export function OpportunityDetailPage() {
                   key={q.quoteid}
                   onClick={() =>
                     navigate(`/quotes/${q.quoteid}`, {
-                      state: { from: `/opportunities/${id}`, tier: mine ? 'me' : 'team' },
+                      state: {
+                        from: `/opportunities/${id}`,
+                        fromLabel: displayName,
+                        tier: mine ? 'me' : 'team',
+                      },
                     })
                   }
                 >

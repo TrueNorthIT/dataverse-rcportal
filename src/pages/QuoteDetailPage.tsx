@@ -23,7 +23,10 @@ export function QuoteDetailPage() {
   const { id } = useParams<{ id: string }>()
   const client = useDataverseClient()
   const { selectedCompanyId, currentCompany } = useSelectedCompany()
-  const { tier, prevId, nextId, goPrev, goNext, goBack } = useListNav('/quotes', id)
+  const { tier, prevId, nextId, goPrev, goNext, goBack, backLabel } = useListNav('/quotes', id)
+  // Arriving from an opportunity? Back goes there and reads as that opportunity;
+  // otherwise it's the Quotes list.
+  const back = backLabel ?? 'Quotes'
 
   const query = useQuery({
     queryKey: ['quote', id, tier ?? 'auto', selectedCompanyId ?? 'default'],
@@ -58,9 +61,9 @@ export function QuoteDetailPage() {
 
   return (
     <div>
-      <DetailNav label="Quotes" prevId={prevId} nextId={nextId} onPrev={goPrev} onNext={goNext} onBack={goBack} />
+      <DetailNav label={back} prevId={prevId} nextId={nextId} onPrev={goPrev} onNext={goNext} onBack={goBack} />
 
-      <DetailStates loading={query.isLoading} error={error} onBack={goBack} backLabel="Quotes" companyName={currentCompany?.companyName}>
+      <DetailStates loading={query.isLoading} error={error} onBack={goBack} backLabel={back} companyName={currentCompany?.companyName}>
       {record && (
         <DetailHeader
           icon="receipt"
