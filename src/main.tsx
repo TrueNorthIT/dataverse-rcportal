@@ -7,15 +7,21 @@ import {
 } from '@azure/msal-browser'
 import { MsalProvider } from '@azure/msal-react'
 import { QueryClientProvider } from '@tanstack/react-query'
-import { entraConfig } from './config/entra'
+import { apiOrigin, entraConfig } from './config/entra'
 import { queryClient } from './lib/queryClient'
 import { initClarity } from './lib/clarity'
+import { installCacheDebug } from './lib/cacheDebug'
 import App from './App.tsx'
 import './index.css'
 
 // Start Microsoft Clarity as early as possible (no-op unless a project id is
 // configured) so it captures the session from first paint, including sign-in.
 initClarity()
+
+// Record every API call (path, X-Cache, timing) for the per-tile cache debug
+// badges. Recording is local-only; the badges render solely for the debug
+// user (see components/debug/CacheBadge).
+installCacheDebug(apiOrigin)
 
 const pca = new PublicClientApplication({
   auth: {

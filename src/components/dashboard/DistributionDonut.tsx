@@ -3,6 +3,7 @@ import { Pie, PieChart, Cell, ResponsiveContainer } from 'recharts'
 import type { IconName } from '../common/Icon'
 import type { Pill } from '../../services/pills'
 import { usePillCounts } from '../../hooks/usePillCounts'
+import { CacheBadge } from '../debug/CacheBadge'
 import { ChartCard, ChartEmpty, ChartSkeleton } from './ChartCard'
 import { reducedMotion } from './palette'
 
@@ -41,7 +42,14 @@ export function DistributionDonut({ title, icon, table, area, pills, colors, ena
   const go = (key: string) => navigate(`${area}?f=${encodeURIComponent(key)}`)
 
   return (
-    <ChartCard title={title} icon={icon}>
+    <ChartCard
+      title={title}
+      icon={icon}
+      badge={
+        // Pill counts are the filtered aggregates on this chart's table.
+        <CacheBadge match={(u) => u.includes(`/aggregate/${table}`) && u.includes('filter=')} />
+      }
+    >
       {!loaded ? (
         <ChartSkeleton className="h-32 w-full" />
       ) : total === 0 ? (

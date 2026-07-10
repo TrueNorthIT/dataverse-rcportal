@@ -9,6 +9,7 @@ import { PageHeader } from '../components/common/PageHeader'
 import { Card } from '../components/common/Card'
 import { Icon } from '../components/common/Icon'
 import { ArchitectureNote } from '../components/dashboard/ArchitectureNote'
+import { CacheBadge } from '../components/debug/CacheBadge'
 import { CompanyScopeToggle } from '../components/dashboard/CompanyScopeToggle'
 import { DashboardChartsSkeleton } from '../components/dashboard/DashboardChartsSkeleton'
 
@@ -63,11 +64,11 @@ export function DashboardPage() {
       />
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-        <Stat to="/cases" label="Open tickets" value={fmtCount(stats.cases)} loading={loading} stale={stale} />
-        <Stat to="/quotes" label="Quotes" value={fmtCount(stats.quotes)} loading={loading} stale={stale} />
-        <Stat to="/opportunities" label="Opportunities" value={fmtCount(stats.opportunities)} loading={loading} stale={stale} />
-        <Stat to="/projects" label="Projects" value={fmtCount(stats.projects)} loading={loading} stale={stale} />
-        <Stat to="/sites" label="Sites" value={fmtCount(stats.sites)} loading={loading} stale={stale} />
+        <Stat to="/cases" table="case" label="Open tickets" value={fmtCount(stats.cases)} loading={loading} stale={stale} />
+        <Stat to="/quotes" table="quote" label="Quotes" value={fmtCount(stats.quotes)} loading={loading} stale={stale} />
+        <Stat to="/opportunities" table="opportunity" label="Opportunities" value={fmtCount(stats.opportunities)} loading={loading} stale={stale} />
+        <Stat to="/projects" table="project" label="Projects" value={fmtCount(stats.projects)} loading={loading} stale={stale} />
+        <Stat to="/sites" table="site" label="Sites" value={fmtCount(stats.sites)} loading={loading} stale={stale} />
       </div>
 
       <Attention />
@@ -99,12 +100,15 @@ export function DashboardPage() {
 
 function Stat({
   to,
+  table,
   label,
   value,
   loading,
   stale,
 }: {
   to: string
+  /** SDK route the count comes from — targets the debug badge at its aggregate calls. */
+  table: string
   label: string
   value: string
   loading?: boolean
@@ -116,7 +120,7 @@ function Stat({
   const showSkeleton = stale || (loading && value === '—')
   return (
     <Link to={to} className="block">
-      <Card className="overflow-hidden transition-colors hover:border-rc-blue">
+      <Card className="relative overflow-hidden transition-colors hover:border-rc-blue">
         <div className="rc-gradient h-1 w-full" />
         <div className="p-5">
           <div className="text-xs font-medium text-rc-teal">{label}</div>
@@ -128,6 +132,9 @@ function Stat({
             </div>
           )}
         </div>
+        {/* Headline counts are unfiltered aggregates; filtered ones belong to
+            the charts/attention, so exclude them for a per-tile read. */}
+        <CacheBadge match={(u) => u.includes(`/aggregate/${table}`) && !u.includes('filter=')} />
       </Card>
     </Link>
   )
@@ -143,8 +150,13 @@ function Attention() {
   }
 
   return (
-    <Card className="mt-8 overflow-hidden">
+    <Card className="relative mt-8 overflow-hidden">
       <div className="rc-gradient h-1 w-full" />
+      {/* Attention counts are the filtered aggregates on these three tables. */}
+      <CacheBadge
+        label="attn"
+        match={(u) => /\/aggregate\/(project|case|quote)\?.*filter=/.test(u)}
+      />
       <div className="p-5">
         <h2 className="text-base font-normal tracking-tight text-rc-navy">
           Needs your attention
