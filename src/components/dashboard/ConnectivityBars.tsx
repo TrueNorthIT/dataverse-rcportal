@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { Bar, BarChart, Cell, LabelList, ResponsiveContainer, XAxis, YAxis } from 'recharts'
 import { buildSitePills } from '../../services/siteApi'
 import { usePillCounts } from '../../hooks/usePillCounts'
+import { CacheBadge } from '../debug/CacheBadge'
 import { ChartCard, ChartEmpty, ChartSkeleton } from './ChartCard'
 import { CONNECTIVITY_COLORS, reducedMotion } from './palette'
 
@@ -27,7 +28,11 @@ export function ConnectivityBars({ enabled = true }: { enabled?: boolean }) {
   const total = data.reduce((s, d) => s + d.value, 0)
 
   return (
-    <ChartCard title="Sites by connectivity" icon="mapPin">
+    <ChartCard
+      title="Sites by connectivity"
+      icon="mapPin"
+      badge={<CacheBadge match={(u) => u.includes('/aggregate/site') && u.includes('filter=')} />}
+    >
       {!loaded ? (
         <ChartSkeleton className="h-40 w-full" />
       ) : total === 0 ? (

@@ -3,19 +3,23 @@ import { Card } from '../common/Card'
 import { Icon, type IconName } from '../common/Icon'
 
 /** Shared shell for a dashboard chart: brand card + gradient strip + funky
- * titled header with an icon chip. Children render the chart body. */
+ * titled header with an icon chip. Children render the chart body; `badge`
+ * overlays the card corner (used by the debug-only CacheBadge). */
 export function ChartCard({
   title,
   icon,
+  badge,
   children,
 }: {
   title: string
   icon: IconName
+  badge?: ReactNode
   children: ReactNode
 }) {
   return (
-    <Card className="flex h-full flex-col overflow-hidden">
+    <Card className="relative flex h-full flex-col overflow-hidden">
       <div className="rc-gradient h-1 w-full" />
+      {badge}
       <div className="flex flex-1 flex-col gap-3 p-5">
         <div className="flex items-center gap-2">
           <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-rc-blue-light text-rc-blue">

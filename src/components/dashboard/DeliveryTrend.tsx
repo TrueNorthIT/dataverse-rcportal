@@ -1,5 +1,6 @@
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { useDeliveryTrend } from '../../hooks/useDeliveryTrend'
+import { CacheBadge } from '../debug/CacheBadge'
 import { ChartCard, ChartEmpty, ChartSkeleton } from './ChartCard'
 import { reducedMotion } from './palette'
 
@@ -29,7 +30,14 @@ export function DeliveryTrend({ enabled = true }: { enabled?: boolean }) {
   const hasData = data.some((d) => (d.delivered ?? d.projected ?? 0) > 0)
 
   return (
-    <ChartCard title="Deliveries by month" icon="activity">
+    <ChartCard
+      title="Deliveries by month"
+      icon="activity"
+      badge={
+        // The trend reads the project list (finish/actual-end dates), not an aggregate.
+        <CacheBadge match={(u) => u.includes('/team/project') && u.includes('msdyn_finish')} />
+      }
+    >
       {loading ? (
         <ChartSkeleton className="h-48 w-full" />
       ) : !hasData ? (
