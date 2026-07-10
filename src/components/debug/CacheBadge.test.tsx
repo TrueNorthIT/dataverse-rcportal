@@ -28,6 +28,7 @@ function account(email: string): AccountInfo {
 afterEach(() => {
   _resetCacheDebug()
   activeAccount = null
+  localStorage.removeItem('rc-debug')
 })
 
 describe('isDebugUser', () => {
@@ -67,5 +68,12 @@ describe('CacheBadge', () => {
     activeAccount = account(DEBUG_USER_EMAIL)
     render(<CacheBadge match="/aggregate/site" label="sites" />)
     expect(screen.getByTestId('cache-badge').textContent).toContain('no request')
+  })
+
+  it('localStorage rc-debug=1 forces badges on regardless of account', () => {
+    activeAccount = account('ada@acme.com')
+    localStorage.setItem('rc-debug', '1')
+    render(<CacheBadge match="/aggregate/case" />)
+    expect(screen.getByTestId('cache-badge')).toBeTruthy()
   })
 })

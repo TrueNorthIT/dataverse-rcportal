@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useMsal } from '@azure/msal-react'
 import { accountToUser } from '../../config/entra'
 import { useApiDebug } from '../../lib/cacheDebug'
@@ -24,6 +25,19 @@ export function isDebugUser(email: string | null | undefined): boolean {
   return (email ?? '').toLowerCase() === DEBUG_USER_EMAIL
 }
 
+/**
+ * Manual escape hatch when the token's claims don't carry the email in the
+ * expected place: `localStorage.setItem('rc-debug', '1')` in the console (and
+ * reload) forces the badges on for that browser; `removeItem` turns them off.
+ */
+function debugOverride(): boolean {
+  try {
+    return localStorage.getItem('rc-debug') === '1'
+  } catch {
+    return false
+  }
+}
+
 const timeFmt = (ms: number) =>
   new Date(ms).toLocaleTimeString('en-GB', { hour12: false })
 
@@ -39,7 +53,12 @@ export function CacheBadge({
   const email = accountToUser(instance.getActiveAccount() ?? accounts[0])?.email
   // Hooks may not be conditional — compute stats before the visibility gate.
   const { last, count, hits, misses } = useApiDebug(match)
-  if (!isDebugUser(email)) return null
+  useEffect(() => {
+    // Surface the gate's input in the console inspector (see cacheDebug.ts).
+    const dbg = (window as unknown as Record<string, unknown>).__rcCacheDebug
+    if (dbg && typeof dbg === 'object') (dbg as Record<string, unknown>).email = email ?? null
+  }, [email])
+  if (!isDebugUser(email) && !debugOverride()) return null
 
   const tone =
     last?.cache === 'HIT'

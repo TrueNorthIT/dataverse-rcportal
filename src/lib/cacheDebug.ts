@@ -44,6 +44,10 @@ let installed = false
 export function installCacheDebug(apiOrigin: string): void {
   if (installed || typeof window === 'undefined') return
   installed = true
+  // Console inspector: window.__rcCacheDebug.calls lists everything recorded,
+  // .email shows what the badge gate resolved (set by CacheBadge). Handy when
+  // badges don't appear — check the email matches, and that calls are landing.
+  ;(window as unknown as Record<string, unknown>).__rcCacheDebug = { calls, email: undefined }
   const realFetch = window.fetch.bind(window)
   window.fetch = async (input, init) => {
     const urlStr =
