@@ -1,7 +1,25 @@
 import { useMemo } from 'react'
-import { InteractionRequiredAuthError } from '@azure/msal-browser'
+import { BrowserAuthError, InteractionRequiredAuthError } from '@azure/msal-browser'
 import { useMsal } from '@azure/msal-react'
 import { entraConfig } from '../config/entra'
+
+/**
+ * BrowserAuthError codes MSAL raises when its hidden-iframe silent renewal is
+ * exhausted — the SPA refresh token has expired (Entra caps SPA refresh tokens
+ * at ~24h) and the fallback iframe to the authorize endpoint can't complete
+ * because third-party cookies are blocked or the Entra session is gone. These
+ * aren't InteractionRequiredAuthErrors, but they mean the same thing: silent is
+ * done, so send the user to interactive sign-in rather than dead-ending on a
+ * stuck screen with no API calls (the "come back the next day, nothing loads"
+ * report). In MSAL v5 the iframe monitor timeout is `timed_out`, not the
+ * legacy `monitor_window_timeout`.
+ */
+const SILENT_EXHAUSTED = new Set([
+  'timed_out', // iframe/bridge monitor timed out — usually blocked cookies
+  'hash_empty_error', // iframe returned, but with no usable auth response
+  'empty_window_error',
+  'iframe_closed_prematurely',
+])
 
 /**
  * Returns a `getToken()` function that hands out a fresh Entra External ID
@@ -22,7 +40,15 @@ export function useGetToken(): () => Promise<string> {
         })
         return result.accessToken
       } catch (err) {
-        if (err instanceof InteractionRequiredAuthError) {
+        // Recover with an interactive redirect when silent acquisition can't be
+        // renewed — either an explicit InteractionRequiredAuthError or a spent
+        // iframe renewal (see SILENT_EXHAUSTED). Anything else (network blip,
+        // interaction already in progress) is rethrown untouched so we don't
+        // bounce the user out on a transient error or loop the redirect.
+        const needsInteraction =
+          err instanceof InteractionRequiredAuthError ||
+          (err instanceof BrowserAuthError && SILENT_EXHAUSTED.has(err.errorCode))
+        if (needsInteraction) {
           await instance.acquireTokenRedirect({
             scopes: [entraConfig.apiScope],
             account,

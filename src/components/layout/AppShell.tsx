@@ -16,10 +16,11 @@ export function AppShell() {
   const { instance, accounts } = useMsal()
   const user = accountToUser(instance.getActiveAccount() ?? accounts[0])
   const { account } = useMyCompany()
-  // Operator/demo aids (Dataverse deep link, Clarity dashboard) — only for our
-  // own operator logins, never for other demo users or real customers.
+  // Operator/demo aids (Dataverse deep link, Clarity dashboard) — for anyone on
+  // the TrueNorth team (plus Steve's personal operator login), never for other
+  // demo users or real customers.
   const email = user?.email?.toLowerCase()
-  const isOperator = email === 'steve@drakey.co.uk' || email === 'sdrake@truenorthit.co.uk'
+  const isOperator = email === 'steve@drakey.co.uk' || email?.endsWith('@truenorthit.co.uk') === true
   const isSteve = email === 'steve@drakey.co.uk'
   // Collapse the brand bar + nav when scrolling down (reveal on scroll up) so
   // content gets the full screen — reads much better on mobile.

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { renderHook } from '@testing-library/react'
-import { InteractionRequiredAuthError } from '@azure/msal-browser'
+import { BrowserAuthError, InteractionRequiredAuthError } from '@azure/msal-browser'
 import { useGetToken } from './getToken'
 
 const instance = {
@@ -45,6 +45,33 @@ describe('useGetToken', () => {
     const { result } = renderHook(() => useGetToken())
     await expect(result.current()).rejects.toBeInstanceOf(InteractionRequiredAuthError)
     expect(instance.acquireTokenRedirect).toHaveBeenCalled()
+  })
+
+  it('falls back to a redirect when the silent-renewal iframe times out', async () => {
+    // MSAL v5 rejects a spent hidden-iframe renewal with BrowserAuthError
+    // `timed_out` (blocked third-party cookies / dead session), NOT an
+    // InteractionRequiredAuthError. That's the "next day, nothing loads" case.
+    instance.getActiveAccount.mockReturnValue({ homeAccountId: 'h1' })
+    instance.acquireTokenSilent.mockRejectedValue(
+      new BrowserAuthError('timed_out', 'corr-2', 'redirect_bridge_timeout'),
+    )
+    instance.acquireTokenRedirect.mockResolvedValue(undefined)
+
+    const { result } = renderHook(() => useGetToken())
+    await expect(result.current()).rejects.toBeInstanceOf(BrowserAuthError)
+    expect(instance.acquireTokenRedirect).toHaveBeenCalled()
+  })
+
+  it('does not redirect on unrelated BrowserAuthErrors', async () => {
+    // e.g. an interaction is already in progress — redirecting again would loop.
+    instance.getActiveAccount.mockReturnValue({ homeAccountId: 'h1' })
+    instance.acquireTokenSilent.mockRejectedValue(
+      new BrowserAuthError('interaction_in_progress', 'corr-3'),
+    )
+
+    const { result } = renderHook(() => useGetToken())
+    await expect(result.current()).rejects.toBeInstanceOf(BrowserAuthError)
+    expect(instance.acquireTokenRedirect).not.toHaveBeenCalled()
   })
 
   it('rethrows non-interaction errors without redirecting', async () => {
