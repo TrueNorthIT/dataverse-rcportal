@@ -25,7 +25,13 @@ const pca = new PublicClientApplication({
     redirectUri: entraConfig.redirectUri,
     postLogoutRedirectUri: entraConfig.redirectUri,
   },
-  cache: { cacheLocation: 'localStorage' },
+  // Session-scoped token cache. Tokens live only for the browser session, so a
+  // customer returning the next day gets a clean sign-in instead of resurrecting
+  // a stale account whose SPA refresh token has already expired (~24h cap) —
+  // the source of the "nothing loads, iframe errors" report. Matches the rest of
+  // the stack (tablemanager, case-portal). Within-session expiry is recovered by
+  // useGetToken falling back to an interactive redirect.
+  cache: { cacheLocation: 'sessionStorage' },
 })
 
 // MSAL doesn't auto-set an active account on login — without this,
