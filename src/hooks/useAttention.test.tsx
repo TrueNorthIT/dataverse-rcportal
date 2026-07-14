@@ -149,7 +149,10 @@ describe('useAttention', () => {
     // System clock is fixed at 2026-07-05, so the offsets are deterministic.
     expect(client.team.aggregate).toHaveBeenCalledWith('project', {
       aggregate: 'count',
-      filter: { field: 'msdyn_finish', operator: 'lt', value: '2026-07-05' },
+      filter: [
+        { field: 'msdyn_finish', operator: 'lt', value: '2026-07-05' },
+        { field: 'msdyn_actualend', operator: 'eq', value: 'null' },
+      ],
     })
     expect(client.team.aggregate).toHaveBeenCalledWith('case', {
       aggregate: 'count',

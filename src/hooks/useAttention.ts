@@ -42,7 +42,16 @@ export function useAttention(): { items: AttentionItem[]; loading: boolean; stal
       // "All companies" fans out and sums; otherwise a single company client.
       const targets = allCompanies ? companyClients.map((c) => c.client) : [client]
       const [overdue, staleHigh, recentQuotes] = await Promise.all([
-        fanCount(targets, 'team', 'project', { aggregate: 'count', filter: { field: 'msdyn_finish', operator: 'lt', value: today } }),
+        // Overdue = past finish AND not yet delivered. The `msdyn_actualend eq
+        // null` guard MUST match the Overdue pill (buildProjectPills) exactly, or
+        // the badge counts already-delivered-but-late projects the list excludes.
+        fanCount(targets, 'team', 'project', {
+          aggregate: 'count',
+          filter: [
+            { field: 'msdyn_finish', operator: 'lt', value: today },
+            { field: 'msdyn_actualend', operator: 'eq', value: 'null' },
+          ],
+        }),
         fanCount(targets, 'team', 'case', {
           aggregate: 'count',
           filter: [
