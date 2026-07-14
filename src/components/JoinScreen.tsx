@@ -80,7 +80,7 @@ export function JoinScreen({ client }: { client: DataverseClient }) {
           className="mx-auto h-9 w-auto"
         />
         <h1 className="mt-8 text-center text-3xl font-light tracking-tight text-white">
-          Welcome to the Redcentric Customer Portal
+          Welcome to the Redcentric Customer Hub
         </h1>
         <p className="mx-auto mt-3 max-w-md text-center text-sm text-white/80">
           We couldn’t find your details yet. Confirm your name and choose the

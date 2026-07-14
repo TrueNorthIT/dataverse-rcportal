@@ -48,7 +48,7 @@ describe('JoinScreen', () => {
     })
     renderWithProviders(<JoinScreen client={client} />)
 
-    expect(screen.getByText(/Welcome to the Redcentric Customer Portal/)).toBeInTheDocument()
+    expect(screen.getByText(/Welcome to the Redcentric Customer Hub/)).toBeInTheDocument()
     expect(await screen.findByText('Acme Ltd')).toBeInTheDocument()
     expect(screen.getByText('Acme Labs')).toBeInTheDocument()
   })

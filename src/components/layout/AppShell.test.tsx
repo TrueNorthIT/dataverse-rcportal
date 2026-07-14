@@ -84,7 +84,7 @@ describe('AppShell', () => {
   it('renders the brand bar, the child chrome, and the routed outlet', () => {
     renderShell()
     expect(screen.getByAltText('Redcentric')).toBeInTheDocument()
-    expect(screen.getByText('Customer Portal')).toBeInTheDocument()
+    expect(screen.getByText('Customer Hub')).toBeInTheDocument()
     expect(screen.getByTestId('nav-tabs')).toBeInTheDocument()
     expect(screen.getByTestId('company-switcher')).toBeInTheDocument()
     expect(screen.getByTestId('user-menu')).toBeInTheDocument()

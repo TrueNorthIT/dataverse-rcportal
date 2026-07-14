@@ -27,7 +27,7 @@ describe('LoginScreen', () => {
 
     expect(screen.getByRole('img', { name: 'Redcentric' })).toBeInTheDocument()
     expect(
-      screen.getByRole('heading', { name: 'Customer Portal' }),
+      screen.getByRole('heading', { name: 'Customer Hub' }),
     ).toBeInTheDocument()
     expect(
       screen.getByText(/Sign in to view and manage your contact details/i),
