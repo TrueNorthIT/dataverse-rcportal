@@ -5,7 +5,6 @@ import { useSelectedCompany } from '../context/SelectedCompanyContext'
 import { useListNav } from '../hooks/useListNav'
 import { fetchProjectDetail, projectHealth, listProjectTasks, listProjectNotes } from '../services/projectApi'
 import { cleanDescription, formatDate } from '../lib/format'
-import { Icon } from '../components/common/Icon'
 import { ProjectPlanCard, ProjectPlanModal } from '../components/project/ProjectViews'
 import {
   DetailHeader,
@@ -89,18 +88,8 @@ export function ProjectDetailPage() {
             <MetaItem icon="flag" label="Actual start" value={formatDate(record.msdyn_actualstart)} />
             <MetaItem icon="checkCircle" label="Actual finish" value={formatDate(record.msdyn_actualend)} />
             <MetaItem icon="clock" label="Created" value={formatDate(record.createdon)} />
+            <MetaItem icon="fileText" label="Description" value={cleanDescription(record.msdyn_description)} wide />
           </MetaGrid>
-
-          {cleanDescription(record.msdyn_description) && (
-            <div className="mt-6">
-              <dt className="flex items-center gap-1.5 text-xs font-medium text-rc-teal">
-                <Icon name="fileText" className="h-3.5 w-3.5" /> Description
-              </dt>
-              <p className="mt-1 whitespace-pre-wrap text-sm text-rc-navy">
-                {cleanDescription(record.msdyn_description)}
-              </p>
-            </div>
-          )}
         </DetailHeader>
       )}
 

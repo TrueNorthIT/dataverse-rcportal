@@ -34,24 +34,6 @@ export function DashboardPage() {
 
   return (
     <div>
-      {/* The scope toggle stays pinned to the top as you scroll. It sits ABOVE
-          the header (z-50 > z-40) so the header can never overlap it and eat a
-          tap — the earlier z-30 let the header cover it in some scroll
-          positions, which is why this toggle needed a second press.
-          Two consequences of that, both handled:
-          - the full-width band's empty right half must not eat clicks on the
-            header beneath it, so the wrapper is pointer-events-none and the
-            controls opt back in (pointer-events-auto);
-          - the header's dropdown menus (company switcher, user menu) would
-            paint UNDER this band however high their own z-index, because they
-            live inside the header's z-40 stacking context — so they escape via
-            AnchoredMenu, a body portal at z-[60] that sits above this band. */}
-      {hasMultiple && (
-        <div className="pointer-events-none sticky top-2 z-50 mb-3 flex items-center gap-3">
-          <CompanyScopeToggle />
-          <SyncIndicator active={syncing} />
-        </div>
-      )}
       <PageHeader
         title="Dashboard"
         subtitle={
@@ -61,14 +43,28 @@ export function DashboardPage() {
               ? `Welcome — ${account.name}`
               : 'Welcome'
         }
+        actions={
+          hasMultiple ? (
+            <>
+              <CompanyScopeToggle />
+              <SyncIndicator active={syncing} />
+            </>
+          ) : undefined
+        }
       />
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+
+      {/* Headline counts as one panel of hairline-divided cells (the Tailwind Plus
+
+          "stats" block). Five across from lg; below that two per row, with the
+
+          last cell spanning the row so the panel never shows a hole. */}
+      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-rc-blue-light bg-rc-blue-light/70 shadow-sm lg:grid-cols-5">
         <Stat to="/cases" table="case" label="Open tickets" value={fmtCount(stats.cases)} loading={loading} stale={stale} />
         <Stat to="/quotes" table="quote" label="Quotes" value={fmtCount(stats.quotes)} loading={loading} stale={stale} />
         <Stat to="/opportunities" table="opportunity" label="Opportunities" value={fmtCount(stats.opportunities)} loading={loading} stale={stale} />
         <Stat to="/projects" table="project" label="Projects" value={fmtCount(stats.projects)} loading={loading} stale={stale} />
-        <Stat to="/sites" table="site" label="Sites" value={fmtCount(stats.sites)} loading={loading} stale={stale} />
+        <Stat to="/sites" table="site" label="Sites" value={fmtCount(stats.sites)} loading={loading} stale={stale} className="col-span-2 lg:col-span-1" />
       </div>
 
       <Attention />
@@ -105,6 +101,7 @@ function Stat({
   value,
   loading,
   stale,
+  className = '',
 }: {
   to: string
   /** SDK route the count comes from — targets the debug badge at its aggregate calls. */
@@ -114,29 +111,30 @@ function Stat({
   loading?: boolean
   /** Showing the previous scope's number while the new one loads. */
   stale?: boolean
+  /** Grid placement, e.g. to make the last cell span a short row. */
+  className?: string
 }) {
   // Shimmer on first load and on a scope switch (stale); when the real number
   // lands it fades up (keyed by value so the entrance replays on change).
   const showSkeleton = stale || (loading && value === '—')
   return (
-    <Link to={to} className="block">
-      <Card className="relative overflow-hidden transition-colors hover:border-rc-blue">
-        <div className="rc-gradient h-1 w-full" />
-        <div className="p-5">
-          <div className="text-xs font-medium text-rc-teal">{label}</div>
-          {showSkeleton ? (
-            <div className="rc-skeleton mt-2 h-7 w-16 rounded" aria-label="Loading" />
-          ) : (
-            <div key={value} className="rc-fade-up mt-1 text-3xl font-light tracking-tight text-rc-navy">
-              {value}
-            </div>
-          )}
+    <Link
+      to={to}
+      className={`relative block bg-white px-4 py-6 transition-colors hover:bg-rc-canvas sm:px-6 ${className}`}
+    >
+      <div className="text-sm/6 font-medium text-rc-teal">{label}</div>
+      {showSkeleton ? (
+        <div className="rc-skeleton mt-2 h-8 w-16 rounded" aria-label="Loading" />
+      ) : (
+        <div key={value} className="rc-fade-up mt-1 text-3xl/10 font-medium tracking-tight text-rc-navy">
+          {value}
         </div>
-        {/* Headline counts are unfiltered aggregates; filtered ones belong to
-            the charts/attention, so exclude them for a per-tile read. */}
-        <CacheBadge match={(u) => u.includes(`/aggregate/${table}`) && !u.includes('filter=')} />
-      </Card>
+      )}
+      {/* Headline counts are unfiltered aggregates; filtered ones belong to
+          the charts/attention, so exclude them for a per-tile read. */}
+      <CacheBadge match={(u) => u.includes(`/aggregate/${table}`) && !u.includes('filter=')} />
     </Link>
+
   )
 }
 
@@ -151,16 +149,13 @@ function Attention() {
 
   return (
     <Card className="relative mt-8 overflow-hidden">
-      <div className="rc-gradient h-1 w-full" />
       {/* Attention counts are the filtered aggregates on these three tables. */}
       <CacheBadge
         label="attn"
         match={(u) => /\/aggregate\/(project|case|quote)\?.*filter=/.test(u)}
       />
-      <div className="p-5">
-        <h2 className="text-base font-normal tracking-tight text-rc-navy">
-          Needs your attention
-        </h2>
+      <div className="px-6 py-5">
+        <h2 className="text-base font-semibold text-rc-navy">Needs your attention</h2>
         {stale ? (
           <div className="mt-3 space-y-2" aria-label="Loading">
             <div className="rc-skeleton h-11 rounded-xl" />

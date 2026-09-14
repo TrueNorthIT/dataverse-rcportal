@@ -4,13 +4,10 @@ import { createPortal } from 'react-dom'
 /**
  * A header dropdown panel, rendered through a portal to <body>.
  *
- * Why a portal: the app header is `sticky z-40`, and the dashboard pins its
- * scope toggle band ABOVE it (`z-50`) so the header can never cover the toggle
- * and eat a tap (see DashboardPage). A stacking context means anything rendered
- * *inside* the header — however high its own z-index — still paints underneath
- * that band, so the company-switcher / user menus opened from the header were
- * being overdrawn by the toggle. Escaping to <body> at z-[60] puts the open
- * menu above both, without giving up the toggle's tap-reliability fix.
+ * Why a portal: the mobile top bar is `sticky z-40` and forms its own stacking
+ * context, so a menu rendered inside it paints beneath anything pinned above
+ * the bar (the dashboard's scope toggle used to be). Escaping to <body> at
+ * z-[60] keeps an open menu above all page chrome.
  *
  * The panel is right-aligned to the anchor's rect and closes on outside press,
  * Escape, page scroll, or resize (the anchor is sticky chrome, so on scroll it

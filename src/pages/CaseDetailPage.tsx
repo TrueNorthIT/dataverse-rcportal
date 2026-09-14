@@ -76,22 +76,19 @@ export function CaseDetailPage() {
                 <MetaItem icon="flag" label="Priority" value={record.prioritycode_label} />
                 <MetaItem icon="calendar" label="Raised" value={formatDate(record.createdon)} />
                 <MetaItem icon="clock" label="Last updated" value={relativeFromNow(record.modifiedon)} />
+                <MetaItem icon="fileText" label="Details" wide>
+                  {mine ? (
+                    <EditableDescription
+                      client={client}
+                      caseId={id!}
+                      initial={cleanDescription(record.description)}
+                      onSaved={() => queryClient.invalidateQueries({ queryKey: ['case', id] })}
+                    />
+                  ) : (
+                    cleanDescription(record.description) || 'No description provided.'
+                  )}
+                </MetaItem>
               </MetaGrid>
-              <div className="mt-6">
-                <div className="text-xs font-medium text-rc-teal">Details</div>
-                {mine ? (
-                  <EditableDescription
-                    client={client}
-                    caseId={id!}
-                    initial={cleanDescription(record.description)}
-                    onSaved={() => queryClient.invalidateQueries({ queryKey: ['case', id] })}
-                  />
-                ) : (
-                  <p className="mt-1 whitespace-pre-wrap text-sm text-rc-navy">
-                    {cleanDescription(record.description) || 'No description provided.'}
-                  </p>
-                )}
-              </div>
             </DetailHeader>
 
             <div className="mt-6">

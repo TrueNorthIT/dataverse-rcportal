@@ -8,7 +8,6 @@ import { fetchOpportunitySummary, stripCompanySuffix } from '../services/opportu
 import { cleanDescription, formatCurrency, formatDate } from '../lib/format'
 import { Card } from '../components/common/Card'
 import { StatusChip } from '../components/common/StatusChip'
-import { Icon } from '../components/common/Icon'
 import {
   DetailHeader,
   DetailNav,
@@ -76,32 +75,18 @@ export function QuoteDetailPage() {
             <MetaItem icon="calendar" label="Valid from" value={formatDate(record.effectivefrom)} />
             <MetaItem icon="calendar" label="Valid until" value={formatDate(record.effectiveto)} />
             <MetaItem icon="clock" label="Created" value={formatDate(record.createdon)} />
+            <MetaItem icon="fileText" label="Notes" value={cleanDescription(record.description)} wide />
+            {opp && (
+              <MetaItem icon="link" label="Source opportunity" wide>
+                <div className="flex items-center justify-between gap-3 rounded-lg border border-rc-blue-light bg-rc-canvas px-3 py-2">
+                  <span className="text-sm text-rc-navy">
+                    {stripCompanySuffix(opp.name || 'Opportunity', currentCompany?.companyName)}
+                  </span>
+                  <span className="text-sm font-medium text-rc-teal">{formatCurrency(opp.estimatedvalue)}</span>
+                </div>
+              </MetaItem>
+            )}
           </MetaGrid>
-
-          {cleanDescription(record.description) && (
-            <div className="mt-6">
-              <dt className="flex items-center gap-1.5 text-xs font-medium text-rc-teal">
-                <Icon name="fileText" className="h-3.5 w-3.5" /> Notes
-              </dt>
-              <p className="mt-1 whitespace-pre-wrap text-sm text-rc-navy">
-                {cleanDescription(record.description)}
-              </p>
-            </div>
-          )}
-
-          {opp && (
-            <div className="mt-6">
-              <dt className="flex items-center gap-1.5 text-xs font-medium text-rc-teal">
-                <Icon name="link" className="h-3.5 w-3.5" /> Source opportunity
-              </dt>
-              <div className="mt-1 flex items-center justify-between gap-3 rounded-lg border border-rc-blue-light bg-rc-canvas px-3 py-2">
-                <span className="text-sm text-rc-navy">
-                  {stripCompanySuffix(opp.name || 'Opportunity', currentCompany?.companyName)}
-                </span>
-                <span className="text-sm font-medium text-rc-teal">{formatCurrency(opp.estimatedvalue)}</span>
-              </div>
-            </div>
-          )}
         </DetailHeader>
       )}
 

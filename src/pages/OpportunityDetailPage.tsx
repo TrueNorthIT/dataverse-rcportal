@@ -9,7 +9,6 @@ import type { Opportunity } from '../types/dataverse.generated'
 import { cleanDescription, formatCurrency, formatDate } from '../lib/format'
 import { Card, CardButton } from '../components/common/Card'
 import { StatusChip } from '../components/common/StatusChip'
-import { Icon } from '../components/common/Icon'
 import {
   DetailHeader,
   DetailNav,
@@ -73,18 +72,8 @@ export function OpportunityDetailPage() {
             <MetaItem icon="flag" label="Status" value={record.statecode_label} />
             <MetaItem icon="clock" label="Created" value={formatDate(record.createdon)} />
             <MetaItem icon="clock" label="Last updated" value={formatDate(record.modifiedon)} />
+            <MetaItem icon="fileText" label="Notes" value={cleanDescription(record.description)} wide />
           </MetaGrid>
-
-          {cleanDescription(record.description) && (
-            <div className="mt-6">
-              <dt className="flex items-center gap-1.5 text-xs font-medium text-rc-teal">
-                <Icon name="fileText" className="h-3.5 w-3.5" /> Notes
-              </dt>
-              <p className="mt-1 whitespace-pre-wrap text-sm text-rc-navy">
-                {cleanDescription(record.description)}
-              </p>
-            </div>
-          )}
         </DetailHeader>
       )}
 

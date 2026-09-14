@@ -2,8 +2,7 @@ import type { ReactNode } from 'react'
 import { Card } from '../common/Card'
 import { Icon, type IconName } from '../common/Icon'
 
-/** Shared shell for a dashboard chart: brand card + gradient strip + funky
- * titled header with an icon chip. Children render the chart body; `badge`
+/** Shared shell for a dashboard chart: brand card + titled header with an icon chip. Children render the chart body; `badge`
  * overlays the card corner (used by the debug-only CacheBadge). */
 export function ChartCard({
   title,
@@ -18,7 +17,6 @@ export function ChartCard({
 }) {
   return (
     <Card className="relative flex h-full flex-col overflow-hidden">
-      <div className="rc-gradient h-1 w-full" />
       {badge}
       <div className="flex flex-1 flex-col gap-3 p-5">
         <div className="flex items-center gap-2">

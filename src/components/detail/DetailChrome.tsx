@@ -1,8 +1,12 @@
 /**
  * Shared chrome for the read-only detail pages (quote / project / site /
- * colleague). Mirrors the case-detail look — gradient-topped card, meta grid,
- * back link + prev/next stepper — with light iconography for a bit of funk.
+ * colleague / case). A card with a heading block (area glyph, title, optional
+ * subtitle and trailing chip) over a two-column description list — after the
+ * Tailwind Plus "card heading" and "description list" blocks, in the
+ * Redcentric palette. Also the back link + prev/next stepper, section
+ * headings, and the loading / error / not-available states.
  */
+import type { CSSProperties, ReactNode } from 'react'
 import { Card } from '../common/Card'
 import { Icon } from '../common/Icon'
 import type { IconName } from '../common/Icon'
@@ -62,7 +66,9 @@ function NavArrow({
       aria-label={label}
       className={
         'flex h-8 w-8 items-center justify-center rounded-lg border bg-white text-rc-navy transition-colors ' +
-        (disabled ? 'cursor-not-allowed border-rc-blue-light/60 text-rc-navy/30' : 'border-rc-blue-light hover:border-rc-blue hover:bg-rc-blue-light/40')
+        (disabled
+          ? 'cursor-not-allowed border-rc-blue-light/60 text-rc-navy/30'
+          : 'border-rc-blue-light hover:border-rc-blue hover:bg-rc-blue-light/40')
       }
     >
       <Icon name="chevronRight" className={`h-[18px] w-[18px] ${dir === 'prev' ? 'rotate-180' : ''}`} />
@@ -70,7 +76,11 @@ function NavArrow({
   )
 }
 
-/** Gradient-topped detail card header: area glyph, title, optional trailing node. */
+/**
+ * Detail card: heading block (glyph, title, subtitle, trailing) above the
+ * body. Make a <MetaGrid> the last child — it runs edge to edge and finishes
+ * flush with the card's bottom edge.
+ */
 export function DetailHeader({
   icon,
   title,
@@ -82,13 +92,12 @@ export function DetailHeader({
   title: string
   /** Optional one-line summary under the title, for a richer header. */
   subtitle?: string
-  trailing?: React.ReactNode
-  children?: React.ReactNode
+  trailing?: ReactNode
+  children?: ReactNode
 }) {
   return (
     <Card className="overflow-hidden">
-      <div className="rc-gradient h-1 w-full" />
-      <div className="p-6">
+      <div className="px-6 py-5">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
             <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rc-blue-light text-rc-blue">
@@ -96,7 +105,7 @@ export function DetailHeader({
             </span>
             <div className="min-w-0">
               <h1 className="text-2xl font-normal tracking-tight text-rc-navy">{title}</h1>
-              {subtitle && <p className="mt-1 text-sm leading-relaxed text-rc-teal">{subtitle}</p>}
+              {subtitle && <p className="mt-1 max-w-2xl text-sm/6 text-rc-teal">{subtitle}</p>}
             </div>
           </div>
           {trailing}
@@ -107,49 +116,67 @@ export function DetailHeader({
   )
 }
 
-/** Responsive grid of labelled meta values. */
-export function MetaGrid({ children }: { children: React.ReactNode }) {
-  return <dl className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3">{children}</dl>
+/**
+ * Two-column description list (three columns from lg). Rows are separated by
+ * hairlines and run edge to edge across the card; the negative bottom margin
+ * pulls the last row flush with the card's bottom, so keep this the last
+ * child of <DetailHeader>.
+ */
+export function MetaGrid({ children }: { children: ReactNode }) {
+  return (
+    <dl className="-mx-6 -mb-5 mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+      {children}
+    </dl>
+  )
 }
 
-/** A single icon + label + value meta cell. Hidden when value is empty. */
+/**
+ * One labelled row of the list. Hidden when `value` is empty. Pass `children`
+ * instead of `value` for rich content, and `wide` for a row that spans every
+ * column (descriptions, notes, linked records) — put those rows last.
+ */
 export function MetaItem({
   icon,
   label,
   value,
+  wide,
+  children,
 }: {
   icon: IconName
   label: string
   value?: string | number | null
+  wide?: boolean
+  children?: ReactNode
 }) {
   const text = value === 0 ? '0' : value
-  if (text === null || text === undefined || text === '') return null
+  const empty = text === null || text === undefined || text === ''
+  if (children === undefined && empty) return null
   return (
-    <div>
-      <dt className="flex items-center gap-1.5 text-xs font-medium text-rc-teal">
-        <Icon name={icon} className="h-3.5 w-3.5" />
+    <div className={`border-t border-rc-blue-light/70 px-6 py-4 ${wide ? 'sm:col-span-full' : ''}`}>
+      <dt className="flex items-center gap-1.5 text-sm/6 font-medium text-rc-teal">
+        <Icon name={icon} className="h-4 w-4" />
         {label}
       </dt>
-      <dd className="mt-0.5 text-sm text-rc-navy">{text}</dd>
+      <dd className="mt-1 whitespace-pre-wrap text-sm/6 text-rc-navy">{children ?? text}</dd>
     </div>
   )
 }
 
-/** Section heading for a sub-list, with an icon and optional count. */
+/** Section heading for a sub-list: icon, title, optional count. */
 export function SectionTitle({
   icon,
   children,
   count,
 }: {
   icon: IconName
-  children: React.ReactNode
+  children: ReactNode
   count?: number
 }) {
   return (
-    <h2 className="mb-3 flex items-center gap-2 text-xl font-light tracking-tight text-rc-navy">
-      <Icon name={icon} className="h-5 w-5" />
+    <h2 className="mb-3 flex items-center gap-2 text-base font-semibold text-rc-navy">
+      <Icon name={icon} className="h-5 w-5 text-rc-blue" />
       {children}
-      {count !== undefined && <span className="text-base text-rc-teal">({count})</span>}
+      {count !== undefined && <span className="text-sm font-normal text-rc-teal">({count})</span>}
     </h2>
   )
 }
@@ -184,8 +211,8 @@ export function DetailStates({
   /** The company currently in scope, named in the not-available guidance. */
   companyName?: string | null
   /** Placeholder while loading; defaults to <DetailSkeleton>. */
-  skeleton?: React.ReactNode
-  children: React.ReactNode
+  skeleton?: ReactNode
+  children: ReactNode
 }) {
   if (loading) return <>{skeleton ?? <DetailSkeleton />}</>
   if (error) {
@@ -216,7 +243,6 @@ function DetailUnavailable({
 }) {
   return (
     <Card className="overflow-hidden">
-      <div className="rc-gradient h-1 w-full" />
       <div className="flex flex-col items-center px-6 py-10 text-center">
         <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rc-blue-light text-rc-blue">
           <Icon name="building" className="h-6 w-6" />
@@ -244,21 +270,25 @@ function DetailUnavailable({
   )
 }
 
-/** Shimmer placeholder for a detail card while it loads. */
+/** Shimmer placeholder for a detail card while it loads — same shape as the
+ * real card: heading block over six description-list rows. */
 export function DetailSkeleton() {
   return (
     <Card className="overflow-hidden" aria-busy="true" aria-label="Loading">
-      <div className="rc-gradient h-1 w-full" />
-      <div className="p-6">
+      <div className="px-6 py-5">
         <div className="flex items-start gap-3">
           <div className="rc-skeleton h-10 w-10 rounded-xl" />
           <div className="rc-skeleton h-7 w-1/2 rounded" />
         </div>
-        <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3">
+        <div className="-mx-6 -mb-5 mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {[0, 1, 2, 3, 4, 5].map((i) => (
-            <div key={i} style={{ ['--rc-delay' as string]: `${i * 0.08}s` }} className="space-y-1.5">
-              <div className="rc-skeleton h-3 w-2/3 rounded" />
-              <div className="rc-skeleton h-4 w-4/5 rounded" />
+            <div
+              key={i}
+              style={{ '--rc-delay': `${i * 0.08}s` } as CSSProperties}
+              className="space-y-1.5 border-t border-rc-blue-light/70 px-6 py-4"
+            >
+              <div className="rc-skeleton h-4 w-1/3 rounded" />
+              <div className="rc-skeleton h-4 w-2/3 rounded" />
             </div>
           ))}
         </div>

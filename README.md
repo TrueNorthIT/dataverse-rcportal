@@ -4,7 +4,7 @@ A Vite + React + TypeScript + Tailwind SPA — a customer self-service portal on
 the **Dataverse Contact API**. A signed-in customer sees **their own** records
 (`me`) and can toggle to their **whole company's** records (`team`) across
 contacts, sites, quotes, projects, support cases, and the knowledge base. Styled
-in the **Redcentric** brand (see `BRAND.md`); built to the brief in
+in the **Redcentric** brand (see `BRAND.md`; the layout and component recipes for reusing this UI elsewhere are in `DESIGN.md`); built to the brief in
 `PORTAL_SPEC.md`.
 
 All Dataverse access goes through the
