@@ -9,6 +9,7 @@ export type IconName =
   | 'briefcase' | 'layers' | 'fileText' | 'link' | 'activity' | 'checkCircle'
   | 'chevronRight' | 'chevronDown' | 'flag' | 'truck' | 'receipt' | 'maximize' | 'x' | 'gantt'
   | 'lock' | 'server' | 'download' | 'zap'
+  | 'home' | 'menu' | 'book' | 'sparkles' | 'message' | 'logOut' | 'lifeBuoy'
 
 /** Path/element markup per icon (inside a 24×24 stroked <svg>). */
 const PATHS: Record<IconName, React.ReactNode> = {
@@ -43,6 +44,14 @@ const PATHS: Record<IconName, React.ReactNode> = {
   download: (<path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />),
   zap: (<path d="M13 2 3 14h7l-1 8 10-12h-7l1-8Z" />),
   server: (<><rect x="3" y="4" width="18" height="7" rx="1.5" /><rect x="3" y="13" width="18" height="7" rx="1.5" /><path d="M7 7.5h.01M7 16.5h.01" /></>),
+  // Sidebar navigation glyphs.
+  home: (<path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7h-6v7H4a1 1 0 0 1-1-1Z" />),
+  menu: (<path d="M4 6h16M4 12h16M4 18h16" />),
+  book: (<><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2Z" /><path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7Z" /></>),
+  sparkles: (<><path d="m12 3 1.9 5.6 5.6 1.9-5.6 1.9L12 18l-1.9-5.6-5.6-1.9 5.6-1.9Z" /><path d="M19 15v4M17 17h4M5 4v3M3.5 5.5h3" /></>),
+  message: (<path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z" />),
+  logOut: (<><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><path d="m16 17 5-5-5-5M21 12H9" /></>),
+  lifeBuoy: (<><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="3.5" /><path d="m5.6 5.6 3.9 3.9M14.5 14.5l3.9 3.9M14.5 9.5l3.9-3.9M5.6 18.4l3.9-3.9" /></>),
 }
 
 export function Icon({ name, className = 'h-4 w-4' }: { name: IconName; className?: string }) {

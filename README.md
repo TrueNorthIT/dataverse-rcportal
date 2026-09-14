@@ -44,7 +44,7 @@ src/
 │
 │   ── 4. UI ────────────────────────────────────────────────────────────
 ├── components/common/      ListScreen, ListStates, DetailStates, TierToggle, …
-├── components/layout/      AppShell (brand top bar) + NavTabs + company switcher
+├── components/layout/      AppShell (sidebar layout) + Sidebar + company switcher + user menu
 └── pages/                  Dashboard, Profile, Company, Sites, Quotes, Projects,
                             Support (cases), Knowledge base
 ```

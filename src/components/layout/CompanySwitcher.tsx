@@ -101,7 +101,7 @@ function colorFor(name: string) {
 }
 
 /** Per-company monogram avatar — the switcher's "logo". */
-function CompanyAvatar({ name, small }: { name: string; small?: boolean }) {
+export function CompanyAvatar({ name, small }: { name: string; small?: boolean }) {
   const { bg, fg } = colorFor(name)
   return (
     <span

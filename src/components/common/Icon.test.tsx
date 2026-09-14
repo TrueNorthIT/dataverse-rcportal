@@ -8,6 +8,7 @@ const ALL_ICONS: IconName[] = [
   'briefcase', 'layers', 'fileText', 'link', 'activity', 'checkCircle',
   'chevronRight', 'chevronDown', 'flag', 'truck', 'receipt', 'maximize', 'x', 'gantt',
   'lock', 'server', 'download', 'zap',
+  'home', 'menu', 'book', 'sparkles', 'message', 'logOut', 'lifeBuoy',
 ]
 
 describe('Icon', () => {
@@ -46,6 +47,6 @@ describe('Icon', () => {
   })
 
   it('covers the full documented icon set', () => {
-    expect(ALL_ICONS).toHaveLength(31)
+    expect(ALL_ICONS).toHaveLength(38)
   })
 })

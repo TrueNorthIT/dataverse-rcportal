@@ -105,7 +105,7 @@ function initials(name: string): string {
   return letters.join('').toUpperCase() || '?'
 }
 
-function UserAvatar({ name }: { name: string }) {
+export function UserAvatar({ name }: { name: string }) {
   return (
     <span
       aria-hidden="true"
