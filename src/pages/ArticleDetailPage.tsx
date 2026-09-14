@@ -22,7 +22,7 @@ export function ArticleDetailPage() {
       <button
         type="button"
         onClick={() => navigate('/knowledge')}
-        className="mb-4 text-sm font-medium text-white/90 hover:underline"
+        className="mb-4 text-sm font-medium text-rc-teal transition-colors hover:text-rc-navy hover:underline"
       >
         ← Knowledge base
       </button>

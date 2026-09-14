@@ -7,7 +7,7 @@ import { Card } from '../common/Card'
 import { Icon } from '../common/Icon'
 import type { IconName } from '../common/Icon'
 
-/** Back link + optional prev/next stepper, sat on the header gradient. */
+/** Back link + optional prev/next stepper, sat on the page canvas. */
 export function DetailNav({
   label,
   prevId,
@@ -28,7 +28,7 @@ export function DetailNav({
       <button
         type="button"
         onClick={onBack}
-        className="flex min-w-0 items-center gap-1 text-sm font-medium text-white/90 hover:underline"
+        className="flex min-w-0 items-center gap-1 text-sm font-medium text-rc-teal transition-colors hover:text-rc-navy hover:underline"
       >
         <Icon name="chevronRight" className="h-4 w-4 shrink-0 rotate-180" />
         <span className="truncate">{label}</span>
@@ -61,8 +61,8 @@ function NavArrow({
       disabled={disabled}
       aria-label={label}
       className={
-        'flex h-8 w-8 items-center justify-center rounded-lg border text-white transition-colors ' +
-        (disabled ? 'cursor-not-allowed border-white/15 text-white/30' : 'border-white/30 hover:bg-white/10')
+        'flex h-8 w-8 items-center justify-center rounded-lg border bg-white text-rc-navy transition-colors ' +
+        (disabled ? 'cursor-not-allowed border-rc-blue-light/60 text-rc-navy/30' : 'border-rc-blue-light hover:border-rc-blue hover:bg-rc-blue-light/40')
       }
     >
       <Icon name="chevronRight" className={`h-[18px] w-[18px] ${dir === 'prev' ? 'rotate-180' : ''}`} />
@@ -146,10 +146,10 @@ export function SectionTitle({
   count?: number
 }) {
   return (
-    <h2 className="mb-3 flex items-center gap-2 text-xl font-light tracking-tight text-white">
+    <h2 className="mb-3 flex items-center gap-2 text-xl font-light tracking-tight text-rc-navy">
       <Icon name={icon} className="h-5 w-5" />
       {children}
-      {count !== undefined && <span className="text-base text-white/70">({count})</span>}
+      {count !== undefined && <span className="text-base text-rc-teal">({count})</span>}
     </h2>
   )
 }
@@ -195,7 +195,7 @@ export function DetailStates({
     if (/not found|does not belong/i.test(error)) {
       return <DetailUnavailable companyName={companyName} onBack={onBack} backLabel={backLabel} />
     }
-    return <p className="text-sm text-red-200">{error}</p>
+    return <p className="text-sm text-red-600">{error}</p>
   }
   return <>{children}</>
 }

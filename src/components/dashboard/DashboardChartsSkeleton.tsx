@@ -21,7 +21,7 @@ const DONUTS: { title: string; icon: IconName; body: string }[] = [
 export function DashboardChartsSkeleton() {
   return (
     <section className="mt-8" aria-hidden="true">
-      <h2 className="mb-3 text-base font-normal tracking-tight text-white">At a glance</h2>
+      <h2 className="mb-3 text-base font-normal tracking-tight text-rc-navy">At a glance</h2>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {DONUTS.map((c) => (
           <ChartCard key={c.title} title={c.title} icon={c.icon}>

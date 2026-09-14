@@ -256,12 +256,12 @@ function ScrollHint() {
         className="group flex flex-col items-center gap-1"
         aria-label="Scroll to insights"
       >
-        {/* On the blue rc-hero page background, so use light text + a white chip
+        {/* On the pale canvas, so muted text + a white chip
             with a blue chevron for contrast. */}
-        <span className="text-xs font-medium text-white/90 transition-colors group-hover:text-white">
+        <span className="text-xs font-medium text-rc-teal transition-colors group-hover:text-rc-navy">
           More insights
         </span>
-        <span className="rc-bounce flex h-8 w-8 items-center justify-center rounded-full border border-white/40 bg-white text-rc-blue shadow-sm transition-colors group-hover:border-white">
+        <span className="rc-bounce flex h-8 w-8 items-center justify-center rounded-full border border-rc-blue-light bg-white text-rc-blue shadow-sm transition-colors group-hover:border-rc-blue">
           <Icon name="chevronDown" className="h-4 w-4" />
         </span>
       </button>

@@ -19,7 +19,7 @@ export function SortMenu({
 }) {
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <span className="text-xs font-medium uppercase tracking-wide text-white/70">Sort</span>
+      <span className="text-xs font-medium uppercase tracking-wide text-rc-teal">Sort</span>
       <div className="flex flex-wrap gap-2" role="group" aria-label="Sort by">
         {options.map((o) => {
           const active = o.key === value

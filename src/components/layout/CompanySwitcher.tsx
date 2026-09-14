@@ -80,7 +80,7 @@ export function CompanySwitcher() {
 const STOPWORDS = new Set(['ltd', 'plc', 'group', 'the', 'and', '&', 'co', 'limited'])
 
 /** Up to two initials from the significant words of a company name. */
-function initials(name: string): string {
+export function companyInitials(name: string): string {
   const words = name
     .split(/\s+/)
     .filter((w) => w && !STOPWORDS.has(w.toLowerCase().replace(/[.,]/g, '')))
@@ -101,7 +101,7 @@ function colorFor(name: string) {
 }
 
 /** Per-company monogram avatar — the switcher's "logo". */
-export function CompanyAvatar({ name, small }: { name: string; small?: boolean }) {
+function CompanyAvatar({ name, small }: { name: string; small?: boolean }) {
   const { bg, fg } = colorFor(name)
   return (
     <span
@@ -112,7 +112,7 @@ export function CompanyAvatar({ name, small }: { name: string; small?: boolean }
       }
       style={{ backgroundColor: bg, color: fg }}
     >
-      {initials(name)}
+      {companyInitials(name)}
     </span>
   )
 }

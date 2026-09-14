@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { screen } from '@testing-library/react'
+import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { AccountInfo } from '@azure/msal-browser'
 import type { Company } from '@truenorth-it/dataverse-client'
@@ -59,7 +59,7 @@ describe('SidebarContent', () => {
     vi.restoreAllMocks()
   })
 
-  it('renders the wordmark, the product name, and the core section links', () => {
+  it('renders the wordmark, the product name, and the section links', () => {
     renderWithProviders(<SidebarContent />)
     expect(screen.getByAltText('Redcentric')).toBeInTheDocument()
     expect(screen.getByText('Customer Hub')).toBeInTheDocument()
@@ -69,16 +69,13 @@ describe('SidebarContent', () => {
     expect(screen.getByRole('link', { name: 'Projects' })).toHaveAttribute('href', '/projects')
     expect(screen.getByRole('link', { name: 'Sites' })).toHaveAttribute('href', '/sites')
     expect(screen.getByRole('link', { name: 'Support' })).toHaveAttribute('href', '/cases')
+    expect(screen.getByRole('link', { name: 'My company' })).toHaveAttribute('href', '/company')
   })
 
-  it('marks the link for the current route as active, with the lime edge marker', () => {
+  it('marks the link for the current route as active', () => {
     renderWithProviders(<SidebarContent />, { route: '/quotes' })
-    const active = screen.getByRole('link', { name: 'Quotes' })
-    expect(active).toHaveClass('bg-white/10', 'text-white')
-    expect(active.querySelector('.bg-rc-lime')).not.toBeNull()
-    const inactive = screen.getByRole('link', { name: 'Projects' })
-    expect(inactive).toHaveClass('text-white/70')
-    expect(inactive.querySelector('.bg-rc-lime')).toBeNull()
+    expect(screen.getByRole('link', { name: 'Quotes' })).toHaveClass('bg-white/10', 'text-white')
+    expect(screen.getByRole('link', { name: 'Projects' })).toHaveClass('text-white/70')
   })
 
   it('treats Dashboard as end-exact (not active on a sub-route)', () => {
@@ -106,13 +103,16 @@ describe('SidebarContent', () => {
     expect(onNavigate).toHaveBeenCalledTimes(1)
   })
 
-  it('shows the signed-in user with the account links, and signs out', async () => {
+  it('links the signed-in user row to the profile, and signs out from the button beside it', async () => {
     const user = userEvent.setup()
-    renderWithProviders(<SidebarContent />)
-    expect(screen.getByText('Regular User')).toBeInTheDocument()
-    expect(screen.getByText('user@customer.com')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'My profile' })).toHaveAttribute('href', '/profile')
-    expect(screen.getByRole('link', { name: 'My company' })).toHaveAttribute('href', '/company')
+    const onNavigate = vi.fn()
+    renderWithProviders(<SidebarContent onNavigate={onNavigate} />)
+    const profile = screen.getByRole('link', { name: /Regular User/ })
+    expect(profile).toHaveAttribute('href', '/profile')
+    expect(profile).toHaveTextContent('user@customer.com')
+
+    await user.click(profile)
+    expect(onNavigate).toHaveBeenCalledTimes(1)
 
     await user.click(screen.getByRole('button', { name: 'Sign out' }))
     expect(logoutRedirect).toHaveBeenCalledWith({ postLogoutRedirectUri: window.location.origin })
@@ -123,7 +123,7 @@ describe('SidebarContent', () => {
     expect(screen.queryByText('Your companies')).not.toBeInTheDocument()
   })
 
-  it('lists the companies for a multi-company user and switches on click', async () => {
+  it('lists the companies for a multi-company user, with initials badges, and switches on click', async () => {
     const user = userEvent.setup()
     companies = [company('c1', 'Acme Ltd'), company('c2', 'Globex Corp')]
     selectedCompanyId = 'c2'
@@ -131,11 +131,14 @@ describe('SidebarContent', () => {
     renderWithProviders(<SidebarContent onNavigate={onNavigate} />)
 
     expect(screen.getByText('Your companies')).toBeInTheDocument()
-    // The avatar monogram is aria-hidden, so the accessible name is the company alone.
+    // The badge is aria-hidden, so the accessible name is the company alone.
     const current = screen.getByRole('button', { name: 'Globex Corp' })
     expect(current).toHaveAttribute('aria-current', 'true')
+    expect(within(current).getByText('GC')).toBeInTheDocument()
     const other = screen.getByRole('button', { name: 'Acme Ltd' })
     expect(other).not.toHaveAttribute('aria-current')
+    // "Ltd" is a stopword, so Acme alone supplies the initial.
+    expect(within(other).getByText('A')).toBeInTheDocument()
 
     await user.click(other)
     expect(selectCompany).toHaveBeenCalledWith('c1')

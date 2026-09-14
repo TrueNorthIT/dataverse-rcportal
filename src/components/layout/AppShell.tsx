@@ -49,7 +49,7 @@ export function AppShell() {
   }, [pathname])
 
   return (
-    <div className="rc-hero min-h-screen">
+    <div className="bg-rc-canvas min-h-screen">
       {/* Mobile drawer */}
       <Dialog open={sidebarOpen} onClose={setSidebarOpen} className="relative z-[60] lg:hidden">
         <DialogBackdrop
@@ -118,7 +118,7 @@ export function AppShell() {
       </header>
 
       <div className="lg:pl-72">
-        <main className="mx-auto max-w-5xl px-4 py-8 lg:px-8 lg:py-10">
+        <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
           <Outlet />
         </main>
 
@@ -127,7 +127,7 @@ export function AppShell() {
             customers). The "Clarity not configured" note is Steve-only, so a
             missing key is obvious to the maintainer without nagging anyone else. */}
         {isOperator && (
-          <footer className="mx-auto max-w-5xl px-4 pb-8 pt-2 text-xs text-white/70 lg:px-8">
+          <footer className="mx-auto max-w-7xl px-4 pb-8 pt-2 text-xs text-rc-teal sm:px-6 lg:px-8">
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
               {DATAVERSE_URL && (
                 <a
@@ -138,7 +138,7 @@ export function AppShell() {
                   }
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-1 hover:text-white hover:underline"
+                  className="inline-flex items-center gap-1 hover:text-rc-navy hover:underline"
                 >
                   {account?.name ? `View ${account.name} in Dataverse` : 'Open Dataverse environment'} ↗
                 </a>
@@ -148,13 +148,13 @@ export function AppShell() {
                   href={`https://clarity.microsoft.com/projects/view/${CLARITY_PROJECT_ID}/dashboard`}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-1 hover:text-white hover:underline"
+                  className="inline-flex items-center gap-1 hover:text-rc-navy hover:underline"
                 >
                   Clarity analytics ↗
                 </a>
               ) : (
                 isSteve && (
-                  <span className="text-amber-300/90">
+                  <span className="text-amber-700">
                     Clarity not configured — set VITE_CLARITY_PROJECT_ID
                   </span>
                 )

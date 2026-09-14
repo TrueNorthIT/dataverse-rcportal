@@ -186,10 +186,10 @@ function Showcase() {
 
   return (
     <div>
-      <h3 className="mb-1 text-xl font-light tracking-tight text-white">
+      <h3 className="mb-1 text-xl font-light tracking-tight text-rc-navy">
         See what you can ask
       </h3>
-      <p className="mb-4 text-sm text-white/80">
+      <p className="mb-4 text-sm text-rc-teal">
         Real questions, real answers — straight from your live Redcentric data.
       </p>
       <Card className="overflow-hidden">
